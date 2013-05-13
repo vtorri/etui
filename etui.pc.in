@@ -1,0 +1,13 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+pkgincludedir=@pkgincludedir@-@VMAJ@
+
+Name: etui
+Description: Multi document rendering library
+Version: @VERSION@
+Requires.private: @requirements_etui_pc@
+Libs: -L${libdir} -letui
+Libs.private: @requirements_etui_libs@
+Cflags: -I${pkgincludedir}
