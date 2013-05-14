@@ -429,6 +429,14 @@ etui_provider_instance_file_close(Etui_Provider_Instance *inst)
 }
 
 Eina_Bool
+etui_provider_instance_password_needed(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CHECK(inst, password_needed, EINA_FALSE);
+
+    return inst->provider->password_needed(inst->data);
+}
+
+Eina_Bool
 etui_provider_instance_password_set(Etui_Provider_Instance *inst,
                                     const char *password)
 {

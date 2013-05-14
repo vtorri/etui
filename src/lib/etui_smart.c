@@ -368,6 +368,16 @@ etui_object_filename_get(Evas_Object *obj)
 }
 
 EAPI Eina_Bool
+etui_object_document_password_needed(Evas_Object *obj)
+{
+   Etui_Smart_Data *sd;
+
+   ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
+
+   return etui_provider_instance_password_needed(sd->provider_instance);
+}
+
+EAPI Eina_Bool
 etui_object_document_password_set(Evas_Object *obj, const char *password)
 {
    Etui_Smart_Data *sd;

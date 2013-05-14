@@ -218,6 +218,18 @@ _etui_pdf_file_close(void *d)
 }
 
 static Eina_Bool
+_etui_pdf_password_needed(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return EINA_FALSE;
+
+    pd = (Etui_Provider_Data *)d;
+    return pdf_needs_password(pd->doc.doc) ? EINA_TRUE : EINA_FALSE;
+}
+
+static Eina_Bool
 _etui_pdf_password_set(void *d, const char *password)
 {
     Etui_Provider_Data *pd;
@@ -251,6 +263,7 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .evas_object_get */ _etui_pdf_evas_object_get,
     /* .file_open       */ _etui_pdf_file_open,
     /* .file_close      */ _etui_pdf_file_close,
+    /* .password_needed */ _etui_pdf_password_needed,
     /* .password_set    */ _etui_pdf_password_set,
     /* .pages_count     */ _etui_pdf_pages_count
 };

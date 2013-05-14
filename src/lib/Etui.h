@@ -55,6 +55,7 @@ EAPI Evas_Object *etui_object_add(Evas *evas);
 EAPI Eina_Bool etui_object_file_set(Evas_Object *obj, const char *filename);
 EAPI const char *etui_object_file_get(Evas_Object *obj);
 EAPI const char *etui_object_filename_get(Evas_Object *obj);
+EAPI Eina_Bool etui_object_document_password_needed(Evas_Object *obj);
 EAPI Eina_Bool etui_object_document_password_set(Evas_Object *obj, const char *password);
 EAPI int etui_object_document_pages_count(Evas_Object *obj);
 
