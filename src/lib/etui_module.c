@@ -67,15 +67,15 @@ typedef struct _Etui_Provider_Registry_Entry Etui_Provider_Registry_Entry;
 
 struct _Etui_Provider_Registry_Entry
 {
-   const Etui_Provider_Descriptor *provider;
-   int priority;
+    const Etui_Provider_Descriptor *provider;
+    int priority;
 };
 
 struct _Etui_Provider_Instance
 {
-   const Etui_Provider_Descriptor *provider;
-   Evas *evas;
-   void *data;
+    const Etui_Provider_Descriptor *provider;
+    Evas *evas;
+    void *data;
 };
 
 static Eina_Array *_etui_modules = NULL;
@@ -151,10 +151,10 @@ _etui_modules_load(void)
     char *path;
     Eina_Prefix *prefix;
 
-   if (_etui_modules_loaded)
-       return EINA_TRUE;
+    if (_etui_modules_loaded)
+        return EINA_TRUE;
 
-   _etui_modules_loaded = EINA_TRUE;
+    _etui_modules_loaded = EINA_TRUE;
 
     path = eina_module_environment_path_get("HOME", "/.etui/modules");
     if (path)
@@ -233,7 +233,7 @@ etui_modules_init(void)
 
     /* TODO : STATIC modules */
 #ifdef ETUI_BUILD_STATIC_PDF
-   etui_module_pdf_init();
+    etui_module_pdf_init();
 #endif
 
     return EINA_TRUE;
@@ -296,7 +296,7 @@ etui_module_register(const Etui_Provider_Descriptor *provider)
                                                         _etui_provider_registry_entry_cmp,
                                                         re);
 
-   return EINA_TRUE;
+    return EINA_TRUE;
 }
 
 EAPI Eina_Bool
@@ -439,7 +439,7 @@ etui_provider_instance_password_set(Etui_Provider_Instance *inst,
 
 int etui_provider_instance_pages_count(Etui_Provider_Instance *inst)
 {
-  ETUI_PROVIDER_INSTANCE_CHECK(inst, pages_count, -1);
+    ETUI_PROVIDER_INSTANCE_CHECK(inst, pages_count, -1);
 
     return inst->provider->pages_count(inst->data);
 }
