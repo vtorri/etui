@@ -87,6 +87,9 @@ struct _Etui_Provider_Data
     struct
     {
         pdf_page *page;
+        Etui_Rotation rotation;
+        float hscale;
+        float vscale;
     } page;
 };
 
@@ -182,6 +185,10 @@ _etui_pdf_file_open(void *d, const char *filename)
         goto close_document;
     }
 
+    pd->page.rotation = ETUI_ROTATION_0;
+    pd->page.hscale = 1.0f;
+    pd->page.vscale = 1.0f;
+
     return EINA_TRUE;
 
   close_document:
@@ -253,6 +260,60 @@ _etui_pdf_pages_count(void *d)
     return pdf_count_pages(pd->doc.doc);
 }
 
+static void
+_etui_pdf_rotation_set(void *d, Etui_Rotation rotation)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return;
+
+    pd = (Etui_Provider_Data *)d;
+    pd->page.rotation = rotation;
+}
+
+static Etui_Rotation
+_etui_pdf_rotation_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return ETUI_ROTATION_0;
+
+    pd = (Etui_Provider_Data *)d;
+    return pd->page.rotation;
+}
+
+static void
+_etui_pdf_scale_set(void *d, float hscale, float vscale)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return;
+
+    pd = (Etui_Provider_Data *)d;
+    pd->page.hscale = hscale;
+    pd->page.vscale = vscale;
+}
+
+static void
+_etui_pdf_scale_get(void *d, float *hscale, float *vscale)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+    {
+        if (hscale) *hscale = 1.0f;
+        if (vscale) *vscale = 1.0f;
+        return;
+    }
+
+    pd = (Etui_Provider_Data *)d;
+    if (hscale) *hscale = pd->page.hscale;
+    if (vscale) *vscale = pd->page.vscale;
+}
+
 static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
 {
     /* .name            */ "pdf",
@@ -265,7 +326,11 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .file_close      */ _etui_pdf_file_close,
     /* .password_needed */ _etui_pdf_password_needed,
     /* .password_set    */ _etui_pdf_password_set,
-    /* .pages_count     */ _etui_pdf_pages_count
+    /* .pages_count     */ _etui_pdf_pages_count,
+    /* .rotation_set    */ _etui_pdf_rotation_set,
+    /* .rotation_get    */ _etui_pdf_rotation_get,
+    /* .scale_set       */ _etui_pdf_scale_set,
+    /* .scale_get       */ _etui_pdf_scale_get
 };
 
 /**

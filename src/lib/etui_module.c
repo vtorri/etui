@@ -415,41 +415,63 @@ Eina_Bool
 etui_provider_instance_file_open(Etui_Provider_Instance *inst,
                                  const char *filename)
 {
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, file_open, EINA_FALSE);
-
-    return inst->provider->file_open(inst->data, filename);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, file_open, EINA_FALSE, filename);
 }
 
 void
 etui_provider_instance_file_close(Etui_Provider_Instance *inst)
 {
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, file_close);
-    inst->provider->file_close(inst->data);
-    //    ETUI_PROVIDER_INSTANCE_CALL(inst, file_close);
+    ETUI_PROVIDER_INSTANCE_CALL(inst, file_close);
 }
 
 Eina_Bool
 etui_provider_instance_password_needed(Etui_Provider_Instance *inst)
 {
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, password_needed, EINA_FALSE);
-
-    return inst->provider->password_needed(inst->data);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, password_needed, EINA_FALSE);
 }
 
 Eina_Bool
 etui_provider_instance_password_set(Etui_Provider_Instance *inst,
                                     const char *password)
 {
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, password_set, EINA_FALSE);
-
-    return inst->provider->password_set(inst->data, password);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, password_set, EINA_FALSE, password);
 }
 
 int etui_provider_instance_pages_count(Etui_Provider_Instance *inst)
 {
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, pages_count, -1);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, pages_count, -1);
+}
 
-    return inst->provider->pages_count(inst->data);
+void
+etui_provider_instance_rotation_set(Etui_Provider_Instance *inst,
+                                    Etui_Rotation rotation)
+{
+    ETUI_PROVIDER_INSTANCE_CALL(inst, rotation_set, rotation);
+}
+
+Etui_Rotation
+etui_provider_instance_rotation_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, rotation_get, ETUI_ROTATION_0);
+}
+
+void
+etui_provider_instance_scale_set(Etui_Provider_Instance *inst,
+                                 float hscale,
+                                 float vscale)
+{
+    ETUI_PROVIDER_INSTANCE_CALL(inst, scale_set, hscale, vscale);
+}
+
+void
+etui_provider_instance_scale_get(Etui_Provider_Instance *inst,
+                                 float *hscale,
+                                 float *vscale)
+{
+    /* FIXME: if error, set the scales to 1.0f */
+    ETUI_PROVIDER_INSTANCE_CHECK(inst, scale_get);
+
+    inst->provider->scale_get(inst->data, hscale, vscale);
 }
 
 /*============================================================================*

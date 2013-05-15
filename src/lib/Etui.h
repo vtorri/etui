@@ -48,6 +48,15 @@
 #endif
 
 
+typedef enum
+{
+    ETUI_ROTATION_0,
+    ETUI_ROTATION_90,
+    ETUI_ROTATION_180,
+    ETUI_ROTATION_270
+} Etui_Rotation;
+
+
 EAPI int etui_init(void);
 EAPI int etui_shutdown(void);
 
@@ -58,6 +67,11 @@ EAPI const char *etui_object_filename_get(Evas_Object *obj);
 EAPI Eina_Bool etui_object_document_password_needed(Evas_Object *obj);
 EAPI Eina_Bool etui_object_document_password_set(Evas_Object *obj, const char *password);
 EAPI int etui_object_document_pages_count(Evas_Object *obj);
+
+EAPI void etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation);
+EAPI Etui_Rotation etui_object_page_rotation_get(Evas_Object *obj);
+EAPI void etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale);
+EAPI void etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale);
 
 
 #endif /* ETUI_H */
