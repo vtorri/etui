@@ -80,13 +80,13 @@ struct _Etui_Provider_Data
     struct
     {
         fz_context *ctx;
-        pdf_document *doc;
+        fz_document *doc;
     } doc;
 
     /* Current page */
     struct
     {
-        pdf_page *page;
+        fz_page *page;
         int page_num;
         Etui_Rotation rotation;
         float hscale;
@@ -170,7 +170,7 @@ _etui_pdf_file_open(void *d, const char *filename)
 
     pd = (Etui_Provider_Data *)d;
 
-    pd->doc.doc = pdf_open_document(pd->doc.ctx, filename);
+    pd->doc.doc = fz_open_document(pd->doc.ctx, filename);
     if (!pd->doc.doc)
     {
         ERR("Could not open file %s", filename);
@@ -179,7 +179,7 @@ _etui_pdf_file_open(void *d, const char *filename)
 
     /* FIXME: get PDF info */
 
-    pd->page.page = pdf_load_page(pd->doc.doc, 0);
+    pd->page.page = fz_load_page(pd->doc.doc, 0);
     if (!pd->page.page)
     {
         ERR("Could not load page 0");
@@ -194,7 +194,7 @@ _etui_pdf_file_open(void *d, const char *filename)
     return EINA_TRUE;
 
   close_document:
-  pdf_close_document(pd->doc.doc);
+  fz_close_document(pd->doc.doc);
 
   return EINA_FALSE;
 }
@@ -215,13 +215,13 @@ _etui_pdf_file_close(void *d)
 
     if (pd->doc.doc)
     {
-        pdf_close_document(pd->doc.doc);
+        fz_close_document(pd->doc.doc);
         pd->doc.doc = NULL;
     }
 
     if (pd->page.page)
     {
-        pdf_free_page(pd->doc.doc, pd->page.page);
+        fz_free_page(pd->doc.doc, pd->page.page);
         pd->page.page = NULL;
     }
 }
@@ -235,7 +235,7 @@ _etui_pdf_password_needed(void *d)
         return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
-    return pdf_needs_password(pd->doc.doc) ? EINA_TRUE : EINA_FALSE;
+    return fz_needs_password(pd->doc.doc) ? EINA_TRUE : EINA_FALSE;
 }
 
 static Eina_Bool
@@ -247,7 +247,7 @@ _etui_pdf_password_set(void *d, const char *password)
         return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
-    return pdf_authenticate_password(pd->doc.doc, (char *)password) ? EINA_TRUE : EINA_FALSE;
+    return fz_authenticate_password(pd->doc.doc, (char *)password) ? EINA_TRUE : EINA_FALSE;
 }
 
 static int
@@ -259,14 +259,14 @@ _etui_pdf_pages_count(void *d)
         return -1;
 
     pd = (Etui_Provider_Data *)d;
-    return pdf_count_pages(pd->doc.doc);
+    return fz_count_pages(pd->doc.doc);
 }
 
 static void
 _etui_pdf_page_set(void *d, int page_num)
 {
     Etui_Provider_Data *pd;
-    pdf_page *page;
+    fz_page *page;
 
     if (!d)
         return;
@@ -276,7 +276,7 @@ _etui_pdf_page_set(void *d, int page_num)
 
     pd = (Etui_Provider_Data *)d;
 
-    page = pdf_load_page(pd->doc.doc, page_num);
+    page = fz_load_page(pd->doc.doc, page_num);
     if (!page)
     {
         ERR("could not set page %d from the document", page_num);
@@ -284,7 +284,7 @@ _etui_pdf_page_set(void *d, int page_num)
     }
 
     if (pd->page.page)
-        pdf_free_page(pd->doc.doc, pd->page.page);
+        fz_free_page(pd->doc.doc, pd->page.page);
 
     pd->page.page = page;
     pd->page.page_num = page_num;
@@ -316,7 +316,7 @@ _etui_pdf_page_size_get(void *d, int *width, int *height)
     }
 
     pd = (Etui_Provider_Data *)d;
-    pdf_bound_page(pd->doc.doc, pd->page.page, &rect);
+    fz_bound_page(pd->doc.doc, pd->page.page, &rect);
     if (width) *width = (int)(rect.x1 - rect.x0);
     if (height) *height = (int)(rect.y1 - rect.y0);
 }
