@@ -37,6 +37,8 @@ struct _Etui_Provider_Descriptor
     Eina_Bool     (*password_needed)(void *d);
     Eina_Bool     (*password_set)(void *d, const char *password);
     int           (*pages_count)(void *d);
+    void          (*page_set)(void *d, int num);
+    int           (*page_get)(void *d);
     void          (*rotation_set)(void *d, Etui_Rotation rotation);
     Etui_Rotation (*rotation_get)(void *d);
     void          (*scale_set)(void *d, float hscale, float vscale);
@@ -65,6 +67,9 @@ Eina_Bool etui_provider_instance_password_needed(Etui_Provider_Instance *inst);
 Eina_Bool etui_provider_instance_password_set(Etui_Provider_Instance *inst,
                                               const char *password);
 int etui_provider_instance_pages_count(Etui_Provider_Instance *inst);
+
+void etui_provider_instance_page_set(Etui_Provider_Instance *inst, int page_num);
+int etui_provider_instance_page_get(Etui_Provider_Instance *inst);
 
 void etui_provider_instance_rotation_set(Etui_Provider_Instance *inst, Etui_Rotation rotation);
 Etui_Rotation etui_provider_instance_rotation_get(Etui_Provider_Instance *inst);

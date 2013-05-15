@@ -64,10 +64,13 @@ EAPI Evas_Object *etui_object_add(Evas *evas);
 EAPI Eina_Bool etui_object_file_set(Evas_Object *obj, const char *filename);
 EAPI const char *etui_object_file_get(Evas_Object *obj);
 EAPI const char *etui_object_filename_get(Evas_Object *obj);
+
 EAPI Eina_Bool etui_object_document_password_needed(Evas_Object *obj);
 EAPI Eina_Bool etui_object_document_password_set(Evas_Object *obj, const char *password);
 EAPI int etui_object_document_pages_count(Evas_Object *obj);
 
+EAPI void etui_object_page_set(Evas_Object *obj, int page_num);
+EAPI int etui_object_page_get(Evas_Object *obj);
 EAPI void etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation);
 EAPI Etui_Rotation etui_object_page_rotation_get(Evas_Object *obj);
 EAPI void etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale);

@@ -87,6 +87,7 @@ struct _Etui_Provider_Data
     struct
     {
         pdf_page *page;
+        int page_num;
         Etui_Rotation rotation;
         float hscale;
         float vscale;
@@ -185,6 +186,7 @@ _etui_pdf_file_open(void *d, const char *filename)
         goto close_document;
     }
 
+    pd->page.page_num = 0;
     pd->page.rotation = ETUI_ROTATION_0;
     pd->page.hscale = 1.0f;
     pd->page.vscale = 1.0f;
@@ -254,10 +256,38 @@ _etui_pdf_pages_count(void *d)
     Etui_Provider_Data *pd;
 
     if (!d)
-        return EINA_FALSE;
+        return -1;
 
     pd = (Etui_Provider_Data *)d;
     return pdf_count_pages(pd->doc.doc);
+}
+
+static void
+_etui_pdf_page_set(void *d, int page_num)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if ((page_num < 0) || (page_num >= pdf_count_pages(pd->doc.doc)))
+        return;
+
+    pd->page.page_num = page_num;
+}
+
+static int
+_etui_pdf_page_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return -1;
+
+    pd = (Etui_Provider_Data *)d;
+    return pd->page.page_num;
 }
 
 static void
@@ -327,6 +357,8 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .password_needed */ _etui_pdf_password_needed,
     /* .password_set    */ _etui_pdf_password_set,
     /* .pages_count     */ _etui_pdf_pages_count,
+    /* .page_set        */ _etui_pdf_page_set,
+    /* .page_get        */ _etui_pdf_page_get,
     /* .rotation_set    */ _etui_pdf_rotation_set,
     /* .rotation_get    */ _etui_pdf_rotation_get,
     /* .scale_set       */ _etui_pdf_scale_set,

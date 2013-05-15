@@ -398,6 +398,26 @@ etui_object_document_pages_count(Evas_Object *obj)
 }
 
 EAPI void
+etui_object_page_set(Evas_Object *obj, int page_num)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
+
+    etui_provider_instance_page_set(sd->provider_instance, page_num);
+}
+
+EAPI int
+etui_object_page_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, -1);
+
+    return etui_provider_instance_page_get(sd->provider_instance);
+}
+
+EAPI void
 etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation)
 {
     Etui_Smart_Data *sd;

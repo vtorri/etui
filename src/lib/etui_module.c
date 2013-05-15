@@ -442,6 +442,16 @@ int etui_provider_instance_pages_count(Etui_Provider_Instance *inst)
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, pages_count, -1);
 }
 
+void etui_provider_instance_page_set(Etui_Provider_Instance *inst, int page_num)
+{
+    ETUI_PROVIDER_INSTANCE_CALL(inst, page_set, page_num);
+}
+
+int etui_provider_instance_page_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_get, -1);
+}
+
 void
 etui_provider_instance_rotation_set(Etui_Provider_Instance *inst,
                                     Etui_Rotation rotation)
