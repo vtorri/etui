@@ -418,6 +418,32 @@ etui_object_page_get(Evas_Object *obj)
 }
 
 EAPI void
+etui_object_page_size_get(Evas_Object *obj, int *width, int *height)
+{
+    Etui_Smart_Data *sd;
+    char *_etui_smart_str;
+
+    if (!obj)
+        goto _err;
+    sd = evas_object_smart_data_get(obj);
+    if (!sd)
+        goto _err;
+    _etui_smart_str = (char *)evas_object_type_get(obj);
+    if (!_etui_smart_str)
+        goto _err;
+    if (strcmp(_etui_smart_str, ETUI_OBJ_NAME))
+        goto _err;
+
+    etui_provider_instance_page_size_get(sd->provider_instance, width, height);
+
+    return;
+
+  _err:
+    if (width) *width = 0;
+    if (height) *height = 0;
+}
+
+EAPI void
 etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation)
 {
     Etui_Smart_Data *sd;

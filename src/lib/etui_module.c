@@ -437,19 +437,31 @@ etui_provider_instance_password_set(Etui_Provider_Instance *inst,
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, password_set, EINA_FALSE, password);
 }
 
-int etui_provider_instance_pages_count(Etui_Provider_Instance *inst)
+int
+etui_provider_instance_pages_count(Etui_Provider_Instance *inst)
 {
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, pages_count, -1);
 }
 
-void etui_provider_instance_page_set(Etui_Provider_Instance *inst, int page_num)
+void
+etui_provider_instance_page_set(Etui_Provider_Instance *inst, int page_num)
 {
     ETUI_PROVIDER_INSTANCE_CALL(inst, page_set, page_num);
 }
 
-int etui_provider_instance_page_get(Etui_Provider_Instance *inst)
+int
+etui_provider_instance_page_get(Etui_Provider_Instance *inst)
 {
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_get, -1);
+}
+
+void
+etui_provider_instance_page_size_get(Etui_Provider_Instance *inst, int *width, int *height)
+{
+    /* FIXME: if error, set the size to 0 */
+    ETUI_PROVIDER_INSTANCE_CHECK(inst, page_size_get);
+
+    inst->provider->page_size_get(inst->data, width, height);
 }
 
 void
