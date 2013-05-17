@@ -444,6 +444,19 @@ etui_provider_instance_pages_count(Etui_Provider_Instance *inst)
 }
 
 void
+etui_provider_instance_page_use_display_list_set(Etui_Provider_Instance *inst,
+                                                 Eina_Bool on)
+{
+    ETUI_PROVIDER_INSTANCE_CALL(inst, page_use_display_list_set, on);
+}
+
+Eina_Bool
+etui_provider_instance_page_use_display_list_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_use_display_list_get, EINA_FALSE);
+}
+
+void
 etui_provider_instance_page_set(Etui_Provider_Instance *inst, int page_num)
 {
     ETUI_PROVIDER_INSTANCE_CALL(inst, page_set, page_num);
