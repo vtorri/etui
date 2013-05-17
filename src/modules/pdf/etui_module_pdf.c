@@ -79,6 +79,7 @@ struct _Etui_Provider_Data
     /* Document */
     struct
     {
+        char *filename;
         fz_context *ctx;
         fz_document *doc;
     } doc;
@@ -173,11 +174,15 @@ _etui_pdf_file_open(void *d, const char *filename)
 
     pd = (Etui_Provider_Data *)d;
 
+    pd->doc.filename = strdup(filename);
+    if (!pd->doc.filename)
+        return EINA_FALSE;
+
     pd->doc.doc = fz_open_document(pd->doc.ctx, filename);
     if (!pd->doc.doc)
     {
         ERR("Could not open file %s", filename);
-        return EINA_FALSE;
+        goto free_filename;
     }
 
     /* FIXME: get PDF info */
@@ -186,6 +191,8 @@ _etui_pdf_file_open(void *d, const char *filename)
 
   /* close_document: */
   /* fz_close_document(pd->doc.doc); */
+  free_filename:
+    free(filename);
 
   return EINA_FALSE;
 }
@@ -200,28 +207,30 @@ _etui_pdf_file_close(void *d)
 
     pd = (Etui_Provider_Data *)d;
 
-    /* FIXME: ask mupdf devs to see if one can get the filename from a document*/
-    //DBG("close file %s", pd->filename);
-    printf("close file\n");
+    DBG("close file %s", pd->doc.filename);
 
     if (pd->doc.doc)
     {
         fz_close_document(pd->doc.doc);
-        pd->doc.doc = NULL;
     }
+    pd->doc.doc = NULL;
 
     if (pd->page.page)
     {
         fz_free_page(pd->doc.doc, pd->page.page);
-        pd->page.page = NULL;
     }
+    pd->page.page = NULL;
 
     if (pd->page.use_display_list)
     {
         if (pd->page.list)
             fz_free_display_list(pd->doc.ctx, pd->page.list);
-        pd->page.list = NULL;
     }
+    pd->page.list = NULL;
+
+    if (pd->doc.filename)
+        free(pd->doc.filename);
+    pd->doc.filename = NULL;
 }
 
 static Eina_Bool
