@@ -236,6 +236,17 @@ _etui_smart_clip_unset(Evas_Object * obj)
 }
 
 static void
+_etui_smart_calculate(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    sd = evas_object_smart_data_get(obj);
+    if (!sd) return;
+
+    etui_provider_instance_render(sd->provider_instance);
+}
+
+static void
 _etui_smart_init(void)
 {
     static Evas_Smart_Class sc = EVAS_SMART_CLASS_INIT_NAME_VERSION(ETUI_OBJ_NAME);
@@ -254,7 +265,7 @@ _etui_smart_init(void)
         sc.clip_set = _etui_smart_clip_set;
         sc.clip_unset = _etui_smart_clip_unset;
 /*         sc.callbacks = _etui_smart_callbacks; */
-/*         sc.calculate = _etui_smart_calculate; */
+        sc.calculate = _etui_smart_calculate;
     }
     _etui_smart = evas_smart_class_new(&sc);
 }

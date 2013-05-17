@@ -496,6 +496,12 @@ etui_provider_instance_scale_get(Etui_Provider_Instance *inst,
     inst->provider->scale_get(inst->data, hscale, vscale);
 }
 
+void
+etui_provider_instance_render(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL(inst, render);
+}
+
 /*============================================================================*
  *                                   API                                      *
  *============================================================================*/

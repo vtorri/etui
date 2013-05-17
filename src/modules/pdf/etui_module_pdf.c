@@ -91,6 +91,7 @@ struct _Etui_Provider_Data
         Etui_Rotation rotation;
         float hscale;
         float vscale;
+        int is_modified :1;
     } page;
 };
 
@@ -190,6 +191,7 @@ _etui_pdf_file_open(void *d, const char *filename)
     pd->page.rotation = ETUI_ROTATION_0;
     pd->page.hscale = 1.0f;
     pd->page.vscale = 1.0f;
+    pd->page.is_modified = 1;
 
     return EINA_TRUE;
 
@@ -271,10 +273,13 @@ _etui_pdf_page_set(void *d, int page_num)
     if (!d)
         return;
 
-    if (page_num < 0)
+    pd = (Etui_Provider_Data *)d;
+
+    if ((page_num < 0) || (page_num >= fz_count_pages(pd->doc.doc)))
         return;
 
-    pd = (Etui_Provider_Data *)d;
+    if (page_num == pd->page.page_num)
+        return;
 
     page = fz_load_page(pd->doc.doc, page_num);
     if (!page)
@@ -288,6 +293,7 @@ _etui_pdf_page_set(void *d, int page_num)
 
     pd->page.page = page;
     pd->page.page_num = page_num;
+    pd->page.is_modified = 1;
 }
 
 static int
@@ -331,6 +337,7 @@ _etui_pdf_rotation_set(void *d, Etui_Rotation rotation)
 
     pd = (Etui_Provider_Data *)d;
     pd->page.rotation = rotation;
+    pd->page.is_modified = 1;
 }
 
 static Etui_Rotation
@@ -356,6 +363,7 @@ _etui_pdf_scale_set(void *d, float hscale, float vscale)
     pd = (Etui_Provider_Data *)d;
     pd->page.hscale = hscale;
     pd->page.vscale = vscale;
+    pd->page.is_modified = 1;
 }
 
 static void
@@ -373,6 +381,26 @@ _etui_pdf_scale_get(void *d, float *hscale, float *vscale)
     pd = (Etui_Provider_Data *)d;
     if (hscale) *hscale = pd->page.hscale;
     if (vscale) *vscale = pd->page.vscale;
+}
+
+static void
+_etui_pdf_render(void *d)
+{
+    Etui_Provider_Data *pd;
+    fz_matrix ctm;
+    fz_rect bounds;
+    fz_irect ibounds;
+
+    if (!d)
+        return;
+
+    pd = (Etui_Provider_Data *)d;
+
+    fz_bound_page(pd->doc.doc, pd->page.page, &bounds);
+    fz_pre_scale(fz_rotate(&ctm, pd->page.rotation), pd->page.hscale, pd->page.vscale);
+    fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
+
+    pd->page.is_modified = 0;
 }
 
 static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
@@ -394,7 +422,8 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .rotation_set    */ _etui_pdf_rotation_set,
     /* .rotation_get    */ _etui_pdf_rotation_get,
     /* .scale_set       */ _etui_pdf_scale_set,
-    /* .scale_get       */ _etui_pdf_scale_get
+    /* .scale_get       */ _etui_pdf_scale_get,
+    /* .render          */ _etui_pdf_render
 };
 
 /**

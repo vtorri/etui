@@ -44,6 +44,7 @@ struct _Etui_Provider_Descriptor
     Etui_Rotation (*rotation_get)(void *d);
     void          (*scale_set)(void *d, float hscale, float vscale);
     void          (*scale_get)(void *d, float *hscale, float *vscale);
+    void          (*render)(void *d);
 };
 
 Eina_Bool etui_modules_init(void);
@@ -69,14 +70,24 @@ Eina_Bool etui_provider_instance_password_set(Etui_Provider_Instance *inst,
                                               const char *password);
 int etui_provider_instance_pages_count(Etui_Provider_Instance *inst);
 
-void etui_provider_instance_page_set(Etui_Provider_Instance *inst, int page_num);
+void etui_provider_instance_page_set(Etui_Provider_Instance *inst,
+                                     int page_num);
 int etui_provider_instance_page_get(Etui_Provider_Instance *inst);
-void etui_provider_instance_page_size_get(Etui_Provider_Instance *inst, int *width, int *height);
+void etui_provider_instance_page_size_get(Etui_Provider_Instance *inst,
+                                          int *width,
+                                          int *height);
 
-void etui_provider_instance_rotation_set(Etui_Provider_Instance *inst, Etui_Rotation rotation);
+void etui_provider_instance_rotation_set(Etui_Provider_Instance *inst,
+                                         Etui_Rotation rotation);
 Etui_Rotation etui_provider_instance_rotation_get(Etui_Provider_Instance *inst);
 
-void etui_provider_instance_scale_set(Etui_Provider_Instance *inst, float hscale, float vscale);
-void etui_provider_instance_scale_get(Etui_Provider_Instance *inst, float *hscale, float *vscale);
+void etui_provider_instance_scale_set(Etui_Provider_Instance *inst,
+                                      float hscale,
+                                      float vscale);
+void etui_provider_instance_scale_get(Etui_Provider_Instance *inst,
+                                      float *hscale,
+                                      float *vscale);
+
+void etui_provider_instance_render(Etui_Provider_Instance *inst);
 
 #endif
