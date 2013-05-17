@@ -116,7 +116,7 @@ static Evas_Smart *_etui_smart = NULL;
 /* } */
 
 static void
-_etui_smart_add(Evas_Object * obj)
+_etui_smart_add(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
@@ -131,7 +131,7 @@ _etui_smart_add(Evas_Object * obj)
 }
 
 static void
-_etui_smart_del(Evas_Object * obj)
+_etui_smart_del(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
@@ -156,7 +156,7 @@ _etui_smart_del(Evas_Object * obj)
 }
 
 static void
-_etui_smart_move(Evas_Object * obj, Evas_Coord x, Evas_Coord y)
+_etui_smart_move(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
 {
     Etui_Smart_Data *sd;
 
@@ -167,7 +167,7 @@ _etui_smart_move(Evas_Object * obj, Evas_Coord x, Evas_Coord y)
 }
 
 static void
-_etui_smart_resize(Evas_Object * obj, Evas_Coord w, Evas_Coord h)
+_etui_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
 {
     Etui_Smart_Data *sd;
 
@@ -180,7 +180,7 @@ _etui_smart_resize(Evas_Object * obj, Evas_Coord w, Evas_Coord h)
 }
 
 static void
-_etui_smart_show(Evas_Object * obj)
+_etui_smart_show(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
@@ -192,7 +192,7 @@ _etui_smart_show(Evas_Object * obj)
 }
 
 static void
-_etui_smart_hide(Evas_Object * obj)
+_etui_smart_hide(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
@@ -203,7 +203,7 @@ _etui_smart_hide(Evas_Object * obj)
 }
 
 static void
-_etui_smart_color_set(Evas_Object * obj, int r, int g, int b, int a)
+_etui_smart_color_set(Evas_Object *obj, int r, int g, int b, int a)
 {
     Etui_Smart_Data *sd;
 
@@ -214,7 +214,7 @@ _etui_smart_color_set(Evas_Object * obj, int r, int g, int b, int a)
 }
 
 static void
-_etui_smart_clip_set(Evas_Object * obj, Evas_Object * clip)
+_etui_smart_clip_set(Evas_Object *obj, Evas_Object *clip)
 {
     Etui_Smart_Data *sd;
 
@@ -225,7 +225,7 @@ _etui_smart_clip_set(Evas_Object * obj, Evas_Object * clip)
 }
 
 static void
-_etui_smart_clip_unset(Evas_Object * obj)
+_etui_smart_clip_unset(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
