@@ -436,6 +436,7 @@ etui_object_page_set(Evas_Object *obj, int page_num)
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
     etui_provider_instance_page_set(sd->provider_instance, page_num);
+    evas_object_smart_need_recalculate_set(obj, 1);
 }
 
 EAPI int
@@ -482,6 +483,7 @@ etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation)
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
     etui_provider_instance_rotation_set(sd->provider_instance, rotation);
+    evas_object_smart_need_recalculate_set(obj, 1);
 }
 
 EAPI Etui_Rotation
@@ -502,6 +504,7 @@ etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale)
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
     etui_provider_instance_scale_set(sd->provider_instance, hscale, vscale);
+    evas_object_smart_need_recalculate_set(obj, 1);
 }
 
 EAPI void

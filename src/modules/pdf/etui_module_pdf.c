@@ -187,12 +187,14 @@ _etui_pdf_file_open(void *d, const char *filename)
 
     /* FIXME: get PDF info */
 
+    pd->page.page_num = -1;
+
     return EINA_TRUE;
 
   /* close_document: */
   /* fz_close_document(pd->doc.doc); */
   free_filename:
-    free(filename);
+    free(pd->doc.filename);
 
   return EINA_FALSE;
 }
@@ -300,6 +302,11 @@ _etui_pdf_page_set(void *d, int page_num)
 {
     Etui_Provider_Data *pd;
     fz_page *page;
+    fz_rect bounds;
+    fz_irect ibounds;
+    fz_matrix ctm;
+    int width;
+    int height;
 
     if (!d)
         return;
@@ -335,6 +342,17 @@ _etui_pdf_page_set(void *d, int page_num)
     pd->page.hscale = 1.0f;
     pd->page.vscale = 1.0f;
     pd->page.is_modified = 1;
+
+    fz_bound_page(pd->doc.doc, pd->page.page, &bounds);
+    fz_pre_scale(fz_rotate(&ctm, pd->page.rotation), pd->page.hscale, pd->page.vscale);
+    fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
+
+    width = ibounds.x1 - ibounds.x0;
+    height = ibounds.y1 - ibounds.y0;
+
+    printf("%s : %d %d\n", __FUNCTION__, width, height);
+
+    evas_object_resize(pd->obj, width, height);
 }
 
 static int
@@ -459,6 +477,8 @@ _etui_pdf_render(void *d)
 
     width = ibounds.x1 - ibounds.x0;
     height = ibounds.y1 - ibounds.y0;
+
+    printf("%s : %d %d\n", __FUNCTION__, width, height);
 
     evas_object_image_size_set(pd->obj, width, height);
     evas_object_image_fill_set(pd->obj, 0, 0, width, height);

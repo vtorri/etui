@@ -85,6 +85,8 @@ int main(int argc, char *argv[])
     Evas *evas;
     Evas_Object *o;
     int args;
+    int w;
+    int h;
 
     if (!ecore_evas_init())
     {
@@ -137,6 +139,15 @@ int main(int argc, char *argv[])
         printf("can not open file %s\n", argv[args]);
         goto shutdown_ecore_evas;
     }
+
+    etui_object_page_set(o, 1);
+    /* evas_object_geometry_get(o, NULL, NULL, &w, &h); */
+    /* printf("size : %d %d\n", w, h); */
+    /* evas_object_size_hint_min_set(o, w, h); */
+    /* evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, 0.0); */
+    /* evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, 0.0); */
+    /* evas_object_focus_set(o, EINA_TRUE); */
+    etui_object_page_use_display_list_set(o, EINA_TRUE);
     evas_object_show(o);
 
     printf("pages : %d\n", etui_object_document_pages_count(o));
