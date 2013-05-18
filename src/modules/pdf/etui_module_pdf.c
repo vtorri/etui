@@ -93,8 +93,8 @@ struct _Etui_Provider_Data
         Etui_Rotation rotation;
         float hscale;
         float vscale;
-        int is_modified :1;
-        int use_display_list :1;
+        unsigned int is_modified :1;
+        unsigned int use_display_list :1;
     } page;
 };
 
@@ -478,7 +478,7 @@ _etui_pdf_render(void *d)
     width = ibounds.x1 - ibounds.x0;
     height = ibounds.y1 - ibounds.y0;
 
-    printf("%s : %d %d\n", __FUNCTION__, width, height);
+    printf("%s : %d %d (%u)\n", __FUNCTION__, width, height, pd->page.use_display_list);
 
     evas_object_image_size_set(pd->obj, width, height);
     evas_object_image_fill_set(pd->obj, 0, 0, width, height);
