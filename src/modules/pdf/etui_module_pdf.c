@@ -502,10 +502,10 @@ _etui_pdf_render(void *d)
     evas_object_image_data_set(pd->obj, m);
     evas_object_image_data_update_add(pd->obj, 0, 0,
                                       fz_pixmap_width(pd->doc.ctx, image),
-                                      fz_pixmap_width(pd->doc.ctx, image));
+                                      fz_pixmap_height(pd->doc.ctx, image));
     evas_object_resize(pd->obj,
                        fz_pixmap_width(pd->doc.ctx, image),
-                       fz_pixmap_width(pd->doc.ctx, image));
+                       fz_pixmap_height(pd->doc.ctx, image));
     fz_drop_pixmap(pd->doc.ctx, image);
 
     pd->page.is_modified = 0;

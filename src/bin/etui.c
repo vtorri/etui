@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
     /* evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, 0.0); */
     /* evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, 0.0); */
     /* evas_object_focus_set(o, EINA_TRUE); */
-    etui_object_page_use_display_list_set(o, EINA_TRUE);
+    etui_object_page_use_display_list_set(o, EINA_FALSE);
     evas_object_show(o);
 
     printf("pages : %d\n", etui_object_document_pages_count(o));
