@@ -176,7 +176,6 @@ _etui_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
 
     /* FIXME: not always image object */
 
-    printf("%s : %d %d\n", __FUNCTION__, w, h);
     evas_object_image_fill_set(sd->obj, 0, 0, w, h);
     evas_object_resize(sd->obj, w, h);
 }
@@ -245,7 +244,6 @@ _etui_smart_calculate(Evas_Object *obj)
     sd = evas_object_smart_data_get(obj);
     if (!sd) return;
 
-    printf("Rendering !!\n");
     etui_provider_instance_render(sd->provider_instance);
 }
 
@@ -271,6 +269,18 @@ _etui_smart_init(void)
         sc.calculate = _etui_smart_calculate;
     }
     _etui_smart = evas_smart_class_new(&sc);
+}
+
+/* private calls */
+
+static void
+_etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_info EINA_UNUSED)
+{
+    int w;
+    int h;
+
+    evas_object_geometry_get(obj, NULL, NULL, &w, &h);
+    evas_object_resize((Evas_Object *)data, w, h);
 }
 
 /**
@@ -358,6 +368,7 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
         evas_object_del(sd->obj);
     sd->obj = etui_provider_instance_evas_object_get(sd->provider_instance);
     evas_object_smart_member_add(sd->obj, obj);
+    evas_object_event_callback_add(sd->obj, EVAS_CALLBACK_RESIZE, _etui_smart_resize_cb, obj);
 
     if (!sd->provider_instance)
     {
