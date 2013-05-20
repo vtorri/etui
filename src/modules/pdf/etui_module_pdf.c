@@ -330,9 +330,16 @@ _etui_pdf_page_set(void *d, int page_num)
 
     if (pd->page.use_display_list)
     {
+        fz_cookie cookie = { 0 };
+        fz_device *dev;
+
         if (pd->page.list)
             fz_free_display_list(pd->doc.ctx, pd->page.list);
-        pd->page.list = NULL;
+        pd->page.list = fz_new_display_list(pd->doc.ctx);
+
+        dev = fz_new_list_device(pd->doc.ctx, pd->page.list);
+        fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
+        fz_free_device(dev);
     }
 
     pd->page.page = page;
@@ -468,16 +475,6 @@ _etui_pdf_render(void *d)
         return;
 
     pd = (Etui_Provider_Data *)d;
-
-    if (pd->page.use_display_list)
-    {
-        if (!pd->page.list)
-            pd->page.list = fz_new_display_list(pd->doc.ctx);
-        dev = fz_new_list_device(pd->doc.ctx, pd->page.list);
-        fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
-        fz_free_device(dev);
-        dev = NULL;
-    }
 
     fz_bound_page(pd->doc.doc, pd->page.page, &bounds);
     fz_pre_scale(fz_rotate(&ctm, pd->page.rotation), pd->page.hscale, pd->page.vscale);
