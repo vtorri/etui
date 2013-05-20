@@ -20,7 +20,6 @@
 #endif
 
 #include <Eina.h>
-#include <Evas.h>
 #include <Ecore.h>
 #include <Efreet_Mime.h>
 #include <Eio.h>
