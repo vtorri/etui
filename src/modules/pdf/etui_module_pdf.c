@@ -485,7 +485,7 @@ _etui_pdf_render(void *d)
         return;
     }
 
-    image = fz_new_pixmap_with_data(pd->doc.ctx, fz_device_rgb, width, height, (unsigned char *)m);
+    image = fz_new_pixmap_with_data(pd->doc.ctx, fz_device_bgr, width, height, (unsigned char *)m);
     fz_clear_pixmap_with_value(pd->doc.ctx, image, 0xff);
     dev = fz_new_draw_device(pd->doc.ctx, image);
     if (pd->page.use_display_list)
