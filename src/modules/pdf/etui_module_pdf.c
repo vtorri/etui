@@ -93,7 +93,6 @@ struct _Etui_Provider_Data
         Etui_Rotation rotation;
         float hscale;
         float vscale;
-        unsigned int is_modified :1;
         unsigned int use_display_list :1;
     } page;
 };
@@ -341,7 +340,6 @@ _etui_pdf_page_set(void *d, int page_num)
     pd->page.rotation = ETUI_ROTATION_0;
     pd->page.hscale = 1.0f;
     pd->page.vscale = 1.0f;
-    pd->page.is_modified = 1;
 
     fz_bound_page(pd->doc.doc, pd->page.page, &bounds);
     fz_pre_scale(fz_rotate(&ctm, pd->page.rotation), pd->page.hscale, pd->page.vscale);
@@ -400,7 +398,6 @@ _etui_pdf_rotation_set(void *d, Etui_Rotation rotation)
         return EINA_FALSE;
 
     pd->page.rotation = rotation;
-    pd->page.is_modified = 1;
 
     return EINA_TRUE;
 }
@@ -432,7 +429,6 @@ _etui_pdf_scale_set(void *d, float hscale, float vscale)
 
     pd->page.hscale = hscale;
     pd->page.vscale = vscale;
-    pd->page.is_modified = 1;
 
     return EINA_TRUE;
 }
@@ -513,8 +509,6 @@ _etui_pdf_render(void *d)
     evas_object_image_data_update_add(pd->obj, 0, 0, width, height);
     evas_object_resize(pd->obj, width, height);
     fz_drop_pixmap(pd->doc.ctx, image);
-
-    pd->page.is_modified = 0;
 }
 
 static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
