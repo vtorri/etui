@@ -455,7 +455,7 @@ etui_object_page_set(Evas_Object *obj, int page_num)
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
     etui_provider_instance_page_set(sd->provider_instance, page_num);
-    evas_object_smart_need_recalculate_set(obj, 1);
+    evas_object_smart_changed(obj);
 }
 
 EAPI int

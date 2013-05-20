@@ -47,7 +47,7 @@ efl_version="1.7.0"
 requirements_etui_pc="efreet-mime >= ${efl_version} eio >= ${efl_version} ecore >= ${efl_version} evas >= ${efl_version} eina >= ${efl_version}"
 AC_SUBST([requirements_etui_pc])
 
-requirements_etui_bin_pc="ecore-evas >= ${efl_version} ecore >= ${efl_version} evas >= ${efl_version} eina >= ${efl_version}"
+requirements_etui_bin_pc="ecore-input >= ${efl_version} ecore-evas >= ${efl_version} ecore >= ${efl_version} evas >= ${efl_version} eina >= ${efl_version}"
 
 want_img="yes"
 want_pdf="yes"

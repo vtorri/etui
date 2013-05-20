@@ -25,6 +25,7 @@
 #include <Ecore.h>
 #include <Ecore_Getopt.h>
 #include <Ecore_Evas.h>
+#include <Ecore_Input.h>
 
 #include <Etui.h>
 
@@ -59,6 +60,24 @@ _etui_signal_exit(void *data EINA_UNUSED, int ev_type EINA_UNUSED, void *ev EINA
     return EINA_TRUE;
 }
 
+static Eina_Bool
+_etui_key_down(void *data, int type, void *event)
+{
+   Ecore_Event_Key *ev;
+   ev = event;
+
+   if (ev->key)
+     {
+        if ((!strcmp(ev->key, "Up"))
+            || (!strcmp(ev->key, "Right")))
+          etui_object_page_set(data, etui_object_page_get(data) + 1);
+        else if ((!strcmp(ev->key, "Down"))
+            || (!strcmp(ev->key, "Left")))
+          etui_object_page_set(data, etui_object_page_get(data) - 1);
+     }
+   return ECORE_CALLBACK_PASS_ON;
+}
+
 static void _etui_delete_request_cb(Ecore_Evas *ee EINA_UNUSED)
 {
     ecore_main_loop_quit();
@@ -82,6 +101,7 @@ int main(int argc, char *argv[])
         ECORE_GETOPT_VALUE_NONE
     };
     Ecore_Evas *ee;
+    Ecore_Event_Handler *handler;
     Evas *evas;
     Evas_Object *o;
     int args;
@@ -155,7 +175,11 @@ int main(int argc, char *argv[])
     ecore_evas_resize(ee, w, h);
     ecore_evas_show(ee);
 
+    handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, _etui_key_down, o);
+
     ecore_main_loop_begin();
+
+    ecore_event_handler_del(handler);
 
     etui_shutdown();
     ecore_evas_shutdown();
