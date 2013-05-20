@@ -64,6 +64,8 @@ void *etui_provider_instance_data_get(const Etui_Provider_Instance *inst);
 
 /* private calls */
 
+Evas_Object *etui_provider_instance_evas_object_get(Etui_Provider_Instance *inst);
+
 Eina_Bool etui_provider_instance_file_open(Etui_Provider_Instance *inst,
                                            const char *file_name);
 void etui_provider_instance_file_close(Etui_Provider_Instance *inst);

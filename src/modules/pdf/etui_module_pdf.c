@@ -350,8 +350,6 @@ _etui_pdf_page_set(void *d, int page_num)
     width = ibounds.x1 - ibounds.x0;
     height = ibounds.y1 - ibounds.y0;
 
-    printf("%s : %d %d\n", __FUNCTION__, width, height);
-
     evas_object_resize(pd->obj, width, height);
 }
 
@@ -478,8 +476,6 @@ _etui_pdf_render(void *d)
     width = ibounds.x1 - ibounds.x0;
     height = ibounds.y1 - ibounds.y0;
 
-    printf("%s : %d %d (%u)\n", __FUNCTION__, width, height, pd->page.use_display_list);
-
     evas_object_image_size_set(pd->obj, width, height);
     evas_object_image_fill_set(pd->obj, 0, 0, width, height);
     m = (unsigned int *)evas_object_image_data_get(pd->obj, 1);
@@ -500,12 +496,8 @@ _etui_pdf_render(void *d)
     dev = NULL;
 
     evas_object_image_data_set(pd->obj, m);
-    evas_object_image_data_update_add(pd->obj, 0, 0,
-                                      fz_pixmap_width(pd->doc.ctx, image),
-                                      fz_pixmap_height(pd->doc.ctx, image));
-    evas_object_resize(pd->obj,
-                       fz_pixmap_width(pd->doc.ctx, image),
-                       fz_pixmap_height(pd->doc.ctx, image));
+    evas_object_image_data_update_add(pd->obj, 0, 0, width, height);
+    evas_object_resize(pd->obj, width, height);
     fz_drop_pixmap(pd->doc.ctx, image);
 
     pd->page.is_modified = 0;

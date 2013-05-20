@@ -411,6 +411,12 @@ etui_provider_instance_data_get(const Etui_Provider_Instance *inst)
 
 /* private calls */
 
+Evas_Object *
+etui_provider_instance_evas_object_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, evas_object_get, NULL);
+}
+
 Eina_Bool
 etui_provider_instance_file_open(Etui_Provider_Instance *inst,
                                  const char *filename)
