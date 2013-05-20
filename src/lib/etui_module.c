@@ -462,10 +462,10 @@ etui_provider_instance_page_use_display_list_get(Etui_Provider_Instance *inst)
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_use_display_list_get, EINA_FALSE);
 }
 
-void
+Eina_Bool
 etui_provider_instance_page_set(Etui_Provider_Instance *inst, int page_num)
 {
-    ETUI_PROVIDER_INSTANCE_CALL(inst, page_set, page_num);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_set, EINA_FALSE, page_num);
 }
 
 int
@@ -483,11 +483,11 @@ etui_provider_instance_page_size_get(Etui_Provider_Instance *inst, int *width, i
     inst->provider->page_size_get(inst->data, width, height);
 }
 
-void
+Eina_Bool
 etui_provider_instance_rotation_set(Etui_Provider_Instance *inst,
                                     Etui_Rotation rotation)
 {
-    ETUI_PROVIDER_INSTANCE_CALL(inst, rotation_set, rotation);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, rotation_set, EINA_FALSE, rotation);
 }
 
 Etui_Rotation
@@ -496,12 +496,12 @@ etui_provider_instance_rotation_get(Etui_Provider_Instance *inst)
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, rotation_get, ETUI_ROTATION_0);
 }
 
-void
+Eina_Bool
 etui_provider_instance_scale_set(Etui_Provider_Instance *inst,
                                  float hscale,
                                  float vscale)
 {
-    ETUI_PROVIDER_INSTANCE_CALL(inst, scale_set, hscale, vscale);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, scale_set, EINA_FALSE, hscale, vscale);
 }
 
 void

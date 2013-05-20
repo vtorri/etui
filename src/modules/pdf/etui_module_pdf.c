@@ -297,7 +297,7 @@ _etui_pdf_page_use_display_list_get(void *d)
     return pd->page.use_display_list;
 }
 
-static void
+static Eina_Bool
 _etui_pdf_page_set(void *d, int page_num)
 {
     Etui_Provider_Data *pd;
@@ -309,21 +309,21 @@ _etui_pdf_page_set(void *d, int page_num)
     int height;
 
     if (!d)
-        return;
+        return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
 
     if ((page_num < 0) || (page_num >= fz_count_pages(pd->doc.doc)))
-        return;
+        return EINA_FALSE;
 
     if (page_num == pd->page.page_num)
-        return;
+        return EINA_FALSE;
 
     page = fz_load_page(pd->doc.doc, page_num);
     if (!page)
     {
         ERR("could not set page %d from the document", page_num);
-        return;
+        return EINA_FALSE;
     }
 
     if (pd->page.page)
@@ -351,6 +351,8 @@ _etui_pdf_page_set(void *d, int page_num)
     height = ibounds.y1 - ibounds.y0;
 
     evas_object_resize(pd->obj, width, height);
+
+    return EINA_TRUE;
 }
 
 static int
@@ -384,17 +386,23 @@ _etui_pdf_page_size_get(void *d, int *width, int *height)
     if (height) *height = (int)(rect.y1 - rect.y0);
 }
 
-static void
+static Eina_Bool
 _etui_pdf_rotation_set(void *d, Etui_Rotation rotation)
 {
     Etui_Provider_Data *pd;
 
     if (!d)
-        return;
+        return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
+
+    if (pd->page.rotation == rotation)
+        return EINA_FALSE;
+
     pd->page.rotation = rotation;
     pd->page.is_modified = 1;
+
+    return EINA_TRUE;
 }
 
 static Etui_Rotation
@@ -409,18 +417,24 @@ _etui_pdf_rotation_get(void *d)
     return pd->page.rotation;
 }
 
-static void
+static Eina_Bool
 _etui_pdf_scale_set(void *d, float hscale, float vscale)
 {
     Etui_Provider_Data *pd;
 
     if (!d)
-        return;
+        return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
+
+    if ((pd->page.hscale == hscale) && (pd->page.vscale == vscale))
+        return EINA_FALSE;
+
     pd->page.hscale = hscale;
     pd->page.vscale = vscale;
     pd->page.is_modified = 1;
+
+    return EINA_TRUE;
 }
 
 static void

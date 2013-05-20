@@ -39,12 +39,12 @@ struct _Etui_Provider_Descriptor
     int           (*pages_count)(void *d);
     void          (*page_use_display_list_set)(void *d, Eina_Bool on);
     Eina_Bool     (*page_use_display_list_get)(void *d);
-    void          (*page_set)(void *d, int num);
+    Eina_Bool     (*page_set)(void *d, int num);
     int           (*page_get)(void *d);
     void          (*page_size_get)(void *d, int *width, int *height);
-    void          (*rotation_set)(void *d, Etui_Rotation rotation);
+    Eina_Bool     (*rotation_set)(void *d, Etui_Rotation rotation);
     Etui_Rotation (*rotation_get)(void *d);
-    void          (*scale_set)(void *d, float hscale, float vscale);
+    Eina_Bool     (*scale_set)(void *d, float hscale, float vscale);
     void          (*scale_get)(void *d, float *hscale, float *vscale);
     void          (*render)(void *d);
 };
@@ -78,20 +78,20 @@ void etui_provider_instance_page_use_display_list_set(Etui_Provider_Instance *in
                                                       Eina_Bool on);
 Eina_Bool etui_provider_instance_page_use_display_list_get(Etui_Provider_Instance *inst);
 
-void etui_provider_instance_page_set(Etui_Provider_Instance *inst,
-                                     int page_num);
+Eina_Bool etui_provider_instance_page_set(Etui_Provider_Instance *inst,
+                                          int page_num);
 int etui_provider_instance_page_get(Etui_Provider_Instance *inst);
 void etui_provider_instance_page_size_get(Etui_Provider_Instance *inst,
                                           int *width,
                                           int *height);
 
-void etui_provider_instance_rotation_set(Etui_Provider_Instance *inst,
-                                         Etui_Rotation rotation);
+Eina_Bool etui_provider_instance_rotation_set(Etui_Provider_Instance *inst,
+                                              Etui_Rotation rotation);
 Etui_Rotation etui_provider_instance_rotation_get(Etui_Provider_Instance *inst);
 
-void etui_provider_instance_scale_set(Etui_Provider_Instance *inst,
-                                      float hscale,
-                                      float vscale);
+Eina_Bool etui_provider_instance_scale_set(Etui_Provider_Instance *inst,
+                                           float hscale,
+                                           float vscale);
 void etui_provider_instance_scale_get(Etui_Provider_Instance *inst,
                                       float *hscale,
                                       float *vscale);

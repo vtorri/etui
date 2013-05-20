@@ -61,21 +61,23 @@ _etui_signal_exit(void *data EINA_UNUSED, int ev_type EINA_UNUSED, void *ev EINA
 }
 
 static Eina_Bool
-_etui_key_down(void *data, int type, void *event)
+_etui_key_down(void *data, int type EINA_UNUSED, void *event)
 {
-   Ecore_Event_Key *ev;
-   ev = event;
+    Ecore_Event_Key *ev;
 
-   if (ev->key)
-     {
-        if ((!strcmp(ev->key, "Up"))
-            || (!strcmp(ev->key, "Right")))
-          etui_object_page_set(data, etui_object_page_get(data) + 1);
-        else if ((!strcmp(ev->key, "Down"))
-            || (!strcmp(ev->key, "Left")))
-          etui_object_page_set(data, etui_object_page_get(data) - 1);
-     }
-   return ECORE_CALLBACK_PASS_ON;
+    ev = event;
+
+    if (ev->key)
+    {
+        if ((!strcmp(ev->key, "Up")) ||
+            (!strcmp(ev->key, "Right")))
+            etui_object_page_set(data, etui_object_page_get(data) + 1);
+        else if ((!strcmp(ev->key, "Down")) ||
+                 (!strcmp(ev->key, "Left")))
+            etui_object_page_set(data, etui_object_page_get(data) - 1);
+    }
+
+    return ECORE_CALLBACK_PASS_ON;
 }
 
 static void _etui_delete_request_cb(Ecore_Evas *ee EINA_UNUSED)
