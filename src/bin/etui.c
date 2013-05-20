@@ -141,12 +141,16 @@ int main(int argc, char *argv[])
     }
 
     etui_object_page_set(o, 1);
-    /* evas_object_geometry_get(o, NULL, NULL, &w, &h); */
-    /* printf("size : %d %d\n", w, h); */
+    evas_object_geometry_get(o, NULL, NULL, &w, &h);
+    printf("size : %d %d %d %d\n", w, h, geometry.w, geometry.h);
+    evas_object_move(o, 0, 0);
+    evas_object_resize(o, 595, 842);
+    evas_object_geometry_get(o, NULL, NULL, &w, &h);
+    printf("size : %d %d\n", w, h);
     /* evas_object_size_hint_min_set(o, w, h); */
     /* evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, 0.0); */
     /* evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, 0.0); */
-    /* evas_object_focus_set(o, EINA_TRUE); */
+    evas_object_focus_set(o, EINA_TRUE);
     etui_object_page_use_display_list_set(o, EINA_FALSE);
     evas_object_show(o);
 
