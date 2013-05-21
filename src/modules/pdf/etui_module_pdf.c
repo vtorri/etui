@@ -112,6 +112,41 @@ _etui_pdf_document_property_get(fz_document *doc, const char *prop)
     return strdup(buf);
 }
 
+static char *
+_etui_pdf_document_date_get(fz_document *doc, const char *prop)
+{
+    char *date;
+    char *fmt;
+
+    date = _etui_pdf_document_property_get(doc, prop);
+    if (!date)
+	    return NULL;
+
+    /* FIXME: manage minutes and seconds ? */
+
+    fmt = (char *)malloc(21);
+    if (fmt)
+    {
+        memcpy(fmt, date + 2, 4);
+        fmt[4] = '-';
+        memcpy(fmt + 5, date + 6, 2);
+        fmt[7] = '-';
+        memcpy(fmt + 8, date + 8, 2);
+        fmt[10] = ',';
+        fmt[11] = ' ';
+        memcpy(fmt + 12, date + 10, 2);
+        fmt[14] = ':';
+        memcpy(fmt + 15, date + 12, 2);
+        fmt[17] = ':';
+        memcpy(fmt + 18, date + 14, 2);
+        fmt[20] = '\0';
+        free(date);
+        return fmt;
+    }
+
+    return fmt;
+}
+
 static void *
 _etui_pdf_init(Evas *evas)
 {
@@ -394,6 +429,44 @@ _etui_pdf_producer_get(void *d)
     }
 
     return _etui_pdf_document_property_get(pd->doc.doc, "Producer");
+}
+
+static char *
+_etui_pdf_creation_date_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_date_get(pd->doc.doc, "CreationDate");
+}
+
+static char *
+_etui_pdf_modification_date_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_date_get(pd->doc.doc, "ModDate");
 }
 
 static Eina_Bool
@@ -730,6 +803,8 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .keywords_get              */ _etui_pdf_keywords_get,
     /* .creator_get               */ _etui_pdf_creator_get,
     /* .producer_get              */ _etui_pdf_producer_get,
+    /* .creation_date_get         */ _etui_pdf_creation_date_get,
+    /* .modification_date_get     */ _etui_pdf_modification_date_get,
     /* .password_needed           */ _etui_pdf_password_needed,
     /* .password_set              */ _etui_pdf_password_set,
     /* .pages_count               */ _etui_pdf_pages_count,

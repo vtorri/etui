@@ -475,6 +475,18 @@ etui_provider_instance_producer_get(Etui_Provider_Instance *inst)
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, producer_get, NULL);
 }
 
+char *
+etui_provider_instance_creation_date_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, creation_date_get, NULL);
+}
+
+char *
+etui_provider_instance_modification_date_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, modification_date_get, NULL);
+}
+
 Eina_Bool
 etui_provider_instance_password_needed(Etui_Provider_Instance *inst)
 {

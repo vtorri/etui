@@ -183,6 +183,8 @@ int main(int argc, char *argv[])
     printf("keywords : %s\n", etui_object_keywords_get(o));
     printf("creator : %s\n", etui_object_creator_get(o));
     printf("producer : %s\n", etui_object_producer_get(o));
+    printf("creation date : %s\n", etui_object_creation_date_get(o));
+    printf("modification date : %s\n", etui_object_modification_date_get(o));
     printf("pages : %d\n", etui_object_document_pages_count(o));
 
     ecore_evas_resize(ee, w, h);

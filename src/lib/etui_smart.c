@@ -484,6 +484,26 @@ etui_object_producer_get(Evas_Object *obj)
     return etui_provider_instance_producer_get(sd->provider_instance);
 }
 
+EAPI char *
+etui_object_creation_date_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_creation_date_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_modification_date_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_modification_date_get(sd->provider_instance);
+}
+
 EAPI Eina_Bool
 etui_object_document_password_needed(Evas_Object *obj)
 {
