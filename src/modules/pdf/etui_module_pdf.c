@@ -105,9 +105,10 @@ _etui_pdf_document_property_get(fz_document *doc, const char *prop)
 {
     char buf[1024];
 
-    *(char **)buf = (char *)prop;
+    memcpy(buf, &prop, sizeof(char *));
     if (fz_meta(doc, FZ_META_INFO, buf, sizeof(buf)) <= 0)
         return NULL;
+
     return strdup(buf);
 }
 
