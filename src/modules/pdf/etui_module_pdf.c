@@ -470,6 +470,82 @@ _etui_pdf_modification_date_get(void *d)
 }
 
 static Eina_Bool
+_etui_pdf_is_printable(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return EINA_FALSE;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
+    return fz_meta(pd->doc.doc, FZ_META_HAS_PERMISSION, NULL, FZ_PERMISSION_PRINT) == 0;
+}
+
+static Eina_Bool
+_etui_pdf_is_changeable(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return EINA_FALSE;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
+    return fz_meta(pd->doc.doc, FZ_META_HAS_PERMISSION, NULL, FZ_PERMISSION_CHANGE) == 0;
+}
+
+static Eina_Bool
+_etui_pdf_is_copyable(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return EINA_FALSE;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
+    return fz_meta(pd->doc.doc, FZ_META_HAS_PERMISSION, NULL, FZ_PERMISSION_COPY) == 0;
+}
+
+static Eina_Bool
+_etui_pdf_is_notable(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return EINA_FALSE;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
+    return fz_meta(pd->doc.doc, FZ_META_HAS_PERMISSION, NULL, FZ_PERMISSION_NOTES) == 0;
+}
+
+static Eina_Bool
 _etui_pdf_password_needed(void *d)
 {
     Etui_Provider_Data *pd;
@@ -805,6 +881,10 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .producer_get              */ _etui_pdf_producer_get,
     /* .creation_date_get         */ _etui_pdf_creation_date_get,
     /* .modification_date_get     */ _etui_pdf_modification_date_get,
+    /* .is_printable              */ _etui_pdf_is_printable,
+    /* .is_changeable             */ _etui_pdf_is_changeable,
+    /* .is_copyable               */ _etui_pdf_is_copyable,
+    /* .is_notable                */ _etui_pdf_is_notable,
     /* .password_needed           */ _etui_pdf_password_needed,
     /* .password_set              */ _etui_pdf_password_set,
     /* .pages_count               */ _etui_pdf_pages_count,

@@ -43,6 +43,10 @@ struct _Etui_Provider_Descriptor
     char         *(*producer_get)(void *d);
     char         *(*creation_date_get)(void *d);
     char         *(*modification_date_get)(void *d);
+    Eina_Bool     (*is_printable)(void *d);
+    Eina_Bool     (*is_changeable)(void *d);
+    Eina_Bool     (*is_copyable)(void *d);
+    Eina_Bool     (*is_notable)(void *d);
     Eina_Bool     (*password_needed)(void *d);
     Eina_Bool     (*password_set)(void *d, const char *password);
     int           (*pages_count)(void *d);
@@ -89,6 +93,10 @@ char *etui_provider_instance_creator_get(Etui_Provider_Instance *inst);
 char *etui_provider_instance_producer_get(Etui_Provider_Instance *inst);
 char *etui_provider_instance_creation_date_get(Etui_Provider_Instance *inst);
 char *etui_provider_instance_modification_date_get(Etui_Provider_Instance *inst);
+Eina_Bool etui_provider_instance_is_printable(Etui_Provider_Instance *inst);
+Eina_Bool etui_provider_instance_is_changeable(Etui_Provider_Instance *inst);
+Eina_Bool etui_provider_instance_is_copyable(Etui_Provider_Instance *inst);
+Eina_Bool etui_provider_instance_is_notable(Etui_Provider_Instance *inst);
 Eina_Bool etui_provider_instance_password_needed(Etui_Provider_Instance *inst);
 Eina_Bool etui_provider_instance_password_set(Etui_Provider_Instance *inst,
                                               const char *password);

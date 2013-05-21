@@ -488,6 +488,30 @@ etui_provider_instance_modification_date_get(Etui_Provider_Instance *inst)
 }
 
 Eina_Bool
+etui_provider_instance_is_printable(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, is_printable, EINA_FALSE);
+}
+
+Eina_Bool
+etui_provider_instance_is_changeable(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, is_changeable, EINA_FALSE);
+}
+
+Eina_Bool
+etui_provider_instance_is_copyable(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, is_copyable, EINA_FALSE);
+}
+
+Eina_Bool
+etui_provider_instance_is_notable(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, is_notable, EINA_FALSE);
+}
+
+Eina_Bool
 etui_provider_instance_password_needed(Etui_Provider_Instance *inst)
 {
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, password_needed, EINA_FALSE);

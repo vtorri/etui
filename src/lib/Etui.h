@@ -73,6 +73,10 @@ EAPI char *etui_object_creator_get(Evas_Object *obj);
 EAPI char *etui_object_producer_get(Evas_Object *obj);
 EAPI char *etui_object_creation_date_get(Evas_Object *obj);
 EAPI char *etui_object_modification_date_get(Evas_Object *obj);
+Eina_Bool etui_object_is_printable(Evas_Object *obj);
+Eina_Bool etui_object_is_changeable(Evas_Object *obj);
+Eina_Bool etui_object_is_copyable(Evas_Object *obj);
+Eina_Bool etui_object_is_notable(Evas_Object *obj);
 
 EAPI Eina_Bool etui_object_document_password_needed(Evas_Object *obj);
 EAPI Eina_Bool etui_object_document_password_set(Evas_Object *obj, const char *password);

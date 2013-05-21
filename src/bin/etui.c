@@ -185,6 +185,10 @@ int main(int argc, char *argv[])
     printf("producer : %s\n", etui_object_producer_get(o));
     printf("creation date : %s\n", etui_object_creation_date_get(o));
     printf("modification date : %s\n", etui_object_modification_date_get(o));
+    printf("printable : %s\n", etui_object_is_printable(o) ? "yes" : "no");
+    printf("changeable : %s\n", etui_object_is_changeable(o) ? "yes" : "no");
+    printf("copyable : %s\n", etui_object_is_copyable(o) ? "yes" : "no");
+    printf("notable : %s\n", etui_object_is_notable(o) ? "yes" : "no");
     printf("pages : %d\n", etui_object_document_pages_count(o));
 
     ecore_evas_resize(ee, w, h);
