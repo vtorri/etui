@@ -110,6 +110,9 @@ int main(int argc, char *argv[])
     int w;
     int h;
 
+    int maj;
+    int min;
+
     if (!ecore_evas_init())
     {
         printf("can not init ecore_evas\n");
@@ -172,6 +175,14 @@ int main(int argc, char *argv[])
     etui_object_page_use_display_list_set(o, EINA_FALSE);
     evas_object_show(o);
 
+    etui_object_version_get(o, &maj, &min);
+    printf("version : %d.%d\n", maj, min);
+    printf("title : %s\n", etui_object_title_get(o));
+    printf("author : %s\n", etui_object_author_get(o));
+    printf("subject : %s\n", etui_object_subject_get(o));
+    printf("keywords : %s\n", etui_object_keywords_get(o));
+    printf("creator : %s\n", etui_object_creator_get(o));
+    printf("producer : %s\n", etui_object_producer_get(o));
     printf("pages : %d\n", etui_object_document_pages_count(o));
 
     ecore_evas_resize(ee, w, h);

@@ -425,6 +425,12 @@ etui_provider_instance_file_open(Etui_Provider_Instance *inst,
 }
 
 void
+etui_provider_instance_file_close(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL(inst, file_close);
+}
+
+void
 etui_provider_instance_version_get(Etui_Provider_Instance *inst, int *maj, int *min)
 {
     /* FIXME: if error, set the version to -1 */
@@ -433,10 +439,40 @@ etui_provider_instance_version_get(Etui_Provider_Instance *inst, int *maj, int *
     inst->provider->version_get(inst->data, maj, min);
 }
 
-void
-etui_provider_instance_file_close(Etui_Provider_Instance *inst)
+char *
+etui_provider_instance_title_get(Etui_Provider_Instance *inst)
 {
-    ETUI_PROVIDER_INSTANCE_CALL(inst, file_close);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, title_get, NULL);
+}
+
+char *
+etui_provider_instance_author_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, author_get, NULL);
+}
+
+char *
+etui_provider_instance_subject_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, subject_get, NULL);
+}
+
+char *
+etui_provider_instance_keywords_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, keywords_get, NULL);
+}
+
+char *
+etui_provider_instance_creator_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, creator_get, NULL);
+}
+
+char *
+etui_provider_instance_producer_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, producer_get, NULL);
 }
 
 Eina_Bool

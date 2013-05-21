@@ -424,6 +424,66 @@ etui_object_version_get(Evas_Object *obj, int *maj, int *min)
     if (min) *min = -1;
 }
 
+EAPI char *
+etui_object_title_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_title_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_author_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_author_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_subject_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_subject_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_keywords_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_keywords_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_creator_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_creator_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_producer_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_producer_get(sd->provider_instance);
+}
+
 EAPI Eina_Bool
 etui_object_document_password_needed(Evas_Object *obj)
 {

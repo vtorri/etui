@@ -35,6 +35,12 @@ struct _Etui_Provider_Descriptor
     Eina_Bool     (*file_open)(void *d, const char *filename);
     void          (*file_close)(void *d);
     void          (*version_get)(void *d, int *maj, int *min);
+    char         *(*title_get)(void *d);
+    char         *(*author_get)(void *d);
+    char         *(*subject_get)(void *d);
+    char         *(*keywords_get)(void *d);
+    char         *(*creator_get)(void *d);
+    char         *(*producer_get)(void *d);
     Eina_Bool     (*password_needed)(void *d);
     Eina_Bool     (*password_set)(void *d, const char *password);
     int           (*pages_count)(void *d);
@@ -73,6 +79,12 @@ void etui_provider_instance_file_close(Etui_Provider_Instance *inst);
 void etui_provider_instance_version_get(Etui_Provider_Instance *inst,
                                         int *maj,
                                         int *min);
+char *etui_provider_instance_title_get(Etui_Provider_Instance *inst);
+char *etui_provider_instance_author_get(Etui_Provider_Instance *inst);
+char *etui_provider_instance_subject_get(Etui_Provider_Instance *inst);
+char *etui_provider_instance_keywords_get(Etui_Provider_Instance *inst);
+char *etui_provider_instance_creator_get(Etui_Provider_Instance *inst);
+char *etui_provider_instance_producer_get(Etui_Provider_Instance *inst);
 Eina_Bool etui_provider_instance_password_needed(Etui_Provider_Instance *inst);
 Eina_Bool etui_provider_instance_password_set(Etui_Provider_Instance *inst,
                                               const char *password);

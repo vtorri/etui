@@ -63,7 +63,14 @@ EAPI int etui_shutdown(void);
 EAPI Evas_Object *etui_object_add(Evas *evas);
 EAPI Eina_Bool etui_object_file_set(Evas_Object *obj, const char *filename);
 EAPI const char *etui_object_filename_get(Evas_Object *obj);
+
 EAPI void etui_object_version_get(Evas_Object *obj, int *maj, int *min);
+EAPI char *etui_object_title_get(Evas_Object *obj);
+EAPI char *etui_object_author_get(Evas_Object *obj);
+EAPI char *etui_object_subject_get(Evas_Object *obj);
+EAPI char *etui_object_keywords_get(Evas_Object *obj);
+EAPI char *etui_object_creator_get(Evas_Object *obj);
+EAPI char *etui_object_producer_get(Evas_Object *obj);
 
 EAPI Eina_Bool etui_object_document_password_needed(Evas_Object *obj);
 EAPI Eina_Bool etui_object_document_password_set(Evas_Object *obj, const char *password);

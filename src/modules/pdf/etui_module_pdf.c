@@ -100,6 +100,17 @@ struct _Etui_Provider_Data
 static int _etui_module_pdf_init_count = 0;
 static int _etui_module_pdf_log_domain = -1;
 
+static char *
+_etui_pdf_document_property_get(fz_document *doc, const char *prop)
+{
+    char buf[1024];
+
+    *(char **)buf = (char *)prop;
+    if (fz_meta(doc, FZ_META_INFO, buf, sizeof(buf)) <= 0)
+        return NULL;
+    return strdup(buf);
+}
+
 static void *
 _etui_pdf_init(Evas *evas)
 {
@@ -268,6 +279,120 @@ _etui_pdf_version_get(void *d, int *maj, int *min)
   _err:
     if (maj) *maj = -1;
     if (min) *min = -1;
+}
+
+static char *
+_etui_pdf_title_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_property_get(pd->doc.doc, "Title");
+}
+
+static char *
+_etui_pdf_author_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_property_get(pd->doc.doc, "Author");
+}
+
+static char *
+_etui_pdf_subject_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_property_get(pd->doc.doc, "Subject");
+}
+
+static char *
+_etui_pdf_keywords_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_property_get(pd->doc.doc, "Keywords");
+}
+
+static char *
+_etui_pdf_creator_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_property_get(pd->doc.doc, "Creator");
+}
+
+static char *
+_etui_pdf_producer_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_property_get(pd->doc.doc, "Producer");
 }
 
 static Eina_Bool
@@ -598,6 +723,12 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .file_open                 */ _etui_pdf_file_open,
     /* .file_close                */ _etui_pdf_file_close,
     /* .version_get               */ _etui_pdf_version_get,
+    /* .title_get                 */ _etui_pdf_title_get,
+    /* .author_get                */ _etui_pdf_author_get,
+    /* .subject_get               */ _etui_pdf_subject_get,
+    /* .keywords_get              */ _etui_pdf_keywords_get,
+    /* .creator_get               */ _etui_pdf_creator_get,
+    /* .producer_get              */ _etui_pdf_producer_get,
     /* .password_needed           */ _etui_pdf_password_needed,
     /* .password_set              */ _etui_pdf_password_set,
     /* .pages_count               */ _etui_pdf_pages_count,
