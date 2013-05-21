@@ -324,6 +324,7 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
         return EINA_TRUE;
 
     mime = efreet_mime_type_get(file);
+    INF("mime type: %s", mime);
     if (mime)
     {
         if (strcmp(mime, "application/pdf") == 0)
@@ -395,6 +396,32 @@ etui_object_filename_get(Evas_Object *obj)
     ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
 
     return sd->filename;
+}
+
+EAPI void
+etui_object_version_get(Evas_Object *obj, int *maj, int *min)
+{
+    Etui_Smart_Data *sd;
+    char *_etui_smart_str;
+
+    if (!obj)
+        goto _err;
+    sd = evas_object_smart_data_get(obj);
+    if (!sd)
+        goto _err;
+    _etui_smart_str = (char *)evas_object_type_get(obj);
+    if (!_etui_smart_str)
+        goto _err;
+    if (strcmp(_etui_smart_str, ETUI_OBJ_NAME))
+        goto _err;
+
+    etui_provider_instance_version_get(sd->provider_instance, maj, min);
+
+    return;
+
+  _err:
+    if (maj) *maj = -1;
+    if (min) *min = -1;
 }
 
 EAPI Eina_Bool

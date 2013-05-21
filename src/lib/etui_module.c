@@ -425,6 +425,15 @@ etui_provider_instance_file_open(Etui_Provider_Instance *inst,
 }
 
 void
+etui_provider_instance_version_get(Etui_Provider_Instance *inst, int *maj, int *min)
+{
+    /* FIXME: if error, set the version to -1 */
+    ETUI_PROVIDER_INSTANCE_CHECK(inst, version_get);
+
+    inst->provider->version_get(inst->data, maj, min);
+}
+
+void
 etui_provider_instance_file_close(Etui_Provider_Instance *inst)
 {
     ETUI_PROVIDER_INSTANCE_CALL(inst, file_close);

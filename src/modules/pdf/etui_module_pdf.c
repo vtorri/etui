@@ -234,6 +234,42 @@ _etui_pdf_file_close(void *d)
     pd->doc.filename = NULL;
 }
 
+static void
+_etui_pdf_version_get(void *d, int *maj, int *min)
+{
+    char buf[256];
+    Etui_Provider_Data *pd;
+    char *tmp;
+
+    if (!d)
+        goto _err;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        goto _err;
+    }
+
+    if (fz_meta(pd->doc.doc, FZ_META_FORMAT_INFO, buf, sizeof(buf)) < 0)
+        goto _err;
+
+    if (strlen(buf) < 5)
+        goto _err;
+
+    tmp = strchr(buf + 4, '.');
+    *tmp = '\0';
+    if (maj) *maj = atoi(buf + 4);
+    if (min) *min = atoi(tmp + 1);
+
+    return;
+
+  _err:
+    if (maj) *maj = -1;
+    if (min) *min = -1;
+}
+
 static Eina_Bool
 _etui_pdf_password_needed(void *d)
 {
@@ -243,6 +279,13 @@ _etui_pdf_password_needed(void *d)
         return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
     return fz_needs_password(pd->doc.doc) ? EINA_TRUE : EINA_FALSE;
 }
 
@@ -255,6 +298,13 @@ _etui_pdf_password_set(void *d, const char *password)
         return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
     return fz_authenticate_password(pd->doc.doc, (char *)password) ? EINA_TRUE : EINA_FALSE;
 }
 
@@ -267,6 +317,13 @@ _etui_pdf_pages_count(void *d)
         return -1;
 
     pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return -1;
+    }
+
     return fz_count_pages(pd->doc.doc);
 }
 
@@ -311,6 +368,12 @@ _etui_pdf_page_set(void *d, int page_num)
         return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
 
     if ((page_num < 0) || (page_num >= fz_count_pages(pd->doc.doc)))
         return EINA_FALSE;
@@ -369,6 +432,7 @@ _etui_pdf_page_get(void *d)
         return -1;
 
     pd = (Etui_Provider_Data *)d;
+
     return pd->page.page_num;
 }
 
@@ -379,16 +443,25 @@ _etui_pdf_page_size_get(void *d, int *width, int *height)
     fz_rect rect;
 
     if (!d)
-    {
-        if (width) *width = 0;
-        if (height) *height = 0;
-        return;
-    }
+        goto _err;
 
     pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        goto _err;
+    }
+
     fz_bound_page(pd->doc.doc, pd->page.page, &rect);
     if (width) *width = (int)(rect.x1 - rect.x0);
     if (height) *height = (int)(rect.y1 - rect.y0);
+
+    return;
+
+  _err:
+    if (width) *width = 0;
+    if (height) *height = 0;
 }
 
 static Eina_Bool
@@ -453,6 +526,7 @@ _etui_pdf_scale_get(void *d, float *hscale, float *vscale)
     }
 
     pd = (Etui_Provider_Data *)d;
+
     if (hscale) *hscale = pd->page.hscale;
     if (vscale) *vscale = pd->page.vscale;
 }
@@ -475,6 +549,12 @@ _etui_pdf_render(void *d)
         return;
 
     pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return;
+    }
 
     fz_bound_page(pd->doc.doc, pd->page.page, &bounds);
     fz_pre_scale(fz_rotate(&ctm, pd->page.rotation), pd->page.hscale, pd->page.vscale);
@@ -500,7 +580,6 @@ _etui_pdf_render(void *d)
     else
         fz_run_page(pd->doc.doc, pd->page.page, dev, &ctm, &cookie);
     fz_free_device(dev);
-    dev = NULL;
 
     evas_object_image_data_set(pd->obj, m);
     evas_object_image_data_update_add(pd->obj, 0, 0, width, height);
@@ -518,6 +597,7 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .evas_object_get           */ _etui_pdf_evas_object_get,
     /* .file_open                 */ _etui_pdf_file_open,
     /* .file_close                */ _etui_pdf_file_close,
+    /* .version_get               */ _etui_pdf_version_get,
     /* .password_needed           */ _etui_pdf_password_needed,
     /* .password_set              */ _etui_pdf_password_set,
     /* .pages_count               */ _etui_pdf_pages_count,

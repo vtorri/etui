@@ -34,6 +34,7 @@ struct _Etui_Provider_Descriptor
     Evas_Object  *(*evas_object_get)(void *d);
     Eina_Bool     (*file_open)(void *d, const char *filename);
     void          (*file_close)(void *d);
+    void          (*version_get)(void *d, int *maj, int *min);
     Eina_Bool     (*password_needed)(void *d);
     Eina_Bool     (*password_set)(void *d, const char *password);
     int           (*pages_count)(void *d);
@@ -69,6 +70,9 @@ Evas_Object *etui_provider_instance_evas_object_get(Etui_Provider_Instance *inst
 Eina_Bool etui_provider_instance_file_open(Etui_Provider_Instance *inst,
                                            const char *file_name);
 void etui_provider_instance_file_close(Etui_Provider_Instance *inst);
+void etui_provider_instance_version_get(Etui_Provider_Instance *inst,
+                                        int *maj,
+                                        int *min);
 Eina_Bool etui_provider_instance_password_needed(Etui_Provider_Instance *inst);
 Eina_Bool etui_provider_instance_password_set(Etui_Provider_Instance *inst,
                                               const char *password);
