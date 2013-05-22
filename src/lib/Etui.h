@@ -56,6 +56,73 @@ typedef enum
     ETUI_ROTATION_270
 } Etui_Rotation;
 
+typedef enum
+{
+    ETUI_LINK_KIND_UNKNOWN,
+    ETUI_LINK_KIND_GOTO,
+    ETUI_LINK_KIND_GOTO_REMOTE,
+    ETUI_LINK_KIND_URI,
+    ETUI_LINK_KIND_LAUNCH,
+    ETUI_LINK_KIND_NAMED,
+} Etui_Link_Kind;
+
+typedef struct _Etui_Link_Goto Etui_Link_Goto;
+typedef struct _Etui_Link_Goto_Remote Etui_Link_Goto_Remote;
+typedef struct _Etui_Link_Uri Etui_Link_Uri;
+typedef struct _Etui_Link_Launch Etui_Link_Launch;
+typedef struct _Etui_Link_Named Etui_Link_Named;
+typedef struct _Etui_Link Etui_Link;
+
+struct _Etui_Link_Goto
+{
+    int page;
+    /* int flags; */
+    /* fz_point lt; */
+    /* fz_point rb; */
+    unsigned int new_window : 1;
+};
+
+struct _Etui_Link_Goto_Remote
+{
+    int page;
+    /* int flags; */
+    /* fz_point lt; */
+    /* fz_point rb; */
+    char *filename;
+    unsigned int new_window : 1;
+};
+
+struct _Etui_Link_Uri
+{
+    char *uri;
+    unsigned int is_map : 1;
+};
+
+struct _Etui_Link_Launch
+{
+    char *filename;
+    unsigned int new_window : 1;
+};
+
+struct _Etui_Link_Named
+{
+    char *named;
+};
+
+struct _Etui_Link
+{
+    Etui_Link_Kind kind;
+    Eina_Rectangle rect;
+    union
+    {
+        Etui_Link_Goto goto_;
+        Etui_Link_Goto_Remote goto_remote;
+        Etui_Link_Uri uri;
+        Etui_Link_Launch launch;
+        Etui_Link_Named named;
+    } dest;
+};
+
 
 EAPI int etui_init(void);
 EAPI int etui_shutdown(void);
@@ -91,6 +158,7 @@ EAPI void etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation
 EAPI Etui_Rotation etui_object_page_rotation_get(Evas_Object *obj);
 EAPI void etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale);
 EAPI void etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale);
+EAPI const Eina_Array *etui_object_page_links_get(Evas_Object *obj);
 
 
 #endif /* ETUI_H */

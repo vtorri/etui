@@ -89,6 +89,7 @@ struct _Etui_Provider_Data
     {
         fz_page *page;
         fz_display_list *list;
+        Eina_Array links;
         int page_num;
         Etui_Rotation rotation;
         float hscale;
@@ -633,6 +634,7 @@ _etui_pdf_page_set(void *d, int page_num)
 {
     Etui_Provider_Data *pd;
     fz_page *page;
+    fz_link *links;
     fz_rect bounds;
     fz_irect ibounds;
     fz_matrix ctm;
@@ -678,6 +680,115 @@ _etui_pdf_page_set(void *d, int page_num)
         dev = fz_new_list_device(pd->doc.ctx, pd->page.list);
         fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
         fz_free_device(dev);
+    }
+
+    while (eina_array_count(&pd->page.links))
+           free(eina_array_pop(&pd->page.links));
+    eina_array_step_set(&pd->page.links, sizeof(Eina_Array), 4);
+
+    links = fz_load_links(pd->doc.doc, page);
+    if (links)
+    {
+        fz_link *iter;
+        fz_irect rect;
+        Etui_Link *link;
+
+        for (iter = links; iter; iter = iter->next)
+        {
+            link = (Etui_Link *)malloc(sizeof(Etui_Link));
+            if (!link)
+                continue;
+
+            switch (iter->dest.kind)
+            {
+                case FZ_LINK_GOTO:
+                    link->kind = ETUI_LINK_KIND_GOTO;
+                    link->dest.goto_.page = iter->dest.ld.gotor.page;
+                    /* link.goto_.page = iter->dest.ld.gotor.page; */
+                    /* link.goto_.page = iter->dest.ld.gotor.page; */
+                    /* link.goto_.page = iter->dest.ld.gotor.page; */
+                    link->dest.goto_.new_window = !!iter->dest.ld.gotor.new_window;
+                    break;
+                case FZ_LINK_GOTOR:
+                {
+                    char *filename;
+
+                    filename = strdup(iter->dest.ld.gotor.file_spec);
+                    if (!filename)
+                    {
+                        free(link);
+                        break;
+                    }
+
+                    link->kind = ETUI_LINK_KIND_GOTO_REMOTE;
+                    link->dest.goto_remote.page = iter->dest.ld.gotor.page;
+                    /* link.goto_remote.page = iter->dest.ld.gotor.page; */
+                    /* link.goto_remote.page = iter->dest.ld.gotor.page; */
+                    /* link.goto_remote.page = iter->dest.ld.gotor.page; */
+                    link->dest.goto_remote.filename = filename;
+                    link->dest.goto_remote.new_window = !!iter->dest.ld.gotor.new_window;
+                    break;
+                }
+                case FZ_LINK_URI:
+                {
+                    char *uri;
+
+                    uri = strdup(iter->dest.ld.uri.uri);
+                    if (!uri)
+                    {
+                        free(link);
+                        break;
+                    }
+                    link->kind = ETUI_LINK_KIND_URI;
+                    link->dest.uri.uri = uri;
+                    link->dest.uri.is_map = !!iter->dest.ld.uri.is_map;
+                    break;
+                }
+                case FZ_LINK_LAUNCH:
+                {
+                    char *filename;
+
+                    filename = strdup(iter->dest.ld.launch.file_spec);
+                    if (!filename)
+                    {
+                        free(link);
+                        break;
+                    }
+                    link->kind = ETUI_LINK_KIND_LAUNCH;
+                    link->dest.launch.filename = filename;
+                    link->dest.launch.new_window = !!iter->dest.ld.launch.new_window;
+                    break;
+                }
+                case FZ_LINK_NAMED:
+                {
+                    char *named;
+
+                    named = strdup(iter->dest.ld.named.named);
+                    if (!named)
+                    {
+                        free(link);
+                        break;
+                    }
+                    link->kind = ETUI_LINK_KIND_NAMED;
+                    link->dest.named.named = named;
+                    break;
+                }
+                default:
+                    link->kind = ETUI_LINK_KIND_UNKNOWN;
+                    break;
+            }
+
+            eina_array_push(&pd->page.links, link);
+
+            /* FIXME: take into account the rotation and the zoom ?*/
+            fz_irect_from_rect(&rect, &links->rect);
+            link->rect.x = rect.x0;
+            link->rect.y = rect.y0;
+            link->rect.w = rect.x1 - rect.x0;
+            link->rect.h = rect.y1 - rect.y0;
+        }
+
+        fz_drop_link(pd->doc.ctx, links);
     }
 
     pd->page.page = page;
@@ -740,7 +851,7 @@ _etui_pdf_page_size_get(void *d, int *width, int *height)
 }
 
 static Eina_Bool
-_etui_pdf_rotation_set(void *d, Etui_Rotation rotation)
+_etui_pdf_page_rotation_set(void *d, Etui_Rotation rotation)
 {
     Etui_Provider_Data *pd;
 
@@ -758,7 +869,7 @@ _etui_pdf_rotation_set(void *d, Etui_Rotation rotation)
 }
 
 static Etui_Rotation
-_etui_pdf_rotation_get(void *d)
+_etui_pdf_page_rotation_get(void *d)
 {
     Etui_Provider_Data *pd;
 
@@ -770,7 +881,7 @@ _etui_pdf_rotation_get(void *d)
 }
 
 static Eina_Bool
-_etui_pdf_scale_set(void *d, float hscale, float vscale)
+_etui_pdf_page_scale_set(void *d, float hscale, float vscale)
 {
     Etui_Provider_Data *pd;
 
@@ -789,7 +900,7 @@ _etui_pdf_scale_set(void *d, float hscale, float vscale)
 }
 
 static void
-_etui_pdf_scale_get(void *d, float *hscale, float *vscale)
+_etui_pdf_page_scale_get(void *d, float *hscale, float *vscale)
 {
     Etui_Provider_Data *pd;
 
@@ -806,8 +917,21 @@ _etui_pdf_scale_get(void *d, float *hscale, float *vscale)
     if (vscale) *vscale = pd->page.vscale;
 }
 
+static const Eina_Array *
+_etui_pdf_page_links_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    return &pd->page.links;
+}
+
 static void
-_etui_pdf_render(void *d)
+_etui_pdf_page_render(void *d)
 {
     Etui_Provider_Data *pd;
     fz_device *dev = NULL;
@@ -893,11 +1017,12 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .page_set                  */ _etui_pdf_page_set,
     /* .page_get                  */ _etui_pdf_page_get,
     /* .page_size_get             */ _etui_pdf_page_size_get,
-    /* .rotation_set              */ _etui_pdf_rotation_set,
-    /* .rotation_get              */ _etui_pdf_rotation_get,
-    /* .scale_set                 */ _etui_pdf_scale_set,
-    /* .scale_get                 */ _etui_pdf_scale_get,
-    /* .render                    */ _etui_pdf_render
+    /* .page_rotation_set         */ _etui_pdf_page_rotation_set,
+    /* .page_rotation_get         */ _etui_pdf_page_rotation_get,
+    /* .page_scale_set            */ _etui_pdf_page_scale_set,
+    /* .page_scale_get            */ _etui_pdf_page_scale_get,
+    /* .page_links_get            */ _etui_pdf_page_links_get,
+    /* .page_render               */ _etui_pdf_page_render
 };
 
 /**

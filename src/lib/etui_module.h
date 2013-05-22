@@ -29,37 +29,38 @@ struct _Etui_Provider_Descriptor
     const char     *name;
     unsigned int    version;
     int             priority;
-    void         *(*init)(Evas *evas);
-    void          (*shutdown)(void *d);
-    Evas_Object  *(*evas_object_get)(void *d);
-    Eina_Bool     (*file_open)(void *d, const char *filename);
-    void          (*file_close)(void *d);
-    void          (*version_get)(void *d, int *maj, int *min);
-    char         *(*title_get)(void *d);
-    char         *(*author_get)(void *d);
-    char         *(*subject_get)(void *d);
-    char         *(*keywords_get)(void *d);
-    char         *(*creator_get)(void *d);
-    char         *(*producer_get)(void *d);
-    char         *(*creation_date_get)(void *d);
-    char         *(*modification_date_get)(void *d);
-    Eina_Bool     (*is_printable)(void *d);
-    Eina_Bool     (*is_changeable)(void *d);
-    Eina_Bool     (*is_copyable)(void *d);
-    Eina_Bool     (*is_notable)(void *d);
-    Eina_Bool     (*password_needed)(void *d);
-    Eina_Bool     (*password_set)(void *d, const char *password);
-    int           (*pages_count)(void *d);
-    void          (*page_use_display_list_set)(void *d, Eina_Bool on);
-    Eina_Bool     (*page_use_display_list_get)(void *d);
-    Eina_Bool     (*page_set)(void *d, int num);
-    int           (*page_get)(void *d);
-    void          (*page_size_get)(void *d, int *width, int *height);
-    Eina_Bool     (*rotation_set)(void *d, Etui_Rotation rotation);
-    Etui_Rotation (*rotation_get)(void *d);
-    Eina_Bool     (*scale_set)(void *d, float hscale, float vscale);
-    void          (*scale_get)(void *d, float *hscale, float *vscale);
-    void          (*render)(void *d);
+    void             *(*init)(Evas *evas);
+    void              (*shutdown)(void *d);
+    Evas_Object      *(*evas_object_get)(void *d);
+    Eina_Bool         (*file_open)(void *d, const char *filename);
+    void              (*file_close)(void *d);
+    void              (*version_get)(void *d, int *maj, int *min);
+    char             *(*title_get)(void *d);
+    char             *(*author_get)(void *d);
+    char             *(*subject_get)(void *d);
+    char             *(*keywords_get)(void *d);
+    char             *(*creator_get)(void *d);
+    char             *(*producer_get)(void *d);
+    char             *(*creation_date_get)(void *d);
+    char             *(*modification_date_get)(void *d);
+    Eina_Bool         (*is_printable)(void *d);
+    Eina_Bool         (*is_changeable)(void *d);
+    Eina_Bool         (*is_copyable)(void *d);
+    Eina_Bool         (*is_notable)(void *d);
+    Eina_Bool         (*password_needed)(void *d);
+    Eina_Bool         (*password_set)(void *d, const char *password);
+    int               (*pages_count)(void *d);
+    void              (*page_use_display_list_set)(void *d, Eina_Bool on);
+    Eina_Bool         (*page_use_display_list_get)(void *d);
+    Eina_Bool         (*page_set)(void *d, int num);
+    int               (*page_get)(void *d);
+    void              (*page_size_get)(void *d, int *width, int *height);
+    Eina_Bool         (*page_rotation_set)(void *d, Etui_Rotation rotation);
+    Etui_Rotation     (*page_rotation_get)(void *d);
+    Eina_Bool         (*page_scale_set)(void *d, float hscale, float vscale);
+    void              (*page_scale_get)(void *d, float *hscale, float *vscale);
+    const Eina_Array *(*page_links_get)(void *d);
+    void              (*page_render)(void *d);
 };
 
 Eina_Bool etui_modules_init(void);
@@ -113,17 +114,18 @@ void etui_provider_instance_page_size_get(Etui_Provider_Instance *inst,
                                           int *width,
                                           int *height);
 
-Eina_Bool etui_provider_instance_rotation_set(Etui_Provider_Instance *inst,
-                                              Etui_Rotation rotation);
-Etui_Rotation etui_provider_instance_rotation_get(Etui_Provider_Instance *inst);
+Eina_Bool etui_provider_instance_page_rotation_set(Etui_Provider_Instance *inst,
+                                                   Etui_Rotation rotation);
+Etui_Rotation etui_provider_instance_page_rotation_get(Etui_Provider_Instance *inst);
 
-Eina_Bool etui_provider_instance_scale_set(Etui_Provider_Instance *inst,
-                                           float hscale,
-                                           float vscale);
-void etui_provider_instance_scale_get(Etui_Provider_Instance *inst,
-                                      float *hscale,
-                                      float *vscale);
+Eina_Bool etui_provider_instance_page_scale_set(Etui_Provider_Instance *inst,
+                                                float hscale,
+                                                float vscale);
+void etui_provider_instance_page_scale_get(Etui_Provider_Instance *inst,
+                                           float *hscale,
+                                           float *vscale);
+const Eina_Array *etui_provider_instance_page_links_get(Etui_Provider_Instance *inst);
 
-void etui_provider_instance_render(Etui_Provider_Instance *inst);
+void etui_provider_instance_page_render(Etui_Provider_Instance *inst);
 
 #endif

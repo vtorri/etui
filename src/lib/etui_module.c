@@ -565,41 +565,47 @@ etui_provider_instance_page_size_get(Etui_Provider_Instance *inst, int *width, i
 }
 
 Eina_Bool
-etui_provider_instance_rotation_set(Etui_Provider_Instance *inst,
+etui_provider_instance_page_rotation_set(Etui_Provider_Instance *inst,
                                     Etui_Rotation rotation)
 {
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, rotation_set, EINA_FALSE, rotation);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_rotation_set, EINA_FALSE, rotation);
 }
 
 Etui_Rotation
-etui_provider_instance_rotation_get(Etui_Provider_Instance *inst)
+etui_provider_instance_page_rotation_get(Etui_Provider_Instance *inst)
 {
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, rotation_get, ETUI_ROTATION_0);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_rotation_get, ETUI_ROTATION_0);
 }
 
 Eina_Bool
-etui_provider_instance_scale_set(Etui_Provider_Instance *inst,
+etui_provider_instance_page_scale_set(Etui_Provider_Instance *inst,
                                  float hscale,
                                  float vscale)
 {
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, scale_set, EINA_FALSE, hscale, vscale);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_scale_set, EINA_FALSE, hscale, vscale);
 }
 
 void
-etui_provider_instance_scale_get(Etui_Provider_Instance *inst,
+etui_provider_instance_page_scale_get(Etui_Provider_Instance *inst,
                                  float *hscale,
                                  float *vscale)
 {
     /* FIXME: if error, set the scales to 1.0f */
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, scale_get);
+    ETUI_PROVIDER_INSTANCE_CHECK(inst, page_scale_get);
 
-    inst->provider->scale_get(inst->data, hscale, vscale);
+    inst->provider->page_scale_get(inst->data, hscale, vscale);
+}
+
+const Eina_Array *
+etui_provider_instance_page_links_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_links_get, NULL);
 }
 
 void
-etui_provider_instance_render(Etui_Provider_Instance *inst)
+etui_provider_instance_page_render(Etui_Provider_Instance *inst)
 {
-    ETUI_PROVIDER_INSTANCE_CALL(inst, render);
+    ETUI_PROVIDER_INSTANCE_CALL(inst, page_render);
 }
 
 /*============================================================================*

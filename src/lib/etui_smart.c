@@ -244,7 +244,7 @@ _etui_smart_calculate(Evas_Object *obj)
     sd = evas_object_smart_data_get(obj);
     if (!sd) return;
 
-    etui_provider_instance_render(sd->provider_instance);
+    etui_provider_instance_page_render(sd->provider_instance);
 }
 
 static void
@@ -648,7 +648,7 @@ etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation)
 
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
-    if (etui_provider_instance_rotation_set(sd->provider_instance, rotation))
+    if (etui_provider_instance_page_rotation_set(sd->provider_instance, rotation))
         evas_object_smart_need_recalculate_set(obj, 1);
 }
 
@@ -659,7 +659,7 @@ etui_object_page_rotation_get(Evas_Object *obj)
 
     ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, ETUI_ROTATION_0);
 
-    return etui_provider_instance_rotation_get(sd->provider_instance);
+    return etui_provider_instance_page_rotation_get(sd->provider_instance);
 }
 
 EAPI void
@@ -669,7 +669,7 @@ etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale)
 
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
-    if (etui_provider_instance_scale_set(sd->provider_instance, hscale, vscale))
+    if (etui_provider_instance_page_scale_set(sd->provider_instance, hscale, vscale))
         evas_object_smart_need_recalculate_set(obj, 1);
 }
 
@@ -690,11 +690,21 @@ etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale)
     if (strcmp(_etui_smart_str, ETUI_OBJ_NAME))
         goto _err;
 
-    etui_provider_instance_scale_get(sd->provider_instance, hscale, vscale);
+    etui_provider_instance_page_scale_get(sd->provider_instance, hscale, vscale);
 
     return;
 
   _err:
     if (hscale) *hscale = 1.0;
     if (vscale) *vscale = 1.0;
+}
+
+EAPI const Eina_Array *
+etui_object_page_links_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_page_links_get(sd->provider_instance);
 }
