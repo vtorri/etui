@@ -148,6 +148,120 @@ _etui_pdf_document_date_get(fz_document *doc, const char *prop)
     return fmt;
 }
 
+static Etui_Link_Goto
+_etui_pdf_link_goto_fill(fz_link *link)
+{
+    Etui_Link_Goto l;
+
+    l.page = link->dest.ld.gotor.page;
+    /* l.page = link->dest.ld.gotor.page; */
+    /* l.page = link->dest.ld.gotor.page; */
+    /* l.page = link->dest.ld.gotor.page; */
+    l.new_window = !!link->dest.ld.gotor.new_window;
+
+    return l;
+}
+
+static Etui_Link_Goto_Remote
+_etui_pdf_link_goto_remote_fill(fz_link *link)
+{
+    Etui_Link_Goto_Remote l;
+
+    l.page = link->dest.ld.gotor.page;
+    /* l.page = link->dest.ld.gotor.page; */
+    /* l.page = link->dest.ld.gotor.page; */
+    /* l.page = link->dest.ld.gotor.page; */
+    l.filename = strdup(link->dest.ld.gotor.file_spec);
+    l.new_window = !!link->dest.ld.gotor.new_window;
+
+    return l;
+}
+
+static Etui_Link_Uri
+_etui_pdf_link_uri_fill(fz_link *link)
+{
+    Etui_Link_Uri l;
+
+    l.uri = strdup(link->dest.ld.uri.uri);
+    l.is_map = !!link->dest.ld.uri.is_map;
+
+    return l;
+}
+
+static Etui_Link_Launch
+_etui_pdf_link_launch_fill(fz_link *link)
+{
+    Etui_Link_Launch l;
+
+    l.filename = strdup(link->dest.ld.launch.file_spec);
+    l.new_window = !!link->dest.ld.launch.new_window;
+
+    return l;
+}
+
+static Etui_Link_Named
+_etui_pdf_link_named_fill(fz_link *link)
+{
+    Etui_Link_Named l;
+
+    l.named = strdup(link->dest.ld.named.named);
+
+    return l;
+}
+
+static void
+_etui_pdf_page_links_fill(Etui_Provider_Data *pd, fz_link *links)
+{
+    fz_link *iter;
+    fz_irect rect;
+    Etui_Link_Item *link;
+
+    for (iter = links; iter; iter = iter->next)
+    {
+        link = (Etui_Link_Item *)malloc(sizeof(Etui_Link_Item));
+        if (!link)
+            continue;
+
+        switch (iter->dest.kind)
+        {
+            case FZ_LINK_GOTO:
+                link->kind = ETUI_LINK_KIND_GOTO;
+                link->dest.goto_ = _etui_pdf_link_goto_fill(iter);
+                break;
+            case FZ_LINK_GOTOR:
+                link->kind = ETUI_LINK_KIND_GOTO_REMOTE;
+                link->dest.goto_remote = _etui_pdf_link_goto_remote_fill(iter);
+                break;
+            case FZ_LINK_URI:
+                link->kind = ETUI_LINK_KIND_URI;
+                link->dest.uri = _etui_pdf_link_uri_fill(iter);
+                break;
+            case FZ_LINK_LAUNCH:
+                link->kind = ETUI_LINK_KIND_LAUNCH;
+                link->dest.launch = _etui_pdf_link_launch_fill(iter);
+                break;
+            case FZ_LINK_NAMED:
+                link->kind = ETUI_LINK_KIND_NAMED;
+                link->dest.named = _etui_pdf_link_named_fill(iter);
+                break;
+            default:
+                link->kind = ETUI_LINK_KIND_UNKNOWN;
+                break;
+        }
+
+        /* FIXME: take into account the rotation and the zoom ?*/
+        fz_irect_from_rect(&rect, &links->rect);
+        link->rect.x = rect.x0;
+        link->rect.y = rect.y0;
+        link->rect.w = rect.x1 - rect.x0;
+        link->rect.h = rect.y1 - rect.y0;
+
+        eina_array_push(&pd->page.links, link);
+    }
+
+}
+
+
 static void *
 _etui_pdf_init(Evas *evas)
 {
@@ -689,105 +803,7 @@ _etui_pdf_page_set(void *d, int page_num)
     links = fz_load_links(pd->doc.doc, page);
     if (links)
     {
-        fz_link *iter;
-        fz_irect rect;
-        Etui_Link *link;
-
-        for (iter = links; iter; iter = iter->next)
-        {
-            link = (Etui_Link *)malloc(sizeof(Etui_Link));
-            if (!link)
-                continue;
-
-            switch (iter->dest.kind)
-            {
-                case FZ_LINK_GOTO:
-                    link->kind = ETUI_LINK_KIND_GOTO;
-                    link->dest.goto_.page = iter->dest.ld.gotor.page;
-                    /* link.goto_.page = iter->dest.ld.gotor.page; */
-                    /* link.goto_.page = iter->dest.ld.gotor.page; */
-                    /* link.goto_.page = iter->dest.ld.gotor.page; */
-                    link->dest.goto_.new_window = !!iter->dest.ld.gotor.new_window;
-                    break;
-                case FZ_LINK_GOTOR:
-                {
-                    char *filename;
-
-                    filename = strdup(iter->dest.ld.gotor.file_spec);
-                    if (!filename)
-                    {
-                        free(link);
-                        break;
-                    }
-
-                    link->kind = ETUI_LINK_KIND_GOTO_REMOTE;
-                    link->dest.goto_remote.page = iter->dest.ld.gotor.page;
-                    /* link.goto_remote.page = iter->dest.ld.gotor.page; */
-                    /* link.goto_remote.page = iter->dest.ld.gotor.page; */
-                    /* link.goto_remote.page = iter->dest.ld.gotor.page; */
-                    link->dest.goto_remote.filename = filename;
-                    link->dest.goto_remote.new_window = !!iter->dest.ld.gotor.new_window;
-                    break;
-                }
-                case FZ_LINK_URI:
-                {
-                    char *uri;
-
-                    uri = strdup(iter->dest.ld.uri.uri);
-                    if (!uri)
-                    {
-                        free(link);
-                        break;
-                    }
-                    link->kind = ETUI_LINK_KIND_URI;
-                    link->dest.uri.uri = uri;
-                    link->dest.uri.is_map = !!iter->dest.ld.uri.is_map;
-                    break;
-                }
-                case FZ_LINK_LAUNCH:
-                {
-                    char *filename;
-
-                    filename = strdup(iter->dest.ld.launch.file_spec);
-                    if (!filename)
-                    {
-                        free(link);
-                        break;
-                    }
-                    link->kind = ETUI_LINK_KIND_LAUNCH;
-                    link->dest.launch.filename = filename;
-                    link->dest.launch.new_window = !!iter->dest.ld.launch.new_window;
-                    break;
-                }
-                case FZ_LINK_NAMED:
-                {
-                    char *named;
-
-                    named = strdup(iter->dest.ld.named.named);
-                    if (!named)
-                    {
-                        free(link);
-                        break;
-                    }
-                    link->kind = ETUI_LINK_KIND_NAMED;
-                    link->dest.named.named = named;
-                    break;
-                }
-                default:
-                    link->kind = ETUI_LINK_KIND_UNKNOWN;
-                    break;
-            }
-
-            eina_array_push(&pd->page.links, link);
-
-            /* FIXME: take into account the rotation and the zoom ?*/
-            fz_irect_from_rect(&rect, &links->rect);
-            link->rect.x = rect.x0;
-            link->rect.y = rect.y0;
-            link->rect.w = rect.x1 - rect.x0;
-            link->rect.h = rect.y1 - rect.y0;
-        }
-
+        _etui_pdf_page_links_fill(pd, links);
         fz_drop_link(pd->doc.ctx, links);
     }
 

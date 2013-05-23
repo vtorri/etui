@@ -66,23 +66,16 @@ typedef enum
     ETUI_LINK_KIND_NAMED,
 } Etui_Link_Kind;
 
-typedef struct _Etui_Link_Goto Etui_Link_Goto;
-typedef struct _Etui_Link_Goto_Remote Etui_Link_Goto_Remote;
-typedef struct _Etui_Link_Uri Etui_Link_Uri;
-typedef struct _Etui_Link_Launch Etui_Link_Launch;
-typedef struct _Etui_Link_Named Etui_Link_Named;
-typedef struct _Etui_Link Etui_Link;
-
-struct _Etui_Link_Goto
+typedef struct
 {
     int page;
     /* int flags; */
     /* fz_point lt; */
     /* fz_point rb; */
     unsigned int new_window : 1;
-};
+} Etui_Link_Goto;
 
-struct _Etui_Link_Goto_Remote
+typedef struct
 {
     int page;
     /* int flags; */
@@ -90,38 +83,47 @@ struct _Etui_Link_Goto_Remote
     /* fz_point rb; */
     char *filename;
     unsigned int new_window : 1;
-};
+} Etui_Link_Goto_Remote;
 
-struct _Etui_Link_Uri
+typedef struct
 {
     char *uri;
     unsigned int is_map : 1;
-};
+} Etui_Link_Uri;
 
-struct _Etui_Link_Launch
+typedef struct
 {
     char *filename;
     unsigned int new_window : 1;
-};
+} Etui_Link_Launch;
 
-struct _Etui_Link_Named
+typedef struct
 {
     char *named;
-};
+} Etui_Link_Named;
 
-struct _Etui_Link
+typedef union
+{
+    Etui_Link_Goto goto_;
+    Etui_Link_Goto_Remote goto_remote;
+    Etui_Link_Uri uri;
+    Etui_Link_Launch launch;
+    Etui_Link_Named named;
+} Etui_Link_Dest;
+
+typedef struct
 {
     Etui_Link_Kind kind;
     Eina_Rectangle rect;
-    union
-    {
-        Etui_Link_Goto goto_;
-        Etui_Link_Goto_Remote goto_remote;
-        Etui_Link_Uri uri;
-        Etui_Link_Launch launch;
-        Etui_Link_Named named;
-    } dest;
-};
+    Etui_Link_Dest dest;
+} Etui_Link_Item;
+
+typedef struct
+{
+    Etui_Link_Kind kind;
+    char *title;
+    Etui_Link_Dest dest;
+} Etui_Toc_Item;
 
 
 EAPI int etui_init(void);
