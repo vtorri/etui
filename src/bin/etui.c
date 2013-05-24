@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
         goto shutdown_ecore_evas;
     }
 
-    etui_object_page_set(o, 1);
+    etui_object_page_set(o, 0);
     evas_object_geometry_get(o, NULL, NULL, &w, &h);
     evas_object_move(o, 0, 0);
     /* evas_object_size_hint_min_set(o, w, h); */
@@ -190,6 +190,7 @@ int main(int argc, char *argv[])
     printf("copyable : %s\n", etui_object_is_copyable(o) ? "yes" : "no");
     printf("notable : %s\n", etui_object_is_notable(o) ? "yes" : "no");
     printf("pages : %d\n", etui_object_document_pages_count(o));
+    printf("size : %dx%d\n", w, h);
 
     ecore_evas_resize(ee, w, h);
     ecore_evas_show(ee);
