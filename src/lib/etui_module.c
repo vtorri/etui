@@ -530,6 +530,12 @@ etui_provider_instance_pages_count(Etui_Provider_Instance *inst)
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, pages_count, -1);
 }
 
+const Eina_Array *
+etui_provider_instance_toc_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, toc_get, NULL);
+}
+
 void
 etui_provider_instance_page_use_display_list_set(Etui_Provider_Instance *inst,
                                                  Eina_Bool on)

@@ -574,6 +574,16 @@ etui_object_document_pages_count(Evas_Object *obj)
     return etui_provider_instance_pages_count(sd->provider_instance);
 }
 
+EAPI const Eina_Array *
+etui_object_toc_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_toc_get(sd->provider_instance);
+}
+
 EAPI void
 etui_object_page_use_display_list_set(Evas_Object *obj, Eina_Bool on)
 {

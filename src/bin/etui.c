@@ -85,6 +85,28 @@ static void _etui_delete_request_cb(Ecore_Evas *ee EINA_UNUSED)
     ecore_main_loop_quit();
 }
 
+static void _etui_toc_display(const Eina_Array *items, int indent)
+{
+    Etui_Toc_Item *item;
+    Eina_Array_Iterator iter;
+    unsigned int i;
+
+    if (!items)
+        return;
+
+    if (eina_array_count(items) == 0)
+        return;
+
+    EINA_ARRAY_ITER_NEXT(items, i, item, iter)
+    {
+        int j;
+
+        for (j = 0; j < indent; j++) printf (" ");
+        printf ("%s: %d\n", item->title, item->kind);
+        _etui_toc_display(item->child, indent + 2);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     char buf[4096];
@@ -191,6 +213,9 @@ int main(int argc, char *argv[])
     printf("notable : %s\n", etui_object_is_notable(o) ? "yes" : "no");
     printf("pages : %d\n", etui_object_document_pages_count(o));
     printf("size : %dx%d\n", w, h);
+
+    printf("\n");
+    _etui_toc_display(etui_object_toc_get(o), 0);
 
     ecore_evas_resize(ee, w, h);
     ecore_evas_show(ee);

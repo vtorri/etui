@@ -58,7 +58,7 @@ typedef enum
 
 typedef enum
 {
-    ETUI_LINK_KIND_UNKNOWN,
+    ETUI_LINK_KIND_NONE,
     ETUI_LINK_KIND_GOTO,
     ETUI_LINK_KIND_GOTO_REMOTE,
     ETUI_LINK_KIND_URI,
@@ -123,6 +123,7 @@ typedef struct
     Etui_Link_Kind kind;
     char *title;
     Etui_Link_Dest dest;
+    Eina_Array *child;
 } Etui_Toc_Item;
 
 
@@ -150,6 +151,7 @@ Eina_Bool etui_object_is_notable(Evas_Object *obj);
 EAPI Eina_Bool etui_object_document_password_needed(Evas_Object *obj);
 EAPI Eina_Bool etui_object_document_password_set(Evas_Object *obj, const char *password);
 EAPI int etui_object_document_pages_count(Evas_Object *obj);
+EAPI const Eina_Array *etui_object_toc_get(Evas_Object *obj);
 
 EAPI void etui_object_page_use_display_list_set(Evas_Object *obj, Eina_Bool on);
 EAPI Eina_Bool etui_object_page_use_display_list_get(Evas_Object *obj);

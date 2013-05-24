@@ -50,6 +50,7 @@ struct _Etui_Provider_Descriptor
     Eina_Bool         (*password_needed)(void *d);
     Eina_Bool         (*password_set)(void *d, const char *password);
     int               (*pages_count)(void *d);
+    const Eina_Array *(*toc_get)(void *d);
     void              (*page_use_display_list_set)(void *d, Eina_Bool on);
     Eina_Bool         (*page_use_display_list_get)(void *d);
     Eina_Bool         (*page_set)(void *d, int num);
@@ -102,6 +103,7 @@ Eina_Bool etui_provider_instance_password_needed(Etui_Provider_Instance *inst);
 Eina_Bool etui_provider_instance_password_set(Etui_Provider_Instance *inst,
                                               const char *password);
 int etui_provider_instance_pages_count(Etui_Provider_Instance *inst);
+const Eina_Array *etui_provider_instance_toc_get(Etui_Provider_Instance *inst);
 
 void etui_provider_instance_page_use_display_list_set(Etui_Provider_Instance *inst,
                                                       Eina_Bool on);
