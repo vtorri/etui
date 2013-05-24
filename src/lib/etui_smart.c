@@ -239,29 +239,29 @@ _etui_smart_clip_unset(Evas_Object *obj)
 
 Ecore_Thread *_thread = NULL;
 static void
-_etui_smart_render(void *data, Ecore_Thread *thread)
+_etui_smart_page_render(void *data, Ecore_Thread *thread EINA_UNUSED)
 {
     Etui_Smart_Data *sd;
 
     sd = evas_object_smart_data_get(data);
     if (!sd) return;
-    etui_provider_instance_render(sd->provider_instance);
+    etui_provider_instance_page_render(sd->provider_instance);
 }
 
 static void
-_etui_smart_render_end(void *data, Ecore_Thread *thread)
+_etui_smart_page_render_end(void *data, Ecore_Thread *thread EINA_UNUSED)
 {
     Etui_Smart_Data *sd;
 
     sd = evas_object_smart_data_get(data);
     if (!sd) return;
-   etui_provider_instance_render_end(sd->provider_instance);
+    etui_provider_instance_page_render_end(sd->provider_instance);
    _thread = NULL;
 
 }
 
 static void
-_etui_smart_render_cancel(void *data, Ecore_Thread *thread)
+_etui_smart_page_render_cancel(void *data EINA_UNUSED, Ecore_Thread *thread EINA_UNUSED)
 {
 
 }
@@ -275,11 +275,11 @@ _etui_smart_calculate(Evas_Object *obj)
     sd = evas_object_smart_data_get(obj);
     if (!sd) return;
 
-    etui_provider_instance_render_pre(sd->provider_instance);
+    etui_provider_instance_page_render_pre(sd->provider_instance);
     if (!_thread)
-      ecore_thread_run(_etui_smart_render,
-                       _etui_smart_render_end,
-                       _etui_smart_render_cancel,
+      ecore_thread_run(_etui_smart_page_render,
+                       _etui_smart_page_render_end,
+                       _etui_smart_page_render_cancel,
                        obj);
 }
 
@@ -360,6 +360,7 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
         return EINA_TRUE;
 
     mime = efreet_mime_type_get(file);
+    INF("mime type: %s", mime);
     if (mime)
     {
         if (strcmp(mime, "application/pdf") == 0)
@@ -433,6 +434,152 @@ etui_object_filename_get(Evas_Object *obj)
     return sd->filename;
 }
 
+EAPI void
+etui_object_version_get(Evas_Object *obj, int *maj, int *min)
+{
+    Etui_Smart_Data *sd;
+    char *_etui_smart_str;
+
+    if (!obj)
+        goto _err;
+    sd = evas_object_smart_data_get(obj);
+    if (!sd)
+        goto _err;
+    _etui_smart_str = (char *)evas_object_type_get(obj);
+    if (!_etui_smart_str)
+        goto _err;
+    if (strcmp(_etui_smart_str, ETUI_OBJ_NAME))
+        goto _err;
+
+    etui_provider_instance_version_get(sd->provider_instance, maj, min);
+
+    return;
+
+  _err:
+    if (maj) *maj = -1;
+    if (min) *min = -1;
+}
+
+EAPI char *
+etui_object_title_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_title_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_author_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_author_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_subject_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_subject_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_keywords_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_keywords_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_creator_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_creator_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_producer_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_producer_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_creation_date_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_creation_date_get(sd->provider_instance);
+}
+
+EAPI char *
+etui_object_modification_date_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_modification_date_get(sd->provider_instance);
+}
+
+EAPI Eina_Bool
+etui_object_is_printable(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
+
+    return etui_provider_instance_is_printable(sd->provider_instance);
+}
+
+EAPI Eina_Bool
+etui_object_is_changeable(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
+
+    return etui_provider_instance_is_changeable(sd->provider_instance);
+}
+
+EAPI Eina_Bool
+etui_object_is_copyable(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
+
+    return etui_provider_instance_is_copyable(sd->provider_instance);
+}
+
+EAPI Eina_Bool
+etui_object_is_notable(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
+
+    return etui_provider_instance_is_notable(sd->provider_instance);
+}
+
 EAPI Eina_Bool
 etui_object_document_password_needed(Evas_Object *obj)
 {
@@ -463,6 +610,16 @@ etui_object_document_pages_count(Evas_Object *obj)
     return etui_provider_instance_pages_count(sd->provider_instance);
 }
 
+EAPI const Eina_Array *
+etui_object_toc_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_toc_get(sd->provider_instance);
+}
+
 EAPI void
 etui_object_page_use_display_list_set(Evas_Object *obj, Eina_Bool on)
 {
@@ -490,8 +647,8 @@ etui_object_page_set(Evas_Object *obj, int page_num)
 
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
-    etui_provider_instance_page_set(sd->provider_instance, page_num);
-    evas_object_smart_changed(obj);
+    if (etui_provider_instance_page_set(sd->provider_instance, page_num))
+        evas_object_smart_changed(obj);
 }
 
 EAPI int
@@ -537,8 +694,8 @@ etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation)
 
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
-    etui_provider_instance_rotation_set(sd->provider_instance, rotation);
-    evas_object_smart_need_recalculate_set(obj, 1);
+    if (etui_provider_instance_page_rotation_set(sd->provider_instance, rotation))
+        evas_object_smart_need_recalculate_set(obj, 1);
 }
 
 EAPI Etui_Rotation
@@ -548,7 +705,7 @@ etui_object_page_rotation_get(Evas_Object *obj)
 
     ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, ETUI_ROTATION_0);
 
-    return etui_provider_instance_rotation_get(sd->provider_instance);
+    return etui_provider_instance_page_rotation_get(sd->provider_instance);
 }
 
 EAPI void
@@ -558,8 +715,8 @@ etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale)
 
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
-    etui_provider_instance_scale_set(sd->provider_instance, hscale, vscale);
-    evas_object_smart_need_recalculate_set(obj, 1);
+    if (etui_provider_instance_page_scale_set(sd->provider_instance, hscale, vscale))
+        evas_object_smart_need_recalculate_set(obj, 1);
 }
 
 EAPI void
@@ -579,11 +736,21 @@ etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale)
     if (strcmp(_etui_smart_str, ETUI_OBJ_NAME))
         goto _err;
 
-    etui_provider_instance_scale_get(sd->provider_instance, hscale, vscale);
+    etui_provider_instance_page_scale_get(sd->provider_instance, hscale, vscale);
 
     return;
 
   _err:
     if (hscale) *hscale = 1.0;
     if (vscale) *vscale = 1.0;
+}
+
+EAPI const Eina_Array *
+etui_object_page_links_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_page_links_get(sd->provider_instance);
 }

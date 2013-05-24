@@ -430,6 +430,87 @@ etui_provider_instance_file_close(Etui_Provider_Instance *inst)
     ETUI_PROVIDER_INSTANCE_CALL(inst, file_close);
 }
 
+void
+etui_provider_instance_version_get(Etui_Provider_Instance *inst, int *maj, int *min)
+{
+    /* FIXME: if error, set the version to -1 */
+    ETUI_PROVIDER_INSTANCE_CHECK(inst, version_get);
+
+    inst->provider->version_get(inst->data, maj, min);
+}
+
+char *
+etui_provider_instance_title_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, title_get, NULL);
+}
+
+char *
+etui_provider_instance_author_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, author_get, NULL);
+}
+
+char *
+etui_provider_instance_subject_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, subject_get, NULL);
+}
+
+char *
+etui_provider_instance_keywords_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, keywords_get, NULL);
+}
+
+char *
+etui_provider_instance_creator_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, creator_get, NULL);
+}
+
+char *
+etui_provider_instance_producer_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, producer_get, NULL);
+}
+
+char *
+etui_provider_instance_creation_date_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, creation_date_get, NULL);
+}
+
+char *
+etui_provider_instance_modification_date_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, modification_date_get, NULL);
+}
+
+Eina_Bool
+etui_provider_instance_is_printable(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, is_printable, EINA_FALSE);
+}
+
+Eina_Bool
+etui_provider_instance_is_changeable(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, is_changeable, EINA_FALSE);
+}
+
+Eina_Bool
+etui_provider_instance_is_copyable(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, is_copyable, EINA_FALSE);
+}
+
+Eina_Bool
+etui_provider_instance_is_notable(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, is_notable, EINA_FALSE);
+}
+
 Eina_Bool
 etui_provider_instance_password_needed(Etui_Provider_Instance *inst)
 {
@@ -449,6 +530,12 @@ etui_provider_instance_pages_count(Etui_Provider_Instance *inst)
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, pages_count, -1);
 }
 
+const Eina_Array *
+etui_provider_instance_toc_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, toc_get, NULL);
+}
+
 void
 etui_provider_instance_page_use_display_list_set(Etui_Provider_Instance *inst,
                                                  Eina_Bool on)
@@ -462,10 +549,10 @@ etui_provider_instance_page_use_display_list_get(Etui_Provider_Instance *inst)
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_use_display_list_get, EINA_FALSE);
 }
 
-void
+Eina_Bool
 etui_provider_instance_page_set(Etui_Provider_Instance *inst, int page_num)
 {
-    ETUI_PROVIDER_INSTANCE_CALL(inst, page_set, page_num);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_set, EINA_FALSE, page_num);
 }
 
 int
@@ -483,54 +570,60 @@ etui_provider_instance_page_size_get(Etui_Provider_Instance *inst, int *width, i
     inst->provider->page_size_get(inst->data, width, height);
 }
 
-void
-etui_provider_instance_rotation_set(Etui_Provider_Instance *inst,
+Eina_Bool
+etui_provider_instance_page_rotation_set(Etui_Provider_Instance *inst,
                                     Etui_Rotation rotation)
 {
-    ETUI_PROVIDER_INSTANCE_CALL(inst, rotation_set, rotation);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_rotation_set, EINA_FALSE, rotation);
 }
 
 Etui_Rotation
-etui_provider_instance_rotation_get(Etui_Provider_Instance *inst)
+etui_provider_instance_page_rotation_get(Etui_Provider_Instance *inst)
 {
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, rotation_get, ETUI_ROTATION_0);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_rotation_get, ETUI_ROTATION_0);
 }
 
-void
-etui_provider_instance_scale_set(Etui_Provider_Instance *inst,
+Eina_Bool
+etui_provider_instance_page_scale_set(Etui_Provider_Instance *inst,
                                  float hscale,
                                  float vscale)
 {
-    ETUI_PROVIDER_INSTANCE_CALL(inst, scale_set, hscale, vscale);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_scale_set, EINA_FALSE, hscale, vscale);
 }
 
 void
-etui_provider_instance_scale_get(Etui_Provider_Instance *inst,
+etui_provider_instance_page_scale_get(Etui_Provider_Instance *inst,
                                  float *hscale,
                                  float *vscale)
 {
     /* FIXME: if error, set the scales to 1.0f */
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, scale_get);
+    ETUI_PROVIDER_INSTANCE_CHECK(inst, page_scale_get);
 
-    inst->provider->scale_get(inst->data, hscale, vscale);
+    inst->provider->page_scale_get(inst->data, hscale, vscale);
+}
+
+const Eina_Array *
+etui_provider_instance_page_links_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_links_get, NULL);
 }
 
 void
-etui_provider_instance_render_pre(Etui_Provider_Instance *inst)
+etui_provider_instance_page_render_pre(Etui_Provider_Instance *inst)
 {
-    ETUI_PROVIDER_INSTANCE_CALL(inst, render_pre);
+    ETUI_PROVIDER_INSTANCE_CALL(inst, page_render_pre);
 }
 
 void
-etui_provider_instance_render(Etui_Provider_Instance *inst)
+etui_provider_instance_page_render(Etui_Provider_Instance *inst)
 {
-    ETUI_PROVIDER_INSTANCE_CALL(inst, render);
+    ETUI_PROVIDER_INSTANCE_CALL(inst, page_render);
 }
 
 void
-etui_provider_instance_render_end(Etui_Provider_Instance *inst)
+etui_provider_instance_page_render_end(Etui_Provider_Instance *inst)
 {
-    ETUI_PROVIDER_INSTANCE_CALL(inst, render_end);
+    ETUI_PROVIDER_INSTANCE_CALL(inst, page_render_end);
 }
 
 /*============================================================================*

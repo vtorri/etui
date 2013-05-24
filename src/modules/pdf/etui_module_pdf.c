@@ -86,6 +86,7 @@ struct _Etui_Provider_Data
         char *filename;
         fz_context *ctx;
         fz_document *doc;
+        Eina_Array toc;
     } doc;
 
     /* Current page */
@@ -93,17 +94,234 @@ struct _Etui_Provider_Data
     {
         fz_page *page;
         fz_display_list *list;
+        Eina_Array links;
         int page_num;
         Etui_Rotation rotation;
         float hscale;
         float vscale;
-        unsigned int is_modified :1;
         unsigned int use_display_list :1;
     } page;
 };
 
 static int _etui_module_pdf_init_count = 0;
 static int _etui_module_pdf_log_domain = -1;
+
+static char *
+_etui_pdf_document_property_get(fz_document *doc, const char *prop)
+{
+    char buf[1024];
+
+    memcpy(buf, &prop, sizeof(char *));
+    if (fz_meta(doc, FZ_META_INFO, buf, sizeof(buf)) <= 0)
+        return NULL;
+
+    return strdup(buf);
+}
+
+static char *
+_etui_pdf_document_date_get(fz_document *doc, const char *prop)
+{
+    char *date;
+    char *fmt;
+
+    date = _etui_pdf_document_property_get(doc, prop);
+    if (!date)
+	    return NULL;
+
+    /* FIXME: manage minutes and seconds ? */
+
+    fmt = (char *)malloc(21);
+    if (fmt)
+    {
+        memcpy(fmt, date + 2, 4);
+        fmt[4] = '-';
+        memcpy(fmt + 5, date + 6, 2);
+        fmt[7] = '-';
+        memcpy(fmt + 8, date + 8, 2);
+        fmt[10] = ',';
+        fmt[11] = ' ';
+        memcpy(fmt + 12, date + 10, 2);
+        fmt[14] = ':';
+        memcpy(fmt + 15, date + 12, 2);
+        fmt[17] = ':';
+        memcpy(fmt + 18, date + 14, 2);
+        fmt[20] = '\0';
+        free(date);
+        return fmt;
+    }
+
+    return fmt;
+}
+
+static Etui_Link_Goto
+_etui_pdf_link_goto_fill(fz_link_dest *dest)
+{
+    Etui_Link_Goto l;
+
+    l.page = dest->ld.gotor.page;
+    /* l.page = dest->ld.gotor.page; */
+    /* l.page = dest->ld.gotor.page; */
+    /* l.page = dest->ld.gotor.page; */
+    l.new_window = !!dest->ld.gotor.new_window;
+
+    return l;
+}
+
+static Etui_Link_Goto_Remote
+_etui_pdf_link_goto_remote_fill(fz_link_dest *dest)
+{
+    Etui_Link_Goto_Remote l;
+
+    l.page = dest->ld.gotor.page;
+    /* l.page = dest->ld.gotor.page; */
+    /* l.page = dest->ld.gotor.page; */
+    /* l.page = dest->ld.gotor.page; */
+    l.filename = strdup(dest->ld.gotor.file_spec);
+    l.new_window = !!dest->ld.gotor.new_window;
+
+    return l;
+}
+
+static Etui_Link_Uri
+_etui_pdf_link_uri_fill(fz_link_dest *dest)
+{
+    Etui_Link_Uri l;
+
+    l.uri = strdup(dest->ld.uri.uri);
+    l.is_map = !!dest->ld.uri.is_map;
+
+    return l;
+}
+
+static Etui_Link_Launch
+_etui_pdf_link_launch_fill(fz_link_dest *dest)
+{
+    Etui_Link_Launch l;
+
+    l.filename = strdup(dest->ld.launch.file_spec);
+    l.new_window = !!dest->ld.launch.new_window;
+
+    return l;
+}
+
+static Etui_Link_Named
+_etui_pdf_link_named_fill(fz_link_dest *dest)
+{
+    Etui_Link_Named l;
+
+    l.named = strdup(dest->ld.named.named);
+
+    return l;
+}
+
+static void
+_etui_pdf_page_links_fill(Etui_Provider_Data *pd, fz_link *links)
+{
+    fz_link *iter;
+    fz_irect rect;
+    Etui_Link_Item *item;
+
+    for (iter = links; iter; iter = iter->next)
+    {
+        item = (Etui_Link_Item *)calloc(1, sizeof(Etui_Link_Item));
+        if (!item)
+            continue;
+
+        switch (iter->dest.kind)
+        {
+            case FZ_LINK_GOTO:
+                item->kind = ETUI_LINK_KIND_GOTO;
+                item->dest.goto_ = _etui_pdf_link_goto_fill(&iter->dest);
+                break;
+            case FZ_LINK_GOTOR:
+                item->kind = ETUI_LINK_KIND_GOTO_REMOTE;
+                item->dest.goto_remote = _etui_pdf_link_goto_remote_fill(&iter->dest);
+                break;
+            case FZ_LINK_URI:
+                item->kind = ETUI_LINK_KIND_URI;
+                item->dest.uri = _etui_pdf_link_uri_fill(&iter->dest);
+                break;
+            case FZ_LINK_LAUNCH:
+                item->kind = ETUI_LINK_KIND_LAUNCH;
+                item->dest.launch = _etui_pdf_link_launch_fill(&iter->dest);
+                break;
+            case FZ_LINK_NAMED:
+                item->kind = ETUI_LINK_KIND_NAMED;
+                item->dest.named = _etui_pdf_link_named_fill(&iter->dest);
+                break;
+            default:
+                item->kind = ETUI_LINK_KIND_NONE;
+                break;
+        }
+
+        /* FIXME: take into account the rotation and the zoom ?*/
+        fz_irect_from_rect(&rect, &links->rect);
+        item->rect.x = rect.x0;
+        item->rect.y = rect.y0;
+        item->rect.w = rect.x1 - rect.x0;
+        item->rect.h = rect.y1 - rect.y0;
+
+        eina_array_push(&pd->page.links, item);
+    }
+}
+
+static Eina_Array *
+_etui_pdf_toc_fill(Eina_Array *items, fz_outline *outline)
+{
+    fz_outline *iter;
+    Eina_Array *res;
+    Etui_Toc_Item *item;
+
+    if (!items)
+        res = eina_array_new(4);
+    else
+        res = items;
+
+    for (iter = outline; iter; iter = iter->next)
+    {
+        item = (Etui_Toc_Item *)calloc(1, sizeof(Etui_Toc_Item));
+        if (!item)
+            continue;
+
+        if (iter->title)
+            item->title = strdup(iter->title);
+
+        switch (iter->dest.kind)
+        {
+            case FZ_LINK_GOTO:
+                item->kind = ETUI_LINK_KIND_GOTO;
+                item->dest.goto_ = _etui_pdf_link_goto_fill(&iter->dest);
+                break;
+            case FZ_LINK_GOTOR:
+                item->kind = ETUI_LINK_KIND_GOTO_REMOTE;
+                item->dest.goto_remote = _etui_pdf_link_goto_remote_fill(&iter->dest);
+                break;
+            case FZ_LINK_URI:
+                item->kind = ETUI_LINK_KIND_URI;
+                item->dest.uri = _etui_pdf_link_uri_fill(&iter->dest);
+                break;
+            case FZ_LINK_LAUNCH:
+                item->kind = ETUI_LINK_KIND_LAUNCH;
+                item->dest.launch = _etui_pdf_link_launch_fill(&iter->dest);
+                break;
+            case FZ_LINK_NAMED:
+                item->kind = ETUI_LINK_KIND_NAMED;
+                item->dest.named = _etui_pdf_link_named_fill(&iter->dest);
+                break;
+            default:
+                item->kind = ETUI_LINK_KIND_NONE;
+                break;
+        }
+
+        if (iter->down)
+            item->child = _etui_pdf_toc_fill(item->child, iter->down);
+
+        eina_array_push(res, item);
+    }
+
+    return res;
+}
+
 
 static void *
 _etui_pdf_init(Evas *evas)
@@ -170,6 +388,7 @@ static Eina_Bool
 _etui_pdf_file_open(void *d, const char *filename)
 {
     Etui_Provider_Data *pd;
+    fz_outline *outline;
 
     if (!d || !filename || !*filename)
         return EINA_FALSE;
@@ -187,6 +406,17 @@ _etui_pdf_file_open(void *d, const char *filename)
     {
         ERR("Could not open file %s", filename);
         goto free_filename;
+    }
+
+    while (eina_array_count(&pd->doc.toc))
+           free(eina_array_pop(&pd->doc.toc));
+    eina_array_step_set(&pd->doc.toc, sizeof(Eina_Array), 4);
+
+    outline = fz_load_outline(pd->doc.doc);
+    if (outline)
+    {
+        pd->doc.toc = *_etui_pdf_toc_fill(&pd->doc.toc, outline);
+        fz_free_outline(pd->doc.ctx, outline);
     }
 
     /* FIXME: get PDF info */
@@ -239,6 +469,270 @@ _etui_pdf_file_close(void *d)
     pd->doc.filename = NULL;
 }
 
+static void
+_etui_pdf_version_get(void *d, int *maj, int *min)
+{
+    char buf[256];
+    Etui_Provider_Data *pd;
+    char *tmp;
+
+    if (!d)
+        goto _err;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        goto _err;
+    }
+
+    if (fz_meta(pd->doc.doc, FZ_META_FORMAT_INFO, buf, sizeof(buf)) < 0)
+        goto _err;
+
+    if (strlen(buf) < 5)
+        goto _err;
+
+    tmp = strchr(buf + 4, '.');
+    *tmp = '\0';
+    if (maj) *maj = atoi(buf + 4);
+    if (min) *min = atoi(tmp + 1);
+
+    return;
+
+  _err:
+    if (maj) *maj = -1;
+    if (min) *min = -1;
+}
+
+static char *
+_etui_pdf_title_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_property_get(pd->doc.doc, "Title");
+}
+
+static char *
+_etui_pdf_author_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_property_get(pd->doc.doc, "Author");
+}
+
+static char *
+_etui_pdf_subject_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_property_get(pd->doc.doc, "Subject");
+}
+
+static char *
+_etui_pdf_keywords_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_property_get(pd->doc.doc, "Keywords");
+}
+
+static char *
+_etui_pdf_creator_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_property_get(pd->doc.doc, "Creator");
+}
+
+static char *
+_etui_pdf_producer_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_property_get(pd->doc.doc, "Producer");
+}
+
+static char *
+_etui_pdf_creation_date_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_date_get(pd->doc.doc, "CreationDate");
+}
+
+static char *
+_etui_pdf_modification_date_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    return _etui_pdf_document_date_get(pd->doc.doc, "ModDate");
+}
+
+static Eina_Bool
+_etui_pdf_is_printable(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return EINA_FALSE;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
+    return fz_meta(pd->doc.doc, FZ_META_HAS_PERMISSION, NULL, FZ_PERMISSION_PRINT) == 0;
+}
+
+static Eina_Bool
+_etui_pdf_is_changeable(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return EINA_FALSE;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
+    return fz_meta(pd->doc.doc, FZ_META_HAS_PERMISSION, NULL, FZ_PERMISSION_CHANGE) == 0;
+}
+
+static Eina_Bool
+_etui_pdf_is_copyable(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return EINA_FALSE;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
+    return fz_meta(pd->doc.doc, FZ_META_HAS_PERMISSION, NULL, FZ_PERMISSION_COPY) == 0;
+}
+
+static Eina_Bool
+_etui_pdf_is_notable(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return EINA_FALSE;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
+    return fz_meta(pd->doc.doc, FZ_META_HAS_PERMISSION, NULL, FZ_PERMISSION_NOTES) == 0;
+}
+
 static Eina_Bool
 _etui_pdf_password_needed(void *d)
 {
@@ -248,6 +742,13 @@ _etui_pdf_password_needed(void *d)
         return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
     return fz_needs_password(pd->doc.doc) ? EINA_TRUE : EINA_FALSE;
 }
 
@@ -260,6 +761,13 @@ _etui_pdf_password_set(void *d, const char *password)
         return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
     return fz_authenticate_password(pd->doc.doc, (char *)password) ? EINA_TRUE : EINA_FALSE;
 }
 
@@ -272,7 +780,27 @@ _etui_pdf_pages_count(void *d)
         return -1;
 
     pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return -1;
+    }
+
     return fz_count_pages(pd->doc.doc);
+}
+
+static const Eina_Array *
+_etui_pdf_toc_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    return &pd->doc.toc;
 }
 
 static void
@@ -301,11 +829,12 @@ _etui_pdf_page_use_display_list_get(void *d)
     return pd->page.use_display_list;
 }
 
-static void
+static Eina_Bool
 _etui_pdf_page_set(void *d, int page_num)
 {
     Etui_Provider_Data *pd;
     fz_page *page;
+    fz_link *links;
     fz_rect bounds;
     fz_irect ibounds;
     fz_matrix ctm;
@@ -313,21 +842,27 @@ _etui_pdf_page_set(void *d, int page_num)
     int height;
 
     if (!d)
-        return;
+        return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
 
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        return EINA_FALSE;
+    }
+
     if ((page_num < 0) || (page_num >= fz_count_pages(pd->doc.doc)))
-        return;
+        return EINA_FALSE;
 
     if (page_num == pd->page.page_num)
-        return;
+        return EINA_FALSE;
 
     page = fz_load_page(pd->doc.doc, page_num);
     if (!page)
     {
         ERR("could not set page %d from the document", page_num);
-        return;
+        return EINA_FALSE;
     }
 
     if (pd->page.page)
@@ -335,9 +870,27 @@ _etui_pdf_page_set(void *d, int page_num)
 
     if (pd->page.use_display_list)
     {
+        fz_cookie cookie = { 0 };
+        fz_device *dev;
+
         if (pd->page.list)
             fz_free_display_list(pd->doc.ctx, pd->page.list);
-        pd->page.list = NULL;
+        pd->page.list = fz_new_display_list(pd->doc.ctx);
+
+        dev = fz_new_list_device(pd->doc.ctx, pd->page.list);
+        fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
+        fz_free_device(dev);
+    }
+
+    while (eina_array_count(&pd->page.links))
+           free(eina_array_pop(&pd->page.links));
+    eina_array_step_set(&pd->page.links, sizeof(Eina_Array), 4);
+
+    links = fz_load_links(pd->doc.doc, page);
+    if (links)
+    {
+        _etui_pdf_page_links_fill(pd, links);
+        fz_drop_link(pd->doc.ctx, links);
     }
 
     pd->page.page = page;
@@ -345,7 +898,6 @@ _etui_pdf_page_set(void *d, int page_num)
     pd->page.rotation = ETUI_ROTATION_0;
     pd->page.hscale = 1.0f;
     pd->page.vscale = 1.0f;
-    pd->page.is_modified = 1;
 
     fz_bound_page(pd->doc.doc, pd->page.page, &bounds);
     fz_pre_scale(fz_rotate(&ctm, pd->page.rotation), pd->page.hscale, pd->page.vscale);
@@ -355,6 +907,8 @@ _etui_pdf_page_set(void *d, int page_num)
     height = ibounds.y1 - ibounds.y0;
 
     evas_object_resize(pd->obj, width, height);
+
+    return EINA_TRUE;
 }
 
 static int
@@ -366,6 +920,7 @@ _etui_pdf_page_get(void *d)
         return -1;
 
     pd = (Etui_Provider_Data *)d;
+
     return pd->page.page_num;
 }
 
@@ -376,33 +931,47 @@ _etui_pdf_page_size_get(void *d, int *width, int *height)
     fz_rect rect;
 
     if (!d)
-    {
-        if (width) *width = 0;
-        if (height) *height = 0;
-        return;
-    }
+        goto _err;
 
     pd = (Etui_Provider_Data *)d;
+
+    if (!pd->doc.doc)
+    {
+        ERR("no opened document");
+        goto _err;
+    }
+
     fz_bound_page(pd->doc.doc, pd->page.page, &rect);
     if (width) *width = (int)(rect.x1 - rect.x0);
     if (height) *height = (int)(rect.y1 - rect.y0);
+
+    return;
+
+  _err:
+    if (width) *width = 0;
+    if (height) *height = 0;
 }
 
-static void
-_etui_pdf_rotation_set(void *d, Etui_Rotation rotation)
+static Eina_Bool
+_etui_pdf_page_rotation_set(void *d, Etui_Rotation rotation)
 {
     Etui_Provider_Data *pd;
 
     if (!d)
-        return;
+        return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
+
+    if (pd->page.rotation == rotation)
+        return EINA_FALSE;
+
     pd->page.rotation = rotation;
-    pd->page.is_modified = 1;
+
+    return EINA_TRUE;
 }
 
 static Etui_Rotation
-_etui_pdf_rotation_get(void *d)
+_etui_pdf_page_rotation_get(void *d)
 {
     Etui_Provider_Data *pd;
 
@@ -413,22 +982,27 @@ _etui_pdf_rotation_get(void *d)
     return pd->page.rotation;
 }
 
-static void
-_etui_pdf_scale_set(void *d, float hscale, float vscale)
+static Eina_Bool
+_etui_pdf_page_scale_set(void *d, float hscale, float vscale)
 {
     Etui_Provider_Data *pd;
 
     if (!d)
-        return;
+        return EINA_FALSE;
 
     pd = (Etui_Provider_Data *)d;
+
+    if ((pd->page.hscale == hscale) && (pd->page.vscale == vscale))
+        return EINA_FALSE;
+
     pd->page.hscale = hscale;
     pd->page.vscale = vscale;
-    pd->page.is_modified = 1;
+
+    return EINA_TRUE;
 }
 
 static void
-_etui_pdf_scale_get(void *d, float *hscale, float *vscale)
+_etui_pdf_page_scale_get(void *d, float *hscale, float *vscale)
 {
     Etui_Provider_Data *pd;
 
@@ -440,12 +1014,26 @@ _etui_pdf_scale_get(void *d, float *hscale, float *vscale)
     }
 
     pd = (Etui_Provider_Data *)d;
+
     if (hscale) *hscale = pd->page.hscale;
     if (vscale) *vscale = pd->page.vscale;
 }
 
+static const Eina_Array *
+_etui_pdf_page_links_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    return &pd->page.links;
+}
+
 static void
-_etui_pdf_render_pre(void *d)
+_etui_pdf_page_render_pre(void *d)
 {
     Etui_Provider_Data *pd;
     fz_device *dev = NULL;
@@ -458,14 +1046,10 @@ _etui_pdf_render_pre(void *d)
 
     pd = (Etui_Provider_Data *)d;
 
-    if (pd->page.use_display_list)
+    if (!pd->doc.doc)
     {
-        if (!pd->page.list)
-            pd->page.list = fz_new_display_list(pd->doc.ctx);
-        dev = fz_new_list_device(pd->doc.ctx, pd->page.list);
-        fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
-        fz_free_device(dev);
-        dev = NULL;
+        ERR("no opened document");
+        return;
     }
 
     fz_bound_page(pd->doc.doc, pd->page.page, &bounds);
@@ -483,7 +1067,7 @@ _etui_pdf_render_pre(void *d)
 }
 
 static void
-_etui_pdf_render(void *d)
+_etui_pdf_page_render(void *d)
 {
     Etui_Provider_Data *pd;
     fz_device *dev = NULL;
@@ -519,7 +1103,7 @@ _etui_pdf_render(void *d)
 }
 
 static void
-_etui_pdf_render_end(void *d)
+_etui_pdf_page_render_end(void *d)
 {
     Etui_Provider_Data *pd;
     int width, height;
@@ -529,7 +1113,7 @@ _etui_pdf_render_end(void *d)
     evas_object_image_data_update_add(pd->obj, 0, 0, width, height);
     fz_drop_pixmap(pd->doc.ctx, pd->image);
 
-    pd->page.is_modified = 0;
+//    pd->page.is_modified = 0;
 }
 
 
@@ -543,21 +1127,36 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .evas_object_get           */ _etui_pdf_evas_object_get,
     /* .file_open                 */ _etui_pdf_file_open,
     /* .file_close                */ _etui_pdf_file_close,
+    /* .version_get               */ _etui_pdf_version_get,
+    /* .title_get                 */ _etui_pdf_title_get,
+    /* .author_get                */ _etui_pdf_author_get,
+    /* .subject_get               */ _etui_pdf_subject_get,
+    /* .keywords_get              */ _etui_pdf_keywords_get,
+    /* .creator_get               */ _etui_pdf_creator_get,
+    /* .producer_get              */ _etui_pdf_producer_get,
+    /* .creation_date_get         */ _etui_pdf_creation_date_get,
+    /* .modification_date_get     */ _etui_pdf_modification_date_get,
+    /* .is_printable              */ _etui_pdf_is_printable,
+    /* .is_changeable             */ _etui_pdf_is_changeable,
+    /* .is_copyable               */ _etui_pdf_is_copyable,
+    /* .is_notable                */ _etui_pdf_is_notable,
     /* .password_needed           */ _etui_pdf_password_needed,
     /* .password_set              */ _etui_pdf_password_set,
     /* .pages_count               */ _etui_pdf_pages_count,
+    /* .toc_get                   */ _etui_pdf_toc_get,
     /* .page_use_display_list_set */ _etui_pdf_page_use_display_list_set,
     /* .page_use_display_list_get */ _etui_pdf_page_use_display_list_get,
     /* .page_set                  */ _etui_pdf_page_set,
     /* .page_get                  */ _etui_pdf_page_get,
     /* .page_size_get             */ _etui_pdf_page_size_get,
-    /* .rotation_set              */ _etui_pdf_rotation_set,
-    /* .rotation_get              */ _etui_pdf_rotation_get,
-    /* .scale_set                 */ _etui_pdf_scale_set,
-    /* .scale_get                 */ _etui_pdf_scale_get,
-    /* .render_pre                */ _etui_pdf_render_pre,
-    /* .render                    */ _etui_pdf_render,
-    /* .render_end                */ _etui_pdf_render_end
+    /* .page_rotation_set         */ _etui_pdf_page_rotation_set,
+    /* .page_rotation_get         */ _etui_pdf_page_rotation_get,
+    /* .page_scale_set            */ _etui_pdf_page_scale_set,
+    /* .page_scale_get            */ _etui_pdf_page_scale_get,
+    /* .page_links_get            */ _etui_pdf_page_links_get,
+    /* .page_render_pre           */ _etui_pdf_page_render_pre,
+    /* .page_render               */ _etui_pdf_page_render,
+    /* .page_render_end           */ _etui_pdf_page_render_end
 };
 
 /**

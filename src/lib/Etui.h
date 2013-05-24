@@ -56,19 +56,102 @@ typedef enum
     ETUI_ROTATION_270
 } Etui_Rotation;
 
+typedef enum
+{
+    ETUI_LINK_KIND_NONE,
+    ETUI_LINK_KIND_GOTO,
+    ETUI_LINK_KIND_GOTO_REMOTE,
+    ETUI_LINK_KIND_URI,
+    ETUI_LINK_KIND_LAUNCH,
+    ETUI_LINK_KIND_NAMED,
+} Etui_Link_Kind;
+
+typedef struct
+{
+    int page;
+    /* int flags; */
+    /* fz_point lt; */
+    /* fz_point rb; */
+    unsigned int new_window : 1;
+} Etui_Link_Goto;
+
+typedef struct
+{
+    int page;
+    /* int flags; */
+    /* fz_point lt; */
+    /* fz_point rb; */
+    char *filename;
+    unsigned int new_window : 1;
+} Etui_Link_Goto_Remote;
+
+typedef struct
+{
+    char *uri;
+    unsigned int is_map : 1;
+} Etui_Link_Uri;
+
+typedef struct
+{
+    char *filename;
+    unsigned int new_window : 1;
+} Etui_Link_Launch;
+
+typedef struct
+{
+    char *named;
+} Etui_Link_Named;
+
+typedef union
+{
+    Etui_Link_Goto goto_;
+    Etui_Link_Goto_Remote goto_remote;
+    Etui_Link_Uri uri;
+    Etui_Link_Launch launch;
+    Etui_Link_Named named;
+} Etui_Link_Dest;
+
+typedef struct
+{
+    Etui_Link_Kind kind;
+    Eina_Rectangle rect;
+    Etui_Link_Dest dest;
+} Etui_Link_Item;
+
+typedef struct
+{
+    Etui_Link_Kind kind;
+    char *title;
+    Etui_Link_Dest dest;
+    Eina_Array *child;
+} Etui_Toc_Item;
+
 
 EAPI int etui_init(void);
 EAPI int etui_shutdown(void);
 
 EAPI Evas_Object *etui_object_add(Evas *evas);
 EAPI Eina_Bool etui_object_file_set(Evas_Object *obj, const char *filename);
-EAPI const char *etui_object_file_get(Evas_Object *obj);
 EAPI const char *etui_object_filename_get(Evas_Object *obj);
+
+EAPI void etui_object_version_get(Evas_Object *obj, int *maj, int *min);
+EAPI char *etui_object_title_get(Evas_Object *obj);
+EAPI char *etui_object_author_get(Evas_Object *obj);
+EAPI char *etui_object_subject_get(Evas_Object *obj);
+EAPI char *etui_object_keywords_get(Evas_Object *obj);
+EAPI char *etui_object_creator_get(Evas_Object *obj);
+EAPI char *etui_object_producer_get(Evas_Object *obj);
+EAPI char *etui_object_creation_date_get(Evas_Object *obj);
+EAPI char *etui_object_modification_date_get(Evas_Object *obj);
+Eina_Bool etui_object_is_printable(Evas_Object *obj);
+Eina_Bool etui_object_is_changeable(Evas_Object *obj);
+Eina_Bool etui_object_is_copyable(Evas_Object *obj);
+Eina_Bool etui_object_is_notable(Evas_Object *obj);
 
 EAPI Eina_Bool etui_object_document_password_needed(Evas_Object *obj);
 EAPI Eina_Bool etui_object_document_password_set(Evas_Object *obj, const char *password);
 EAPI int etui_object_document_pages_count(Evas_Object *obj);
-
+EAPI const Eina_Array *etui_object_toc_get(Evas_Object *obj);
 
 EAPI void etui_object_page_use_display_list_set(Evas_Object *obj, Eina_Bool on);
 EAPI Eina_Bool etui_object_page_use_display_list_get(Evas_Object *obj);
@@ -79,6 +162,7 @@ EAPI void etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation
 EAPI Etui_Rotation etui_object_page_rotation_get(Evas_Object *obj);
 EAPI void etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale);
 EAPI void etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale);
+EAPI const Eina_Array *etui_object_page_links_get(Evas_Object *obj);
 
 
 #endif /* ETUI_H */

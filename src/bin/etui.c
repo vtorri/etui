@@ -61,26 +61,50 @@ _etui_signal_exit(void *data EINA_UNUSED, int ev_type EINA_UNUSED, void *ev EINA
 }
 
 static Eina_Bool
-_etui_key_down(void *data, int type, void *event)
+_etui_key_down(void *data, int type EINA_UNUSED, void *event)
 {
-   Ecore_Event_Key *ev;
-   ev = event;
+    Ecore_Event_Key *ev;
 
-   if (ev->key)
-     {
-        if ((!strcmp(ev->key, "Up"))
-            || (!strcmp(ev->key, "Right")))
-          etui_object_page_set(data, etui_object_page_get(data) + 1);
-        else if ((!strcmp(ev->key, "Down"))
-            || (!strcmp(ev->key, "Left")))
-          etui_object_page_set(data, etui_object_page_get(data) - 1);
-     }
-   return ECORE_CALLBACK_PASS_ON;
+    ev = event;
+
+    if (ev->key)
+    {
+        if ((!strcmp(ev->key, "Up")) ||
+            (!strcmp(ev->key, "Right")))
+            etui_object_page_set(data, etui_object_page_get(data) + 1);
+        else if ((!strcmp(ev->key, "Down")) ||
+                 (!strcmp(ev->key, "Left")))
+            etui_object_page_set(data, etui_object_page_get(data) - 1);
+    }
+
+    return ECORE_CALLBACK_PASS_ON;
 }
 
 static void _etui_delete_request_cb(Ecore_Evas *ee EINA_UNUSED)
 {
     ecore_main_loop_quit();
+}
+
+static void _etui_toc_display(const Eina_Array *items, int indent)
+{
+    Etui_Toc_Item *item;
+    Eina_Array_Iterator iter;
+    unsigned int i;
+
+    if (!items)
+        return;
+
+    if (eina_array_count(items) == 0)
+        return;
+
+    EINA_ARRAY_ITER_NEXT(items, i, item, iter)
+    {
+        int j;
+
+        for (j = 0; j < indent; j++) printf (" ");
+        printf ("%s: %d\n", item->title, item->kind);
+        _etui_toc_display(item->child, indent + 2);
+    }
 }
 
 int main(int argc, char *argv[])
@@ -107,6 +131,9 @@ int main(int argc, char *argv[])
     int args;
     int w;
     int h;
+
+    int maj;
+    int min;
 
     if (!ecore_evas_init())
     {
@@ -160,7 +187,7 @@ int main(int argc, char *argv[])
         goto shutdown_ecore_evas;
     }
 
-    etui_object_page_set(o, 1);
+    etui_object_page_set(o, 0);
     evas_object_geometry_get(o, NULL, NULL, &w, &h);
     evas_object_move(o, 0, 0);
     /* evas_object_size_hint_min_set(o, w, h); */
@@ -170,7 +197,25 @@ int main(int argc, char *argv[])
     etui_object_page_use_display_list_set(o, EINA_FALSE);
     evas_object_show(o);
 
+    etui_object_version_get(o, &maj, &min);
+    printf("version : %d.%d\n", maj, min);
+    printf("title : %s\n", etui_object_title_get(o));
+    printf("author : %s\n", etui_object_author_get(o));
+    printf("subject : %s\n", etui_object_subject_get(o));
+    printf("keywords : %s\n", etui_object_keywords_get(o));
+    printf("creator : %s\n", etui_object_creator_get(o));
+    printf("producer : %s\n", etui_object_producer_get(o));
+    printf("creation date : %s\n", etui_object_creation_date_get(o));
+    printf("modification date : %s\n", etui_object_modification_date_get(o));
+    printf("printable : %s\n", etui_object_is_printable(o) ? "yes" : "no");
+    printf("changeable : %s\n", etui_object_is_changeable(o) ? "yes" : "no");
+    printf("copyable : %s\n", etui_object_is_copyable(o) ? "yes" : "no");
+    printf("notable : %s\n", etui_object_is_notable(o) ? "yes" : "no");
     printf("pages : %d\n", etui_object_document_pages_count(o));
+    printf("size : %dx%d\n", w, h);
+
+    printf("\n");
+    _etui_toc_display(etui_object_toc_get(o), 0);
 
     ecore_evas_resize(ee, w, h);
     ecore_evas_show(ee);
