@@ -219,14 +219,15 @@ int main(int argc, char *argv[])
 
     {
         char *str;
-        Eina_Rectangle rect = { 209, 680, 116, 29 };
-        etui_object_page_text_extract(o, &rect);
+        Eina_Rectangle rect = { 209, 680, 116, 24 };
+        str = etui_object_page_text_extract(o, &rect);
+        printf("text : \n**%s**\n", str);
     }
 
     o = evas_object_rectangle_add(evas);
     evas_object_color_set(o, 128, 128, 0, 128);
     evas_object_move(o, 209, 680);
-    evas_object_resize(o, 116, 29);
+    evas_object_resize(o, 116, 24);
     evas_object_show(o);
 
     ecore_evas_resize(ee, w, h);

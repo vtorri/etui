@@ -1118,7 +1118,6 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
     fz_device *dev;
     fz_cookie cookie = { 0 };
     fz_rect bounds;
-    char *str = NULL;
 
     if (!d)
         return NULL;
@@ -1151,35 +1150,7 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
         fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
     fz_free_device(dev);
 
-    {
-        fz_text_block *block;
-        fz_text_line *line;
-        fz_text_span *span;
-        fz_text_char *ch;
-        char utf[10];
-        int i, n;
-
-        printf(" * %d\n", pd->page.use_display_list);
-        for (block = text->blocks; block < text->blocks + text->len; block++)
-        {
-            for (line = block->lines; line < block->lines + block->len; line++)
-            {
-                for (span = line->spans; span < line->spans + line->len; span++)
-                {
-                    for (ch = span->text; ch < span->text + span->len; ch++)
-                    {
-                        /* n = fz_runetochar(utf, ch->c); */
-                        /* for (i = 0; i < n; i++) */
-                        /*     printf("%c", utf[i]); */
-                    }
-                }
-                printf("\n");
-            }
-            printf("\n");
-        }
-    }
-
-    return str;
+    return fz_copy_selection(pd->doc.ctx, text, bounds);
 }
 
 
