@@ -516,9 +516,21 @@ etui_provider_instance_scale_get(Etui_Provider_Instance *inst,
 }
 
 void
+etui_provider_instance_render_pre(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL(inst, render_pre);
+}
+
+void
 etui_provider_instance_render(Etui_Provider_Instance *inst)
 {
     ETUI_PROVIDER_INSTANCE_CALL(inst, render);
+}
+
+void
+etui_provider_instance_render_end(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL(inst, render_end);
 }
 
 /*============================================================================*

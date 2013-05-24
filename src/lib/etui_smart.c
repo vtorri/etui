@@ -21,6 +21,7 @@
 
 #include <Eina.h>
 #include <Evas.h>
+#include <Ecore.h>
 #include <Efreet_Mime.h>
 
 #include "Etui.h"
@@ -236,6 +237,36 @@ _etui_smart_clip_unset(Evas_Object *obj)
     evas_object_clip_unset(sd->obj);
 }
 
+Ecore_Thread *_thread = NULL;
+static void
+_etui_smart_render(void *data, Ecore_Thread *thread)
+{
+    Etui_Smart_Data *sd;
+
+    sd = evas_object_smart_data_get(data);
+    if (!sd) return;
+    etui_provider_instance_render(sd->provider_instance);
+}
+
+static void
+_etui_smart_render_end(void *data, Ecore_Thread *thread)
+{
+    Etui_Smart_Data *sd;
+
+    sd = evas_object_smart_data_get(data);
+    if (!sd) return;
+   etui_provider_instance_render_end(sd->provider_instance);
+   _thread = NULL;
+
+}
+
+static void
+_etui_smart_render_cancel(void *data, Ecore_Thread *thread)
+{
+
+}
+
+
 static void
 _etui_smart_calculate(Evas_Object *obj)
 {
@@ -244,7 +275,12 @@ _etui_smart_calculate(Evas_Object *obj)
     sd = evas_object_smart_data_get(obj);
     if (!sd) return;
 
-    etui_provider_instance_render(sd->provider_instance);
+    etui_provider_instance_render_pre(sd->provider_instance);
+    if (!_thread)
+      ecore_thread_run(_etui_smart_render,
+                       _etui_smart_render_end,
+                       _etui_smart_render_cancel,
+                       obj);
 }
 
 static void

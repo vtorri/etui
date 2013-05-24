@@ -46,7 +46,9 @@ struct _Etui_Provider_Descriptor
     Etui_Rotation (*rotation_get)(void *d);
     void          (*scale_set)(void *d, float hscale, float vscale);
     void          (*scale_get)(void *d, float *hscale, float *vscale);
+    void          (*render_pre)(void *d);
     void          (*render)(void *d);
+    void          (*render_end)(void *d);
 };
 
 Eina_Bool etui_modules_init(void);
@@ -96,6 +98,8 @@ void etui_provider_instance_scale_get(Etui_Provider_Instance *inst,
                                       float *hscale,
                                       float *vscale);
 
+void etui_provider_instance_render_pre(Etui_Provider_Instance *inst);
 void etui_provider_instance_render(Etui_Provider_Instance *inst);
+void etui_provider_instance_render_end(Etui_Provider_Instance *inst);
 
 #endif

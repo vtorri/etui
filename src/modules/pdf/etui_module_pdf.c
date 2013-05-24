@@ -75,6 +75,10 @@ struct _Etui_Provider_Data
     Evas_Object *obj;
 
     /* specific PDF stuff for the module */
+    void *m;
+    fz_pixmap *image;
+    int width;
+    int height;
 
     /* Document */
     struct
@@ -441,21 +445,16 @@ _etui_pdf_scale_get(void *d, float *hscale, float *vscale)
 }
 
 static void
-_etui_pdf_render(void *d)
+_etui_pdf_render_pre(void *d)
 {
     Etui_Provider_Data *pd;
     fz_device *dev = NULL;
-    fz_pixmap *image;
-    unsigned int *m = NULL;
     fz_cookie cookie = { 0 };
     fz_matrix ctm;
     fz_rect bounds;
     fz_irect ibounds;
     int width;
     int height;
-
-    if (!d)
-        return;
 
     pd = (Etui_Provider_Data *)d;
 
@@ -478,14 +477,36 @@ _etui_pdf_render(void *d)
 
     evas_object_image_size_set(pd->obj, width, height);
     evas_object_image_fill_set(pd->obj, 0, 0, width, height);
-    m = (unsigned int *)evas_object_image_data_get(pd->obj, 1);
-    if (!m)
-    {
-        ERR("Could not retrieve data from the Evas Object");
-        return;
-    }
+    pd->m = (unsigned int *)evas_object_image_data_get(pd->obj, 1);
+    pd->width = width;
+    pd->height = height;
+}
 
-    image = fz_new_pixmap_with_data(pd->doc.ctx, fz_device_bgr, width, height, (unsigned char *)m);
+static void
+_etui_pdf_render(void *d)
+{
+    Etui_Provider_Data *pd;
+    fz_device *dev = NULL;
+    fz_pixmap *image;
+    unsigned int *m = NULL;
+    fz_cookie cookie = { 0 };
+    fz_matrix ctm;
+    fz_rect bounds;
+    fz_irect ibounds;
+    int width;
+    int height;
+
+    fprintf(stderr, "render 1\n");
+    if (!d)
+        return;
+    pd = (Etui_Provider_Data *)d;
+
+    fz_bound_page(pd->doc.doc, pd->page.page, &bounds);
+    fz_pre_scale(fz_rotate(&ctm, pd->page.rotation), pd->page.hscale, pd->page.vscale);
+    fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
+    image = fz_new_pixmap_with_data(pd->doc.ctx, fz_device_bgr,
+                                    pd->width, pd->height,
+                                    (unsigned char *)pd->m);
     fz_clear_pixmap_with_value(pd->doc.ctx, image, 0xff);
     dev = fz_new_draw_device(pd->doc.ctx, image);
     if (pd->page.use_display_list)
@@ -494,14 +515,23 @@ _etui_pdf_render(void *d)
         fz_run_page(pd->doc.doc, pd->page.page, dev, &ctm, &cookie);
     fz_free_device(dev);
     dev = NULL;
+    pd->image = image;
+}
 
-    evas_object_image_data_set(pd->obj, m);
+static void
+_etui_pdf_render_end(void *d)
+{
+    Etui_Provider_Data *pd;
+    int width, height;
+    pd = (Etui_Provider_Data *)d;
+    evas_object_image_size_get(pd->obj, &width, &height);
+    evas_object_image_data_set(pd->obj, pd->m);
     evas_object_image_data_update_add(pd->obj, 0, 0, width, height);
-    evas_object_resize(pd->obj, width, height);
-    fz_drop_pixmap(pd->doc.ctx, image);
+    fz_drop_pixmap(pd->doc.ctx, pd->image);
 
     pd->page.is_modified = 0;
 }
+
 
 static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
 {
@@ -525,7 +555,9 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .rotation_get              */ _etui_pdf_rotation_get,
     /* .scale_set                 */ _etui_pdf_scale_set,
     /* .scale_get                 */ _etui_pdf_scale_get,
-    /* .render                    */ _etui_pdf_render
+    /* .render_pre                */ _etui_pdf_render_pre,
+    /* .render                    */ _etui_pdf_render,
+    /* .render_end                */ _etui_pdf_render_end
 };
 
 /**
