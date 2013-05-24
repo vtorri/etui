@@ -762,3 +762,13 @@ etui_object_page_links_get(Evas_Object *obj)
 
     return etui_provider_instance_page_links_get(sd->provider_instance);
 }
+
+EAPI char *
+etui_object_page_text_extract(Evas_Object *obj, const Eina_Rectangle *rect)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_page_text_extract(sd->provider_instance, rect);
+}

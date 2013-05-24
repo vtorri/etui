@@ -1107,8 +1107,79 @@ _etui_pdf_page_render_end(void *d)
     evas_object_image_data_set(pd->obj, pd->m);
     evas_object_image_data_update_add(pd->obj, 0, 0, width, height);
     fz_drop_pixmap(pd->doc.ctx, pd->image);
+}
 
-//    pd->page.is_modified = 0;
+static char *
+_etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
+{
+    Etui_Provider_Data *pd;
+    fz_text_sheet *sheet;
+    fz_text_page *text;
+    fz_device *dev;
+    fz_cookie cookie = { 0 };
+    fz_rect bounds;
+    char *str = NULL;
+
+    if (!d)
+        return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->page.use_display_list && !pd->doc.doc)
+    {
+        ERR("no opened document");
+        return NULL;
+    }
+
+    bounds.x0 = rect->x;
+    bounds.y0 = rect->y;
+    bounds.x1 = rect->x + rect->w;
+    bounds.y1 = rect->y + rect->h;
+
+    text = fz_new_text_page(pd->doc.ctx, &bounds);
+    if (!text)
+        return NULL;
+
+    sheet = fz_new_text_sheet(pd->doc.ctx);
+    if (!sheet)
+        return NULL;
+
+    dev = fz_new_text_device(pd->doc.ctx, sheet, text);
+    if (pd->page.use_display_list)
+        fz_run_display_list(pd->page.list, dev, &fz_identity, &bounds, &cookie);
+    else
+        fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
+    fz_free_device(dev);
+
+    {
+        fz_text_block *block;
+        fz_text_line *line;
+        fz_text_span *span;
+        fz_text_char *ch;
+        char utf[10];
+        int i, n;
+
+        printf(" * %d\n", pd->page.use_display_list);
+        for (block = text->blocks; block < text->blocks + text->len; block++)
+        {
+            for (line = block->lines; line < block->lines + block->len; line++)
+            {
+                for (span = line->spans; span < line->spans + line->len; span++)
+                {
+                    for (ch = span->text; ch < span->text + span->len; ch++)
+                    {
+                        /* n = fz_runetochar(utf, ch->c); */
+                        /* for (i = 0; i < n; i++) */
+                        /*     printf("%c", utf[i]); */
+                    }
+                }
+                printf("\n");
+            }
+            printf("\n");
+        }
+    }
+
+    return str;
 }
 
 
@@ -1151,7 +1222,8 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .page_links_get            */ _etui_pdf_page_links_get,
     /* .page_render_pre           */ _etui_pdf_page_render_pre,
     /* .page_render               */ _etui_pdf_page_render,
-    /* .page_render_end           */ _etui_pdf_page_render_end
+    /* .page_render_end           */ _etui_pdf_page_render_end,
+    /* .page_text_extract         */ _etui_pdf_page_text_extract
 };
 
 /**

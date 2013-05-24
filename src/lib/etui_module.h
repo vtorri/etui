@@ -64,6 +64,7 @@ struct _Etui_Provider_Descriptor
     void              (*page_render_pre)(void *d);
     void              (*page_render)(void *d);
     void              (*page_render_end)(void *d);
+    char *            (*page_text_extract)(void *d, const Eina_Rectangle *rect);
 };
 
 Eina_Bool etui_modules_init(void);
@@ -133,5 +134,7 @@ const Eina_Array *etui_provider_instance_page_links_get(Etui_Provider_Instance *
 void etui_provider_instance_page_render_pre(Etui_Provider_Instance *inst);
 void etui_provider_instance_page_render(Etui_Provider_Instance *inst);
 void etui_provider_instance_page_render_end(Etui_Provider_Instance *inst);
+
+char *etui_provider_instance_page_text_extract(Etui_Provider_Instance *inst, const Eina_Rectangle *rect);
 
 #endif
