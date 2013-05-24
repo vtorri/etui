@@ -51,6 +51,11 @@ struct Etui_Smart_Data_
 };
 
 static Evas_Smart *_etui_smart = NULL;
+static Ecore_Thread *_etui_thread = NULL;
+
+static void _etui_smart_page_render(void *data, Ecore_Thread *thread);
+static void _etui_smart_page_render_end(void *data, Ecore_Thread *thread);
+static void _etui_smart_page_render_cancel(void *data, Ecore_Thread *thread);
 
 /* internal smart object routines */
 
@@ -237,35 +242,6 @@ _etui_smart_clip_unset(Evas_Object *obj)
     evas_object_clip_unset(sd->obj);
 }
 
-Ecore_Thread *_thread = NULL;
-static void
-_etui_smart_page_render(void *data, Ecore_Thread *thread EINA_UNUSED)
-{
-    Etui_Smart_Data *sd;
-
-    sd = evas_object_smart_data_get(data);
-    if (!sd) return;
-    etui_provider_instance_page_render(sd->provider_instance);
-}
-
-static void
-_etui_smart_page_render_end(void *data, Ecore_Thread *thread EINA_UNUSED)
-{
-    Etui_Smart_Data *sd;
-
-    sd = evas_object_smart_data_get(data);
-    if (!sd) return;
-    etui_provider_instance_page_render_end(sd->provider_instance);
-   _thread = NULL;
-
-}
-
-static void
-_etui_smart_page_render_cancel(void *data EINA_UNUSED, Ecore_Thread *thread EINA_UNUSED)
-{
-
-}
-
 
 static void
 _etui_smart_calculate(Evas_Object *obj)
@@ -276,11 +252,11 @@ _etui_smart_calculate(Evas_Object *obj)
     if (!sd) return;
 
     etui_provider_instance_page_render_pre(sd->provider_instance);
-    if (!_thread)
-      ecore_thread_run(_etui_smart_page_render,
-                       _etui_smart_page_render_end,
-                       _etui_smart_page_render_cancel,
-                       obj);
+    if (!_etui_thread)
+        ecore_thread_run(_etui_smart_page_render,
+                         _etui_smart_page_render_end,
+                         _etui_smart_page_render_cancel,
+                         obj);
 }
 
 static void
@@ -308,6 +284,38 @@ _etui_smart_init(void)
 }
 
 /* private calls */
+
+static void
+_etui_smart_page_render(void *data, Ecore_Thread *thread EINA_UNUSED)
+{
+    Etui_Smart_Data *sd;
+
+    sd = evas_object_smart_data_get(data);
+    if (!sd)
+        return;
+
+    etui_provider_instance_page_render(sd->provider_instance);
+}
+
+static void
+_etui_smart_page_render_end(void *data, Ecore_Thread *thread EINA_UNUSED)
+{
+    Etui_Smart_Data *sd;
+
+    sd = evas_object_smart_data_get(data);
+    if (!sd)
+        return;
+
+    etui_provider_instance_page_render_end(sd->provider_instance);
+   _etui_thread = NULL;
+
+}
+
+static void
+_etui_smart_page_render_cancel(void *data EINA_UNUSED, Ecore_Thread *thread EINA_UNUSED)
+{
+
+}
 
 static void
 _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_info EINA_UNUSED)

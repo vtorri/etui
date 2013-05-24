@@ -1036,8 +1036,6 @@ static void
 _etui_pdf_page_render_pre(void *d)
 {
     Etui_Provider_Data *pd;
-    fz_device *dev = NULL;
-    fz_cookie cookie = { 0 };
     fz_matrix ctm;
     fz_rect bounds;
     fz_irect ibounds;
@@ -1072,13 +1070,10 @@ _etui_pdf_page_render(void *d)
     Etui_Provider_Data *pd;
     fz_device *dev = NULL;
     fz_pixmap *image;
-    unsigned int *m = NULL;
     fz_cookie cookie = { 0 };
     fz_matrix ctm;
     fz_rect bounds;
     fz_irect ibounds;
-    int width;
-    int height;
 
     fprintf(stderr, "render 1\n");
     if (!d)

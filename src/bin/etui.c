@@ -214,8 +214,14 @@ int main(int argc, char *argv[])
     printf("pages : %d\n", etui_object_document_pages_count(o));
     printf("size : %dx%d\n", w, h);
 
-    printf("\n");
-    _etui_toc_display(etui_object_toc_get(o), 0);
+    /* printf("\n"); */
+    /* _etui_toc_display(etui_object_toc_get(o), 0); */
+
+    o = evas_object_rectangle_add(evas);
+    evas_object_color_set(o, 128, 128, 128, 128);
+    evas_object_move(o, 10, 10);
+    evas_object_resize(o, 140, 280);
+    evas_object_show(o);
 
     ecore_evas_resize(ee, w, h);
     ecore_evas_show(ee);
