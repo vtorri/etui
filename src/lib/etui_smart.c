@@ -655,6 +655,7 @@ etui_object_page_set(Evas_Object *obj, int page_num)
 
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
+    INF("page set %d", page_num);
     if (etui_provider_instance_page_set(sd->provider_instance, page_num))
         evas_object_smart_changed(obj);
 }
@@ -665,6 +666,7 @@ etui_object_page_get(Evas_Object *obj)
     Etui_Smart_Data *sd;
 
     ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, -1);
+    INF("page get");
 
     return etui_provider_instance_page_get(sd->provider_instance);
 }

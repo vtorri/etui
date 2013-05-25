@@ -1042,6 +1042,7 @@ _etui_pdf_page_render_pre(void *d)
     int width;
     int height;
 
+    DBG("render pre");
     pd = (Etui_Provider_Data *)d;
 
     if (!pd->doc.doc)
@@ -1075,7 +1076,7 @@ _etui_pdf_page_render(void *d)
     fz_rect bounds;
     fz_irect ibounds;
 
-    fprintf(stderr, "render 1\n");
+    DBG("render");
     if (!d)
         return;
     pd = (Etui_Provider_Data *)d;
@@ -1102,6 +1103,7 @@ _etui_pdf_page_render_end(void *d)
 {
     Etui_Provider_Data *pd;
     int width, height;
+    DBG("render end");
     pd = (Etui_Provider_Data *)d;
     evas_object_image_size_get(pd->obj, &width, &height);
     evas_object_image_data_set(pd->obj, pd->m);
