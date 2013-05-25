@@ -48,10 +48,10 @@ struct Etui_Smart_Data_
 
     /* private */
     Evas_Object *obj;
+    Ecore_Thread *render;
 };
 
 static Evas_Smart *_etui_smart = NULL;
-static Ecore_Thread *_etui_thread = NULL;
 
 static void _etui_smart_page_render(void *data, Ecore_Thread *thread);
 static void _etui_smart_page_render_end(void *data, Ecore_Thread *thread);
@@ -251,12 +251,11 @@ _etui_smart_calculate(Evas_Object *obj)
     sd = evas_object_smart_data_get(obj);
     if (!sd) return;
 
-    etui_provider_instance_page_render_pre(sd->provider_instance);
-    if (!_etui_thread)
-        ecore_thread_run(_etui_smart_page_render,
-                         _etui_smart_page_render_end,
-                         _etui_smart_page_render_cancel,
-                         obj);
+    if (sd->render) ecore_thread_cancel(sd->render);
+    sd->render = ecore_thread_run(_etui_smart_page_render,
+                                    _etui_smart_page_render_end,
+                                    _etui_smart_page_render_cancel,
+                                    obj);
 }
 
 static void
@@ -307,8 +306,7 @@ _etui_smart_page_render_end(void *data, Ecore_Thread *thread EINA_UNUSED)
         return;
 
     etui_provider_instance_page_render_end(sd->provider_instance);
-   _etui_thread = NULL;
-
+    sd->render = NULL;
 }
 
 static void
@@ -657,7 +655,10 @@ etui_object_page_set(Evas_Object *obj, int page_num)
 
     INF("page set %d", page_num);
     if (etui_provider_instance_page_set(sd->provider_instance, page_num))
-        evas_object_smart_changed(obj);
+      {
+         etui_provider_instance_page_render_pre(sd->provider_instance);
+         evas_object_smart_changed(obj);
+      }
 }
 
 EAPI int
