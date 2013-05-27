@@ -868,20 +868,6 @@ _etui_pdf_page_set(void *d, int page_num)
     if (pd->page.page)
         fz_free_page(pd->doc.doc, pd->page.page);
 
-    if (pd->page.use_display_list)
-    {
-        fz_cookie cookie = { 0 };
-        fz_device *dev;
-
-        if (pd->page.list)
-            fz_free_display_list(pd->doc.ctx, pd->page.list);
-        pd->page.list = fz_new_display_list(pd->doc.ctx);
-
-        dev = fz_new_list_device(pd->doc.ctx, pd->page.list);
-        fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
-        fz_free_device(dev);
-    }
-
     while (eina_array_count(&pd->page.links))
            free(eina_array_pop(&pd->page.links));
     eina_array_step_set(&pd->page.links, sizeof(Eina_Array), 4);
@@ -898,15 +884,6 @@ _etui_pdf_page_set(void *d, int page_num)
     pd->page.rotation = ETUI_ROTATION_0;
     pd->page.hscale = 1.0f;
     pd->page.vscale = 1.0f;
-
-    fz_bound_page(pd->doc.doc, pd->page.page, &bounds);
-    fz_pre_scale(fz_rotate(&ctm, pd->page.rotation), pd->page.hscale, pd->page.vscale);
-    fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
-
-    width = ibounds.x1 - ibounds.x0;
-    height = ibounds.y1 - ibounds.y0;
-
-    evas_object_resize(pd->obj, width, height);
 
     return EINA_TRUE;
 }
@@ -1042,6 +1019,7 @@ _etui_pdf_page_render_pre(void *d)
     int width;
     int height;
 
+    DBG("render pre");
     pd = (Etui_Provider_Data *)d;
 
     if (!pd->doc.doc)
@@ -1062,6 +1040,8 @@ _etui_pdf_page_render_pre(void *d)
     pd->m = (unsigned int *)evas_object_image_data_get(pd->obj, 1);
     pd->width = width;
     pd->height = height;
+
+    evas_object_resize(pd->obj, width, height);
 }
 
 static void
@@ -1075,17 +1055,31 @@ _etui_pdf_page_render(void *d)
     fz_rect bounds;
     fz_irect ibounds;
 
-    fprintf(stderr, "render 1\n");
+    DBG("render");
     if (!d)
         return;
     pd = (Etui_Provider_Data *)d;
 
+    if (pd->page.use_display_list)
+    {
+        fz_cookie cookie = { 0 };
+        fz_device *dev;
+
+        if (pd->page.list)
+            fz_free_display_list(pd->doc.ctx, pd->page.list);
+        pd->page.list = fz_new_display_list(pd->doc.ctx);
+
+        dev = fz_new_list_device(pd->doc.ctx, pd->page.list);
+        fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
+        fz_free_device(dev);
+    }
     fz_bound_page(pd->doc.doc, pd->page.page, &bounds);
     fz_pre_scale(fz_rotate(&ctm, pd->page.rotation), pd->page.hscale, pd->page.vscale);
     fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
     image = fz_new_pixmap_with_data(pd->doc.ctx, fz_device_bgr,
                                     pd->width, pd->height,
                                     (unsigned char *)pd->m);
+
     fz_clear_pixmap_with_value(pd->doc.ctx, image, 0xff);
     dev = fz_new_draw_device(pd->doc.ctx, image);
     if (pd->page.use_display_list)
@@ -1102,6 +1096,7 @@ _etui_pdf_page_render_end(void *d)
 {
     Etui_Provider_Data *pd;
     int width, height;
+    DBG("render end");
     pd = (Etui_Provider_Data *)d;
     evas_object_image_size_get(pd->obj, &width, &height);
     evas_object_image_data_set(pd->obj, pd->m);
@@ -1154,11 +1149,23 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
     if (!sheet)
         return NULL;
 
-    dev = fz_new_text_device(pd->doc.ctx, sheet, text);
     if (pd->page.use_display_list)
-        fz_run_display_list(pd->page.list, dev, &fz_identity, &bounds, &cookie);
-    else
+    {
+        fz_cookie cookie = { 0 };
+
+        if (pd->page.list)
+            fz_free_display_list(pd->doc.ctx, pd->page.list);
+        pd->page.list = fz_new_display_list(pd->doc.ctx);
+
+        dev = fz_new_list_device(pd->doc.ctx, pd->page.list);
         fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
+        fz_run_display_list(pd->page.list, dev, &fz_identity, &bounds, &cookie);
+    }
+    else
+    {
+        dev = fz_new_text_device(pd->doc.ctx, sheet, text);
+        fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
+    }
     fz_free_device(dev);
 
     /* first run : we compute the size of the string */

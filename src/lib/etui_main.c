@@ -66,7 +66,8 @@ etui_init(void)
         return --_etui_init_count;
     }
 
-    etui_log_dom_global = eina_log_domain_register("etui", ETUI_DEFAULT_LOG_COLOR);
+    etui_log_dom_global = eina_log_domain_register(PACKAGE,
+                                                   ETUI_DEFAULT_LOG_COLOR);
     if (etui_log_dom_global < 0)
     {
         EINA_LOG_ERR("Etui: Could not register log domain 'etui'.");

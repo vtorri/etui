@@ -71,10 +71,10 @@ _etui_key_down(void *data, int type EINA_UNUSED, void *event)
     {
         if ((!strcmp(ev->key, "Up")) ||
             (!strcmp(ev->key, "Right")))
-            etui_object_page_set(data, etui_object_page_get(data) + 1);
+          etui_object_page_set(data, etui_object_page_get(data) + 1);
         else if ((!strcmp(ev->key, "Down")) ||
                  (!strcmp(ev->key, "Left")))
-            etui_object_page_set(data, etui_object_page_get(data) - 1);
+          etui_object_page_set(data, etui_object_page_get(data) - 1);
     }
 
     return ECORE_CALLBACK_PASS_ON;
@@ -223,6 +223,7 @@ int main(int argc, char *argv[])
         str = etui_object_page_text_extract(o, &rect);
         printf("text : \n**%s**\n", str);
     }
+    handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, _etui_key_down, o);
 
     o = evas_object_rectangle_add(evas);
     evas_object_color_set(o, 128, 128, 0, 128);
@@ -233,7 +234,6 @@ int main(int argc, char *argv[])
     ecore_evas_resize(ee, w, h);
     ecore_evas_show(ee);
 
-    handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, _etui_key_down, o);
 
     ecore_main_loop_begin();
 
