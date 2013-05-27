@@ -1118,6 +1118,17 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
     fz_device *dev;
     fz_cookie cookie = { 0 };
     fz_rect bounds;
+    char *res;
+
+    fz_rect hitbox;
+    fz_text_block *block;
+    fz_text_line *line;
+    fz_text_span *span;
+    char *iter;
+    size_t len;
+    int seen;
+    int c;
+    int i;
 
     if (!d)
         return NULL;
@@ -1150,7 +1161,80 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
         fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
     fz_free_device(dev);
 
-    return fz_copy_selection(pd->doc.ctx, text, bounds);
+    /* first run : we compute the size of the string */
+    len = 0;
+    seen = 0;
+    for (block = text->blocks; block < text->blocks + text->len; block++)
+    {
+        for (line = block->lines; line < block->lines + block->len; line++)
+        {
+            for (span = line->spans; span < line->spans + line->len; span++)
+            {
+                if (seen)
+                    len++;
+                seen = 0;
+                for (i = 0; i < span->len; i++)
+                {
+                    hitbox = span->text[i].bbox;
+                    c = span->text[i].c;
+                    if (c < 32)
+                        c = '?';
+                    if ((hitbox.x1 >= bounds.x0) &&
+                        (hitbox.x0 <= bounds.x1) &&
+                        (hitbox.y1 >= bounds.y0) &&
+                        (hitbox.y0 <= bounds.y1))
+                    {
+                        len++;
+                        seen = 1;
+                    }
+                }
+                seen = (seen && span + 1 == line->spans + line->len);
+            }
+        }
+    }
+
+    res = (char *)malloc((len + 1) * sizeof(char));
+    if (!res)
+        return NULL;
+
+    /* second un, we fill the string */
+    iter = res;
+    seen = 0;
+    for (block = text->blocks; block < text->blocks + text->len; block++)
+    {
+        for (line = block->lines; line < block->lines + block->len; line++)
+        {
+            for (span = line->spans; span < line->spans + line->len; span++)
+            {
+                if (seen)
+                {
+                    *iter = '\n';
+                    iter++;
+                }
+                seen = 0;
+                for (i = 0; i < span->len; i++)
+                {
+                    hitbox = span->text[i].bbox;
+                    c = span->text[i].c;
+                    if (c < 32)
+                        c = '?';
+                    if ((hitbox.x1 >= bounds.x0) &&
+                        (hitbox.x0 <= bounds.x1) &&
+                        (hitbox.y1 >= bounds.y0) &&
+                        (hitbox.y0 <= bounds.y1))
+                    {
+                        *iter = c;
+                        iter++;
+                        seen = 1;
+                    }
+                }
+                seen = (seen && span + 1 == line->spans + line->len);
+            }
+        }
+    }
+    *iter = '\0';
+
+    return res;
 }
 
 
