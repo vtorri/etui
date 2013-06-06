@@ -72,13 +72,13 @@ typedef struct _Etui_Provider_Data Etui_Provider_Data;
 struct _Etui_Provider_Data
 {
     /* specific EFL stuff for the module */
-    Evas_Object *obj;
+
+    struct {
+        Evas_Object *obj;
+        void *m;
+    } efl;
 
     /* specific PDF stuff for the module */
-    void *m;
-    fz_pixmap *image;
-    int width;
-    int height;
 
     /* Document */
     struct
@@ -94,6 +94,9 @@ struct _Etui_Provider_Data
     {
         fz_page *page;
         fz_display_list *list;
+        fz_pixmap *image;
+        int width;
+        int height;
         Eina_Array links;
         int page_num;
         Etui_Rotation rotation;
@@ -340,8 +343,8 @@ _etui_pdf_init(Evas *evas)
 
     DBG("init module");
 
-    pd->obj = evas_object_image_add(evas);
-    if (!pd->obj)
+    pd->efl.obj = evas_object_image_add(evas);
+    if (!pd->efl.obj)
         goto free_pd;
 
     /* FIXME:
@@ -358,7 +361,7 @@ _etui_pdf_init(Evas *evas)
     return pd;
 
   del_obj:
-    evas_object_del(pd->obj);
+    evas_object_del(pd->efl.obj);
   free_pd:
     free(pd);
 
@@ -377,7 +380,7 @@ _etui_pdf_shutdown(void *d)
 
     pd = (Etui_Provider_Data *)d;
     fz_free_context(pd->doc.ctx);
-    evas_object_del(pd->obj);
+    evas_object_del(pd->efl.obj);
     free(pd);
 }
 
@@ -387,7 +390,7 @@ _etui_pdf_evas_object_get(void *d)
     if (!d)
         return NULL;
 
-    return ((Etui_Provider_Data *)d)->obj;
+    return ((Etui_Provider_Data *)d)->efl.obj;
 }
 
 static Eina_Bool
@@ -1036,13 +1039,13 @@ _etui_pdf_page_render_pre(void *d)
     width = ibounds.x1 - ibounds.x0;
     height = ibounds.y1 - ibounds.y0;
 
-    evas_object_image_size_set(pd->obj, width, height);
-    evas_object_image_fill_set(pd->obj, 0, 0, width, height);
-    pd->m = (unsigned int *)evas_object_image_data_get(pd->obj, 1);
-    pd->width = width;
-    pd->height = height;
+    evas_object_image_size_set(pd->efl.obj, width, height);
+    evas_object_image_fill_set(pd->efl.obj, 0, 0, width, height);
+    pd->efl.m = (unsigned int *)evas_object_image_data_get(pd->efl.obj, 1);
+    pd->page.width = width;
+    pd->page.height = height;
 
-    evas_object_resize(pd->obj, width, height);
+    evas_object_resize(pd->efl.obj, width, height);
 }
 
 static void
@@ -1075,8 +1078,8 @@ _etui_pdf_page_render(void *d)
     fz_pre_scale(fz_rotate(&ctm, pd->page.rotation), pd->page.hscale, pd->page.vscale);
     fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
     image = fz_new_pixmap_with_data(pd->doc.ctx, fz_device_bgr,
-                                    pd->width, pd->height,
-                                    (unsigned char *)pd->m);
+                                    pd->page.width, pd->page.height,
+                                    (unsigned char *)pd->efl.m);
 
     fz_clear_pixmap_with_value(pd->doc.ctx, image, 0xff);
     dev = fz_new_draw_device(pd->doc.ctx, image);
@@ -1086,7 +1089,7 @@ _etui_pdf_page_render(void *d)
         fz_run_page(pd->doc.doc, pd->page.page, dev, &ctm, &cookie);
     fz_free_device(dev);
     dev = NULL;
-    pd->image = image;
+    pd->page.image = image;
 }
 
 static void
@@ -1096,10 +1099,10 @@ _etui_pdf_page_render_end(void *d)
     int width, height;
     DBG("render end");
     pd = (Etui_Provider_Data *)d;
-    evas_object_image_size_get(pd->obj, &width, &height);
-    evas_object_image_data_set(pd->obj, pd->m);
-    evas_object_image_data_update_add(pd->obj, 0, 0, width, height);
-    fz_drop_pixmap(pd->doc.ctx, pd->image);
+    evas_object_image_size_get(pd->efl.obj, &width, &height);
+    evas_object_image_data_set(pd->efl.obj, pd->efl.m);
+    evas_object_image_data_update_add(pd->efl.obj, 0, 0, width, height);
+    fz_drop_pixmap(pd->doc.ctx, pd->page.image);
 }
 
 /* code borrowed from doc_search.c */
