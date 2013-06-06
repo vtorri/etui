@@ -223,6 +223,22 @@ int main(int argc, char *argv[])
         str = etui_object_page_text_extract(o, &rect);
         printf("text : \n**%s**\n", str);
     }
+
+    {
+        Eina_Array *rects;
+        Eina_Array_Iterator iterator;
+        unsigned int i;
+        Eina_Rectangle *r;
+
+        printf("text 'options'\n");
+        rects = etui_object_page_text_find(o, "mott");
+        if (!rects)
+            printf("pas de rects\n");
+        else
+            EINA_ARRAY_ITER_NEXT(rects, i, r, iterator)
+                printf(" * %dx%d %dx%d\n", r->x, r->y, r->w, r->h);
+    }
+
     handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, _etui_key_down, o);
 
     o = evas_object_rectangle_add(evas);

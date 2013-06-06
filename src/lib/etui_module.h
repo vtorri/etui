@@ -65,6 +65,7 @@ struct _Etui_Provider_Descriptor
     void              (*page_render)(void *d);
     void              (*page_render_end)(void *d);
     char *            (*page_text_extract)(void *d, const Eina_Rectangle *rect);
+    Eina_Array       *(*page_text_find)(void *d, const char *needle);
 };
 
 Eina_Bool etui_modules_init(void);
@@ -136,5 +137,6 @@ void etui_provider_instance_page_render(Etui_Provider_Instance *inst);
 void etui_provider_instance_page_render_end(Etui_Provider_Instance *inst);
 
 char *etui_provider_instance_page_text_extract(Etui_Provider_Instance *inst, const Eina_Rectangle *rect);
+Eina_Array *etui_provider_instance_page_text_find(Etui_Provider_Instance *inst, const char *needle);
 
 #endif

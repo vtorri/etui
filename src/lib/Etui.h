@@ -164,6 +164,6 @@ EAPI void etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscal
 EAPI void etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale);
 EAPI const Eina_Array *etui_object_page_links_get(Evas_Object *obj);
 EAPI char *etui_object_page_text_extract(Evas_Object *obj, const Eina_Rectangle *rect);
-
+EAPI Eina_Array *etui_object_page_text_find(Evas_Object *obj, const char *needle);
 
 #endif /* ETUI_H */

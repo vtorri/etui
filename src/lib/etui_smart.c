@@ -775,3 +775,13 @@ etui_object_page_text_extract(Evas_Object *obj, const Eina_Rectangle *rect)
 
     return etui_provider_instance_page_text_extract(sd->provider_instance, rect);
 }
+
+EAPI Eina_Array *
+etui_object_page_text_find(Evas_Object *obj, const char *needle)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_page_text_find(sd->provider_instance, needle);
+}

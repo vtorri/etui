@@ -629,7 +629,13 @@ etui_provider_instance_page_render_end(Etui_Provider_Instance *inst)
 char *
 etui_provider_instance_page_text_extract(Etui_Provider_Instance *inst, const Eina_Rectangle *rect)
 {
-  ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_text_extract, NULL, rect);
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_text_extract, NULL, rect);
+}
+
+Eina_Array *
+etui_provider_instance_page_text_find(Etui_Provider_Instance *inst, const char *needle)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_text_find, NULL, needle);
 }
 
 

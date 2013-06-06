@@ -106,6 +106,12 @@ struct _Etui_Provider_Data
 static int _etui_module_pdf_init_count = 0;
 static int _etui_module_pdf_log_domain = -1;
 
+static char
+_etui_pdf_to_lowercase(char c)
+{
+    return ((c >= 'A') && (c <= 'Z')) ? c + 32  : c;
+}
+
 static char *
 _etui_pdf_document_property_get(fz_document *doc, const char *prop)
 {
@@ -835,11 +841,6 @@ _etui_pdf_page_set(void *d, int page_num)
     Etui_Provider_Data *pd;
     fz_page *page;
     fz_link *links;
-    fz_rect bounds;
-    fz_irect ibounds;
-    fz_matrix ctm;
-    int width;
-    int height;
 
     if (!d)
         return EINA_FALSE;
@@ -1062,9 +1063,6 @@ _etui_pdf_page_render(void *d)
 
     if (pd->page.use_display_list)
     {
-        fz_cookie cookie = { 0 };
-        fz_device *dev;
-
         if (pd->page.list)
             fz_free_display_list(pd->doc.ctx, pd->page.list);
         pd->page.list = fz_new_display_list(pd->doc.ctx);
@@ -1104,6 +1102,7 @@ _etui_pdf_page_render_end(void *d)
     fz_drop_pixmap(pd->doc.ctx, pd->image);
 }
 
+/* code borrowed from doc_search.c */
 static char *
 _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
 {
@@ -1151,8 +1150,6 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
 
     if (pd->page.use_display_list)
     {
-        fz_cookie cookie = { 0 };
-
         if (pd->page.list)
             fz_free_display_list(pd->doc.ctx, pd->page.list);
         pd->page.list = fz_new_display_list(pd->doc.ctx);
@@ -1244,6 +1241,217 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
     return res;
 }
 
+/* code borrowed from doc_search.c */
+static fz_text_char
+_etui_pdf_page_text_text_charat(fz_text_page *page, int idx)
+{
+    static fz_text_char emptychar = { {0,0,0,0}, ' ' };
+    fz_text_block *block;
+    fz_text_line *line;
+    fz_text_span *span;
+    int ofs = 0;
+
+    for (block = page->blocks; block < page->blocks + page->len; block++)
+    {
+        for (line = block->lines; line < block->lines + block->len; line++)
+        {
+            for (span = line->spans; span < line->spans + line->len; span++)
+            {
+                if (idx < ofs + span->len)
+                    return span->text[idx - ofs];
+                /* pseudo-newline */
+                if (span + 1 == line->spans + line->len)
+                {
+                    if (idx == ofs + span->len)
+                        return emptychar;
+                    ofs++;
+                }
+                ofs += span->len;
+            }
+        }
+    }
+
+    return emptychar;
+}
+
+/* code borrowed from doc_search.c */
+static int
+_etui_pdf_page_text_charat(fz_text_page *page, int idx)
+{
+    return _etui_pdf_page_text_text_charat(page, idx).c;
+}
+
+/* code borrowed from doc_search.c */
+static int
+_etui_pdf_page_text_match(fz_text_page *page, const char *s, int n)
+{
+    int orig = n;
+    int c;
+
+    while (*s)
+    {
+        s += fz_chartorune(&c, (char *)s);
+        if (c == ' ' && _etui_pdf_page_text_charat(page, n) == ' ')
+        {
+            while (_etui_pdf_page_text_charat(page, n) == ' ')
+                n++;
+        }
+        else
+        {
+            if (_etui_pdf_to_lowercase(c) != _etui_pdf_to_lowercase(_etui_pdf_page_text_charat(page, n)))
+                return 0;
+            n++;
+        }
+    }
+
+    return n - orig;
+}
+
+/* code borrowed from doc_search.c */
+static Eina_Array *
+_etui_pdf_page_text_find(void *d, const char *needle)
+{
+    Etui_Provider_Data *pd;
+    Eina_Array *rects = NULL;
+    fz_text_page *text;
+    fz_text_sheet *sheet;
+    fz_device *dev;
+    fz_cookie cookie = { 0 };
+    fz_rect bounds;
+	fz_text_block *block;
+	fz_text_line *line;
+	fz_text_span *span;
+    size_t text_len;
+    int n;
+    size_t pos;
+    int i;
+
+    if (!d)
+        return NULL;
+
+    if (!needle || !*needle)
+      return NULL;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->page.use_display_list && !pd->doc.doc)
+    {
+        ERR("no opened document");
+        goto free_rects;
+    }
+
+    text = fz_new_text_page(pd->doc.ctx, &fz_infinite_rect);
+    if (!text)
+        goto free_rects;
+
+    sheet = fz_new_text_sheet(pd->doc.ctx);
+    if (!sheet)
+        return NULL;
+
+    if (pd->page.use_display_list)
+    {
+        if (pd->page.list)
+            fz_free_display_list(pd->doc.ctx, pd->page.list);
+        pd->page.list = fz_new_display_list(pd->doc.ctx);
+
+        dev = fz_new_list_device(pd->doc.ctx, pd->page.list);
+        fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
+        fz_run_display_list(pd->page.list, dev, &fz_identity, &bounds, &cookie);
+    }
+    else
+    {
+        dev = fz_new_text_device(pd->doc.ctx, sheet, text);
+        fz_run_page(pd->doc.doc, pd->page.page, dev, &fz_identity, &cookie);
+    }
+    fz_free_device(dev);
+
+    text_len = 0;
+	for (block = text->blocks; block < text->blocks + text->len; block++)
+	{
+        for (line = block->lines; line < block->lines + block->len; line++)
+        {
+            for (span = line->spans; span < line->spans + line->len; span++)
+                text_len += span->len;
+            text_len++; /* pseudo-newline */
+        }
+    }
+
+    for (pos = 0; pos < text_len; pos++)
+    {
+        n = _etui_pdf_page_text_match(text, needle, pos);
+        if (n)
+        {
+            fz_rect linebox = fz_empty_rect;
+
+            for (i = 0; i < n; i++)
+            {
+                fz_rect charbox;
+
+                charbox = _etui_pdf_page_text_text_charat(text, pos + i).bbox;
+                if (!fz_is_empty_rect(&charbox))
+                {
+                    if (charbox.y0 != linebox.y0 || fz_abs(charbox.x0 - linebox.x1) > 5)
+                    {
+                        if (!fz_is_empty_rect(&linebox))
+                        {
+                            Eina_Rectangle *r;
+
+                            r = (Eina_Rectangle *)malloc(sizeof(Eina_Rectangle));
+                            if (r)
+                            {
+                                r->x = linebox.x0;
+                                r->y = linebox.y0;
+                                r->w = linebox.x1 - linebox.x0;
+                                r->h = linebox.y1 - linebox.y0;
+                                if (!rects)
+                                    rects = eina_array_new(4);
+                                if (!rects)
+                                    free(r);
+                                else
+                                {
+                                    eina_array_push(rects, r);
+                                }
+                            }
+                        }
+                        linebox = charbox;
+                    }
+                    else
+                    {
+                        fz_union_rect(&linebox, &charbox);
+                    }
+                }
+            }
+            if (!fz_is_empty_rect(&linebox))
+            {
+                Eina_Rectangle *r;
+
+                r = (Eina_Rectangle *)malloc(sizeof(Eina_Rectangle));
+                if (r)
+                {
+                    r->x = linebox.x0;
+                    r->y = linebox.y0;
+                    r->w = linebox.x1 - linebox.x0;
+                    r->h = linebox.y1 - linebox.y0;
+                    if (!rects)
+                        rects = eina_array_new(4);
+                    if (!rects)
+                        free(r);
+                    else
+                    {
+                        eina_array_push(rects, r);
+                    }
+                }
+            }
+        }
+    }
+
+    return rects;
+
+  free_rects:
+    eina_array_free(rects);
+
+    return NULL;
+}
 
 static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
 {
@@ -1285,7 +1493,8 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .page_render_pre           */ _etui_pdf_page_render_pre,
     /* .page_render               */ _etui_pdf_page_render,
     /* .page_render_end           */ _etui_pdf_page_render_end,
-    /* .page_text_extract         */ _etui_pdf_page_text_extract
+    /* .page_text_extract         */ _etui_pdf_page_text_extract,
+    /* .page_text_find            */ _etui_pdf_page_text_find
 };
 
 /**
