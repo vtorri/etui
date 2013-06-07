@@ -66,6 +66,12 @@ struct _Etui_Provider_Descriptor
     void              (*page_render_end)(void *d);
     char *            (*page_text_extract)(void *d, const Eina_Rectangle *rect);
     Eina_Array       *(*page_text_find)(void *d, const char *needle);
+    float             (*page_duration_get)(void *d);
+    Etui_Transition   (*page_transition_type_get)(void *d);
+    float             (*page_transition_duration_get)(void *d);
+    Eina_Bool         (*page_transition_vertical_get)(void *d);
+    Eina_Bool         (*page_transition_outwards_get)(void *d);
+    int               (*page_transition_direction_get)(void *d);
 };
 
 Eina_Bool etui_modules_init(void);
@@ -138,5 +144,12 @@ void etui_provider_instance_page_render_end(Etui_Provider_Instance *inst);
 
 char *etui_provider_instance_page_text_extract(Etui_Provider_Instance *inst, const Eina_Rectangle *rect);
 Eina_Array *etui_provider_instance_page_text_find(Etui_Provider_Instance *inst, const char *needle);
+
+float etui_provider_instance_page_duration_get(Etui_Provider_Instance *inst);
+Etui_Transition etui_provider_instance_page_transition_type_get(Etui_Provider_Instance *inst);
+float etui_provider_instance_page_transition_duration_get(Etui_Provider_Instance *inst);
+Eina_Bool etui_provider_instance_page_transition_vertical_get(Etui_Provider_Instance *inst);
+Eina_Bool etui_provider_instance_page_transition_outwards_get(Etui_Provider_Instance *inst);
+int etui_provider_instance_page_transition_direction_get(Etui_Provider_Instance *inst);
 
 #endif

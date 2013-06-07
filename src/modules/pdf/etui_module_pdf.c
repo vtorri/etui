@@ -102,6 +102,8 @@ struct _Etui_Provider_Data
         Etui_Rotation rotation;
         float hscale;
         float vscale;
+        float duration;
+        fz_transition *transition;
         unsigned int use_display_list :1;
     } page;
 };
@@ -113,6 +115,72 @@ static char
 _etui_pdf_to_lowercase(char c)
 {
     return ((c >= 'A') && (c <= 'Z')) ? c + 32  : c;
+}
+
+/* code borrowed from doc_search.c */
+static fz_text_char
+_etui_pdf_page_text_text_charat(fz_text_page *page, int idx)
+{
+    static fz_text_char emptychar = { {0,0,0,0}, ' ' };
+    fz_text_block *block;
+    fz_text_line *line;
+    fz_text_span *span;
+    int ofs = 0;
+
+    for (block = page->blocks; block < page->blocks + page->len; block++)
+    {
+        for (line = block->lines; line < block->lines + block->len; line++)
+        {
+            for (span = line->spans; span < line->spans + line->len; span++)
+            {
+                if (idx < ofs + span->len)
+                    return span->text[idx - ofs];
+                /* pseudo-newline */
+                if (span + 1 == line->spans + line->len)
+                {
+                    if (idx == ofs + span->len)
+                        return emptychar;
+                    ofs++;
+                }
+                ofs += span->len;
+            }
+        }
+    }
+
+    return emptychar;
+}
+
+/* code borrowed from doc_search.c */
+static int
+_etui_pdf_page_text_charat(fz_text_page *page, int idx)
+{
+    return _etui_pdf_page_text_text_charat(page, idx).c;
+}
+
+/* code borrowed from doc_search.c */
+static int
+_etui_pdf_page_text_match(fz_text_page *page, const char *s, int n)
+{
+    int orig = n;
+    int c;
+
+    while (*s)
+    {
+        s += fz_chartorune(&c, (char *)s);
+        if (c == ' ' && _etui_pdf_page_text_charat(page, n) == ' ')
+        {
+            while (_etui_pdf_page_text_charat(page, n) == ' ')
+                n++;
+        }
+        else
+        {
+            if (_etui_pdf_to_lowercase(c) != _etui_pdf_to_lowercase(_etui_pdf_page_text_charat(page, n)))
+                return 0;
+            n++;
+        }
+    }
+
+    return n - orig;
 }
 
 static char *
@@ -888,6 +956,8 @@ _etui_pdf_page_set(void *d, int page_num)
     pd->page.rotation = ETUI_ROTATION_0;
     pd->page.hscale = 1.0f;
     pd->page.vscale = 1.0f;
+    pd->page.duration = 0.0;
+    pd->page.transition = fz_page_presentation(pd->doc.doc, pd->page.page, &pd->page.duration);
 
     return EINA_TRUE;
 }
@@ -1023,7 +1093,11 @@ _etui_pdf_page_render_pre(void *d)
     int width;
     int height;
 
+    if (!d)
+        return;
+
     DBG("render pre");
+
     pd = (Etui_Provider_Data *)d;
 
     if (!pd->doc.doc)
@@ -1059,9 +1133,11 @@ _etui_pdf_page_render(void *d)
     fz_rect bounds;
     fz_irect ibounds;
 
-    DBG("render");
     if (!d)
         return;
+
+    DBG("render");
+
     pd = (Etui_Provider_Data *)d;
 
     if (pd->page.use_display_list)
@@ -1096,9 +1172,16 @@ static void
 _etui_pdf_page_render_end(void *d)
 {
     Etui_Provider_Data *pd;
-    int width, height;
+    int width;
+    int height;
+
+    if (!d)
+        return;
+
     DBG("render end");
+
     pd = (Etui_Provider_Data *)d;
+
     evas_object_image_size_get(pd->efl.obj, &width, &height);
     evas_object_image_data_set(pd->efl.obj, pd->efl.m);
     evas_object_image_data_update_add(pd->efl.obj, 0, 0, width, height);
@@ -1242,72 +1325,6 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
     *iter = '\0';
 
     return res;
-}
-
-/* code borrowed from doc_search.c */
-static fz_text_char
-_etui_pdf_page_text_text_charat(fz_text_page *page, int idx)
-{
-    static fz_text_char emptychar = { {0,0,0,0}, ' ' };
-    fz_text_block *block;
-    fz_text_line *line;
-    fz_text_span *span;
-    int ofs = 0;
-
-    for (block = page->blocks; block < page->blocks + page->len; block++)
-    {
-        for (line = block->lines; line < block->lines + block->len; line++)
-        {
-            for (span = line->spans; span < line->spans + line->len; span++)
-            {
-                if (idx < ofs + span->len)
-                    return span->text[idx - ofs];
-                /* pseudo-newline */
-                if (span + 1 == line->spans + line->len)
-                {
-                    if (idx == ofs + span->len)
-                        return emptychar;
-                    ofs++;
-                }
-                ofs += span->len;
-            }
-        }
-    }
-
-    return emptychar;
-}
-
-/* code borrowed from doc_search.c */
-static int
-_etui_pdf_page_text_charat(fz_text_page *page, int idx)
-{
-    return _etui_pdf_page_text_text_charat(page, idx).c;
-}
-
-/* code borrowed from doc_search.c */
-static int
-_etui_pdf_page_text_match(fz_text_page *page, const char *s, int n)
-{
-    int orig = n;
-    int c;
-
-    while (*s)
-    {
-        s += fz_chartorune(&c, (char *)s);
-        if (c == ' ' && _etui_pdf_page_text_charat(page, n) == ' ')
-        {
-            while (_etui_pdf_page_text_charat(page, n) == ' ')
-                n++;
-        }
-        else
-        {
-            if (_etui_pdf_to_lowercase(c) != _etui_pdf_to_lowercase(_etui_pdf_page_text_charat(page, n)))
-                return 0;
-            n++;
-        }
-    }
-
-    return n - orig;
 }
 
 /* code borrowed from doc_search.c */
@@ -1456,48 +1473,175 @@ _etui_pdf_page_text_find(void *d, const char *needle)
     return NULL;
 }
 
+static float
+_etui_pdf_page_duration_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return 0.0;
+
+    pd = (Etui_Provider_Data *)d;
+
+    return pd->page.duration;
+}
+
+static Etui_Transition
+_etui_pdf_page_transition_type_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return ETUI_TRANSITION_NONE;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->page.transition)
+        return ETUI_TRANSITION_NONE;
+
+    switch (pd->page.transition->type)
+    {
+        case FZ_TRANSITION_NONE:
+            return ETUI_TRANSITION_NONE;
+        case FZ_TRANSITION_SPLIT:
+            return ETUI_TRANSITION_SPLIT;
+        case FZ_TRANSITION_BLINDS:
+            return ETUI_TRANSITION_BLINDS;
+        case FZ_TRANSITION_BOX:
+            return ETUI_TRANSITION_BOX;
+        case FZ_TRANSITION_WIPE:
+            return ETUI_TRANSITION_WIPE;
+        case FZ_TRANSITION_DISSOLVE:
+            return ETUI_TRANSITION_DISSOLVE;
+        case FZ_TRANSITION_GLITTER:
+            return ETUI_TRANSITION_GLITTER;
+        case FZ_TRANSITION_FLY:
+            return ETUI_TRANSITION_FLY;
+        case FZ_TRANSITION_PUSH:
+            return ETUI_TRANSITION_PUSH;
+        case FZ_TRANSITION_COVER:
+            return ETUI_TRANSITION_COVER;
+        case FZ_TRANSITION_UNCOVER:
+            return ETUI_TRANSITION_UNCOVER;
+        case FZ_TRANSITION_FADE:
+            return ETUI_TRANSITION_FADE;
+        default:
+        return ETUI_TRANSITION_NONE;
+    }
+}
+
+static float
+_etui_pdf_page_transition_duration_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return 0.0;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->page.transition)
+        return 0.0;
+
+    return pd->page.transition->duration;
+}
+
+static Eina_Bool
+_etui_pdf_page_transition_vertical_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return EINA_FALSE;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->page.transition)
+        return EINA_FALSE;
+
+    return pd->page.transition->vertical ? EINA_TRUE : EINA_FALSE;
+}
+
+static Eina_Bool
+_etui_pdf_page_transition_outwards_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return EINA_FALSE;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->page.transition)
+        return EINA_FALSE;
+
+    return pd->page.transition->outwards ? EINA_TRUE : EINA_FALSE;
+}
+
+static int
+_etui_pdf_page_transition_direction_get(void *d)
+{
+    Etui_Provider_Data *pd;
+
+    if (!d)
+        return 0;
+
+    pd = (Etui_Provider_Data *)d;
+
+    if (!pd->page.transition)
+        return 0;
+
+    return pd->page.transition->direction;
+}
+
 static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
 {
-    /* .name                      */ "pdf",
-    /* .version                   */ ETUI_PROVIDER_DESCRIPTOR_VERSION,
-    /* .priority                  */ ETUI_PROVIDER_DESCRIPTOR_PRIORITY_DEFAULT,
-    /* .init                      */ _etui_pdf_init,
-    /* .shutdown                  */ _etui_pdf_shutdown,
-    /* .evas_object_get           */ _etui_pdf_evas_object_get,
-    /* .file_open                 */ _etui_pdf_file_open,
-    /* .file_close                */ _etui_pdf_file_close,
-    /* .version_get               */ _etui_pdf_version_get,
-    /* .title_get                 */ _etui_pdf_title_get,
-    /* .author_get                */ _etui_pdf_author_get,
-    /* .subject_get               */ _etui_pdf_subject_get,
-    /* .keywords_get              */ _etui_pdf_keywords_get,
-    /* .creator_get               */ _etui_pdf_creator_get,
-    /* .producer_get              */ _etui_pdf_producer_get,
-    /* .creation_date_get         */ _etui_pdf_creation_date_get,
-    /* .modification_date_get     */ _etui_pdf_modification_date_get,
-    /* .is_printable              */ _etui_pdf_is_printable,
-    /* .is_changeable             */ _etui_pdf_is_changeable,
-    /* .is_copyable               */ _etui_pdf_is_copyable,
-    /* .is_notable                */ _etui_pdf_is_notable,
-    /* .password_needed           */ _etui_pdf_password_needed,
-    /* .password_set              */ _etui_pdf_password_set,
-    /* .pages_count               */ _etui_pdf_pages_count,
-    /* .toc_get                   */ _etui_pdf_toc_get,
-    /* .page_use_display_list_set */ _etui_pdf_page_use_display_list_set,
-    /* .page_use_display_list_get */ _etui_pdf_page_use_display_list_get,
-    /* .page_set                  */ _etui_pdf_page_set,
-    /* .page_get                  */ _etui_pdf_page_get,
-    /* .page_size_get             */ _etui_pdf_page_size_get,
-    /* .page_rotation_set         */ _etui_pdf_page_rotation_set,
-    /* .page_rotation_get         */ _etui_pdf_page_rotation_get,
-    /* .page_scale_set            */ _etui_pdf_page_scale_set,
-    /* .page_scale_get            */ _etui_pdf_page_scale_get,
-    /* .page_links_get            */ _etui_pdf_page_links_get,
-    /* .page_render_pre           */ _etui_pdf_page_render_pre,
-    /* .page_render               */ _etui_pdf_page_render,
-    /* .page_render_end           */ _etui_pdf_page_render_end,
-    /* .page_text_extract         */ _etui_pdf_page_text_extract,
-    /* .page_text_find            */ _etui_pdf_page_text_find
+    /* .name                          */ "pdf",
+    /* .version                       */ ETUI_PROVIDER_DESCRIPTOR_VERSION,
+    /* .priority                      */ ETUI_PROVIDER_DESCRIPTOR_PRIORITY_DEFAULT,
+    /* .init                          */ _etui_pdf_init,
+    /* .shutdown                      */ _etui_pdf_shutdown,
+    /* .evas_object_get               */ _etui_pdf_evas_object_get,
+    /* .file_open                     */ _etui_pdf_file_open,
+    /* .file_close                    */ _etui_pdf_file_close,
+    /* .version_get                   */ _etui_pdf_version_get,
+    /* .title_get                     */ _etui_pdf_title_get,
+    /* .author_get                    */ _etui_pdf_author_get,
+    /* .subject_get                   */ _etui_pdf_subject_get,
+    /* .keywords_get                  */ _etui_pdf_keywords_get,
+    /* .creator_get                   */ _etui_pdf_creator_get,
+    /* .producer_get                  */ _etui_pdf_producer_get,
+    /* .creation_date_get             */ _etui_pdf_creation_date_get,
+    /* .modification_date_get         */ _etui_pdf_modification_date_get,
+    /* .is_printable                  */ _etui_pdf_is_printable,
+    /* .is_changeable                 */ _etui_pdf_is_changeable,
+    /* .is_copyable                   */ _etui_pdf_is_copyable,
+    /* .is_notable                    */ _etui_pdf_is_notable,
+    /* .password_needed               */ _etui_pdf_password_needed,
+    /* .password_set                  */ _etui_pdf_password_set,
+    /* .pages_count                   */ _etui_pdf_pages_count,
+    /* .toc_get                       */ _etui_pdf_toc_get,
+    /* .page_use_display_list_set     */ _etui_pdf_page_use_display_list_set,
+    /* .page_use_display_list_get     */ _etui_pdf_page_use_display_list_get,
+    /* .page_set                      */ _etui_pdf_page_set,
+    /* .page_get                      */ _etui_pdf_page_get,
+    /* .page_size_get                 */ _etui_pdf_page_size_get,
+    /* .page_rotation_set             */ _etui_pdf_page_rotation_set,
+    /* .page_rotation_get             */ _etui_pdf_page_rotation_get,
+    /* .page_scale_set                */ _etui_pdf_page_scale_set,
+    /* .page_scale_get                */ _etui_pdf_page_scale_get,
+    /* .page_links_get                */ _etui_pdf_page_links_get,
+    /* .page_render_pre               */ _etui_pdf_page_render_pre,
+    /* .page_render                   */ _etui_pdf_page_render,
+    /* .page_render_end               */ _etui_pdf_page_render_end,
+    /* .page_text_extract             */ _etui_pdf_page_text_extract,
+    /* .page_text_find                */ _etui_pdf_page_text_find,
+    /* .page_duration_get             */ _etui_pdf_page_duration_get,
+    /* .page_transition_type_get      */ _etui_pdf_page_transition_type_get,
+    /* .page_transition_duration_get  */ _etui_pdf_page_transition_duration_get,
+    /* .page_transition_vertical_get  */ _etui_pdf_page_transition_vertical_get,
+    /* .page_transition_outwards_get  */ _etui_pdf_page_transition_outwards_get,
+    /* .page_transition_direction_get */ _etui_pdf_page_transition_direction_get
 };
 
 /**

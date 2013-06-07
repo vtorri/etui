@@ -785,3 +785,63 @@ etui_object_page_text_find(Evas_Object *obj, const char *needle)
 
     return etui_provider_instance_page_text_find(sd->provider_instance, needle);
 }
+
+EAPI float
+etui_object_page_duration_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, 0.0);
+
+    return etui_provider_instance_page_duration_get(sd->provider_instance);
+}
+
+EAPI Etui_Transition
+etui_object_page_transition_type_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, ETUI_TRANSITION_NONE);
+
+    return etui_provider_instance_page_transition_type_get(sd->provider_instance);
+}
+
+EAPI float
+etui_object_page_transition_duration_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, 0.0);
+
+    return etui_provider_instance_page_transition_duration_get(sd->provider_instance);
+}
+
+EAPI Eina_Bool
+etui_object_page_transition_vertical_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, 0.0);
+
+    return etui_provider_instance_page_transition_vertical_get(sd->provider_instance);
+}
+
+EAPI Eina_Bool
+etui_object_page_transition_outwards_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, 0.0);
+
+    return etui_provider_instance_page_transition_outwards_get(sd->provider_instance);
+}
+
+EAPI int
+etui_object_page_transition_direction_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, 0.0);
+
+    return etui_provider_instance_page_transition_direction_get(sd->provider_instance);
+}

@@ -66,6 +66,22 @@ typedef enum
     ETUI_LINK_KIND_NAMED,
 } Etui_Link_Kind;
 
+typedef enum
+{
+    ETUI_TRANSITION_NONE, /* aka 'R' or 'REPLACE' */
+    ETUI_TRANSITION_SPLIT,
+    ETUI_TRANSITION_BLINDS,
+    ETUI_TRANSITION_BOX,
+    ETUI_TRANSITION_WIPE,
+    ETUI_TRANSITION_DISSOLVE,
+    ETUI_TRANSITION_GLITTER,
+    ETUI_TRANSITION_FLY,
+    ETUI_TRANSITION_PUSH,
+    ETUI_TRANSITION_COVER,
+    ETUI_TRANSITION_UNCOVER,
+    ETUI_TRANSITION_FADE
+} Etui_Transition;
+
 typedef struct
 {
     int page;
@@ -165,5 +181,11 @@ EAPI void etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vsc
 EAPI const Eina_Array *etui_object_page_links_get(Evas_Object *obj);
 EAPI char *etui_object_page_text_extract(Evas_Object *obj, const Eina_Rectangle *rect);
 EAPI Eina_Array *etui_object_page_text_find(Evas_Object *obj, const char *needle);
+EAPI float etui_object_page_duration_get(Evas_Object *obj);
+EAPI Etui_Transition etui_object_page_transition_type_get(Evas_Object *obj);
+EAPI float etui_object_page_transition_duration_get(Evas_Object *obj);
+EAPI Eina_Bool etui_object_page_transition_vertical_get(Evas_Object *obj);
+EAPI Eina_Bool etui_object_page_transition_outwards_get(Evas_Object *obj);
+EAPI int etui_object_page_transition_direction_get(Evas_Object *obj);
 
 #endif /* ETUI_H */

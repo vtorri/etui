@@ -638,6 +638,36 @@ etui_provider_instance_page_text_find(Etui_Provider_Instance *inst, const char *
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_text_find, NULL, needle);
 }
 
+float etui_provider_instance_page_duration_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_duration_get, 0.0);
+}
+
+Etui_Transition etui_provider_instance_page_transition_type_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_transition_type_get, ETUI_TRANSITION_NONE);
+}
+
+float etui_provider_instance_page_transition_duration_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_transition_duration_get, 0.0);
+}
+
+Eina_Bool etui_provider_instance_page_transition_vertical_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_transition_vertical_get, EINA_FALSE);
+}
+
+Eina_Bool etui_provider_instance_page_transition_outwards_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_transition_outwards_get, EINA_FALSE);
+}
+
+int etui_provider_instance_page_transition_direction_get(Etui_Provider_Instance *inst)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_transition_direction_get, 0);
+}
+
 
 /*============================================================================*
  *                                   API                                      *
