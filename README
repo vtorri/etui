@@ -1,0 +1,42 @@
+étui : a multiple document library and viewer
+
+License:
+--------
+
+This library is released under the GPL v3 license
+
+The muPDF code distributed with this library is released under the
+AGPL v3 license
+
+Library:
+--------
+
+ Requirements:
+  Evil (on Windows)
+  Eina
+  Eet
+  Evas
+  Ecore
+  Eio
+  Efreet
+
+Binary:
+-------
+
+ Requirements:
+  Evil (Windows)
+  Eina
+  Eet
+  Evas
+  Ecore
+  Ecore_Evas
+  Ecore_Input
+
+Supported backends:
+-------------------
+
+PDF
+ Requirements:
+  zlib
+  freetype
+  openjpeg
