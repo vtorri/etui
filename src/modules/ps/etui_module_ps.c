@@ -733,7 +733,7 @@ _etui_ps_page_render_pre(void *d)
     evas_object_resize(pd->efl.obj, width, height);
 
     err = gsapi_new_instance(&pd->gs.instance, pd);
-    /* TODO: should I call some functions here */
+    /* TODO: should I call some functions here ? */
     if (err < 0)
     {
         ERR("can not create ghostscript instance");
@@ -1049,7 +1049,7 @@ etui_module_ps_init(void)
     }
 
     _etui_module_ps_log_domain = eina_log_domain_register("etui-ps",
-                                                           ETUI_MODULE_PS_DEFAULT_LOG_COLOR);
+                                                          ETUI_MODULE_PS_DEFAULT_LOG_COLOR);
     if (_etui_module_ps_log_domain < 0)
     {
         EINA_LOG_CRIT("Could not register log domain 'etui-ps'");
