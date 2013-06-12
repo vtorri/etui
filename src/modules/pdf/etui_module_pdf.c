@@ -399,6 +399,7 @@ _etui_pdf_toc_fill(Eina_Array *items, fz_outline *outline)
     return res;
 }
 
+/* Virtual functions */
 
 static void *
 _etui_pdf_init(Evas *evas)
@@ -447,8 +448,13 @@ _etui_pdf_shutdown(void *d)
     DBG("shutdown module");
 
     pd = (Etui_Provider_Data *)d;
-    fz_free_context(pd->doc.ctx);
+
+    if (pd->doc.doc)
+        fz_close_document(pd->doc.doc);
+    if (pd->doc.filename)
+      free(pd->doc.filename);
     evas_object_del(pd->efl.obj);
+    fz_free_context(pd->doc.ctx);
     free(pd);
 }
 
@@ -474,38 +480,50 @@ _etui_pdf_file_open(void *d, const char *filename)
 
     pd = (Etui_Provider_Data *)d;
 
+    if (pd->doc.filename && (strcmp(filename, pd->doc.filename) == 0))
+      return EINA_TRUE;
+
+    if (pd->doc.filename)
+        free(pd->doc.filename);
     pd->doc.filename = strdup(filename);
     if (!pd->doc.filename)
         return EINA_FALSE;
 
-    pd->doc.doc = fz_open_document(pd->doc.ctx, filename);
-    if (!pd->doc.doc)
+    if (pd->doc.doc)
+        fz_close_document(pd->doc.doc);
+    fz_try(pd->doc.ctx)
+    {
+        pd->doc.doc = fz_open_document(pd->doc.ctx, filename);
+
+        /* try to open the first page */
+        /* if it's a damaged PDF, no error */
+        /* if not, an error will be thrown */
+        fz_load_page(pd->doc.doc, 0);
+
+        while (eina_array_count(&pd->doc.toc))
+            free(eina_array_pop(&pd->doc.toc));
+        eina_array_step_set(&pd->doc.toc, sizeof(Eina_Array), 4);
+
+        outline = fz_load_outline(pd->doc.doc);
+        if (outline)
+        {
+            pd->doc.toc = *_etui_pdf_toc_fill(&pd->doc.toc, outline);
+            fz_free_outline(pd->doc.ctx, outline);
+        }
+    }
+    fz_catch(pd->doc.ctx)
     {
         ERR("Could not open file %s", filename);
         goto free_filename;
     }
 
-    while (eina_array_count(&pd->doc.toc))
-           free(eina_array_pop(&pd->doc.toc));
-    eina_array_step_set(&pd->doc.toc, sizeof(Eina_Array), 4);
-
-    outline = fz_load_outline(pd->doc.doc);
-    if (outline)
-    {
-        pd->doc.toc = *_etui_pdf_toc_fill(&pd->doc.toc, outline);
-        fz_free_outline(pd->doc.ctx, outline);
-    }
-
-    /* FIXME: get PDF info */
-
     pd->page.page_num = -1;
 
     return EINA_TRUE;
 
-  /* close_document: */
-  /* fz_close_document(pd->doc.doc); */
   free_filename:
     free(pd->doc.filename);
+    pd->doc.filename = NULL;
 
   return EINA_FALSE;
 }
@@ -523,15 +541,11 @@ _etui_pdf_file_close(void *d)
     DBG("close file %s", pd->doc.filename);
 
     if (pd->doc.doc)
-    {
         fz_close_document(pd->doc.doc);
-    }
     pd->doc.doc = NULL;
 
     if (pd->page.page)
-    {
         fz_free_page(pd->doc.doc, pd->page.page);
-    }
     pd->page.page = NULL;
 
     if (pd->page.use_display_list)
@@ -1014,7 +1028,7 @@ _etui_pdf_page_rotation_set(void *d, Etui_Rotation rotation)
     pd = (Etui_Provider_Data *)d;
 
     if (pd->page.rotation == rotation)
-        return EINA_FALSE;
+        return EINA_TRUE;
 
     pd->page.rotation = rotation;
 
@@ -1044,7 +1058,7 @@ _etui_pdf_page_scale_set(void *d, float hscale, float vscale)
     pd = (Etui_Provider_Data *)d;
 
     if ((pd->page.hscale == hscale) && (pd->page.vscale == vscale))
-        return EINA_FALSE;
+        return EINA_TRUE;
 
     pd->page.hscale = hscale;
     pd->page.vscale = vscale;
@@ -1115,7 +1129,7 @@ _etui_pdf_page_render_pre(void *d)
 
     evas_object_image_size_set(pd->efl.obj, width, height);
     evas_object_image_fill_set(pd->efl.obj, 0, 0, width, height);
-    pd->efl.m = (unsigned int *)evas_object_image_data_get(pd->efl.obj, 1);
+    pd->efl.m = evas_object_image_data_get(pd->efl.obj, 1);
     pd->page.width = width;
     pd->page.height = height;
 
@@ -1630,6 +1644,8 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
     /* .page_rotation_get             */ _etui_pdf_page_rotation_get,
     /* .page_scale_set                */ _etui_pdf_page_scale_set,
     /* .page_scale_get                */ _etui_pdf_page_scale_get,
+    /* .page_dpi_set                  */ NULL,
+    /* .page_dpi_get                  */ NULL,
     /* .page_links_get                */ _etui_pdf_page_links_get,
     /* .page_render_pre               */ _etui_pdf_page_render_pre,
     /* .page_render                   */ _etui_pdf_page_render,
@@ -1699,7 +1715,6 @@ etui_module_pdf_shutdown(void)
         ERR("Too many etui_module_pdf_shutdown() calls");
         return;
     }
-
 
     DBG("shutdown pdf module");
 

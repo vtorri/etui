@@ -178,6 +178,8 @@ EAPI void etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation
 EAPI Etui_Rotation etui_object_page_rotation_get(Evas_Object *obj);
 EAPI void etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale);
 EAPI void etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale);
+EAPI void etui_object_page_dpi_set(Evas_Object *obj, float hdpi, float vdpi);
+EAPI void etui_object_page_dpi_get(Evas_Object *obj, float *hdpi, float *vdpi);
 EAPI const Eina_Array *etui_object_page_links_get(Evas_Object *obj);
 EAPI char *etui_object_page_text_extract(Evas_Object *obj, const Eina_Rectangle *rect);
 EAPI Eina_Array *etui_object_page_text_find(Evas_Object *obj, const char *needle);

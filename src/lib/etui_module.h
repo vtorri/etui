@@ -60,6 +60,8 @@ struct _Etui_Provider_Descriptor
     Etui_Rotation     (*page_rotation_get)(void *d);
     Eina_Bool         (*page_scale_set)(void *d, float hscale, float vscale);
     void              (*page_scale_get)(void *d, float *hscale, float *vscale);
+    Eina_Bool         (*page_dpi_set)(void *d, float hdpi, float vdpi);
+    void              (*page_dpi_get)(void *d, float *hdpi, float *vdpi);
     const Eina_Array *(*page_links_get)(void *d);
     void              (*page_render_pre)(void *d);
     void              (*page_render)(void *d);
@@ -136,6 +138,14 @@ Eina_Bool etui_provider_instance_page_scale_set(Etui_Provider_Instance *inst,
 void etui_provider_instance_page_scale_get(Etui_Provider_Instance *inst,
                                            float *hscale,
                                            float *vscale);
+
+Eina_Bool etui_provider_instance_page_dpi_set(Etui_Provider_Instance *inst,
+                                              float hdpi,
+                                              float vdpi);
+void etui_provider_instance_page_dpi_get(Etui_Provider_Instance *inst,
+                                         float *hdpi,
+                                         float *vdpi);
+
 const Eina_Array *etui_provider_instance_page_links_get(Etui_Provider_Instance *inst);
 
 void etui_provider_instance_page_render_pre(Etui_Provider_Instance *inst);

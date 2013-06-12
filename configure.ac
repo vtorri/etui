@@ -65,6 +65,7 @@ PKG_PROG_PKG_CONFIG
 ### Checks for libraries
 
 ETUI_CHECK_MODULE([PDF], [${want_pdf}])
+ETUI_CHECK_MODULE([PS], [${want_postscript}])
 
 PKG_CHECK_MODULES([ETUI], [${requirements_etui_pc}])
 PKG_CHECK_MODULES([ETUI_BIN], [${requirements_etui_bin_pc}])
@@ -81,6 +82,7 @@ PKG_CHECK_MODULES([ETUI_BIN], [${requirements_etui_bin_pc}])
 
 ### Checks for compiler characteristics
 
+AC_C_BIGENDIAN
 AM_PROG_CC_C_O
 
 EFL_CHECK_COMPILER_FLAGS([ETUI], [-Wall -Wextra -Wshadow -Wdeclaration-after-statement -Wmissing-prototypes -Wstrict-prototypes -Wpointer-arith -Wno-missing-field-initializers -fvisibility=hidden -fdata-sections -ffunction-sections])
@@ -109,7 +111,7 @@ echo
 echo "  Modules..............:"
 echo "    Image..............: ${enable_img}"
 echo "    PDF................: ${enable_pdf}"
-echo "    Postscript.........: ${enable_postscript}"
+echo "    Postscript.........: ${enable_ps}"
 echo "    Txt................: ${enable_txt}"
 echo
 echo "Compilation............: make (or gmake)"

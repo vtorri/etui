@@ -393,6 +393,7 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
                  (strcmp(mime, "image/x-xpixmap") == 0)) /* xpm */
             module_name = "img";
     }
+    INF("module name: %s", module_name);
 
     /* TODO : finish... */
 
@@ -754,6 +755,43 @@ etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale)
   _err:
     if (hscale) *hscale = 1.0;
     if (vscale) *vscale = 1.0;
+}
+
+EAPI void
+etui_object_page_dpi_set(Evas_Object *obj, float hdpi, float vdpi)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
+
+    if (etui_provider_instance_page_dpi_set(sd->provider_instance, hdpi, vdpi))
+        evas_object_smart_need_recalculate_set(obj, 1);
+}
+
+EAPI void
+etui_object_page_dpi_get(Evas_Object *obj, float *hdpi, float *vdpi)
+{
+    Etui_Smart_Data *sd;
+    char *_etui_smart_str;
+
+    if (!obj)
+        goto _err;
+    sd = evas_object_smart_data_get(obj);
+    if (!sd)
+        goto _err;
+    _etui_smart_str = (char *)evas_object_type_get(obj);
+    if (!_etui_smart_str)
+        goto _err;
+    if (strcmp(_etui_smart_str, ETUI_OBJ_NAME))
+        goto _err;
+
+    etui_provider_instance_page_dpi_get(sd->provider_instance, hdpi, vdpi);
+
+    return;
+
+  _err:
+    if (hdpi) *hdpi = 72.0;
+    if (vdpi) *vdpi = 72.0;
 }
 
 EAPI const Eina_Array *

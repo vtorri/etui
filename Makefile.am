@@ -8,6 +8,7 @@ aclocal.m4 \
 compile \
 config.guess \
 config.h.in \
+config.h.in~ \
 config.sub \
 configure \
 depcomp \
@@ -29,6 +30,9 @@ include src/lib/Makefile.mk
 include src/bin/Makefile.mk
 if ETUI_BUILD_PDF
 include src/modules/pdf/Makefile.mk
+endif
+if ETUI_BUILD_PS
+include src/modules/ps/Makefile.mk
 endif
 
 sed_process = \

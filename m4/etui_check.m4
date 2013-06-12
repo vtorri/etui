@@ -133,12 +133,12 @@ fi
 dnl check libraries
 if test "x${have_dep}" = "xyes" ; then
    PKG_CHECK_MODULES([MUPDF],
-         [${requirements_pc}],
-         [
-          have_dep="yes"
-          MUPDF_LIBS="${requirements_libs} ${MUPDF_LIBS}"
-         ],
-         [have_dep="no"])
+      [${requirements_pc}],
+      [
+       have_dep="yes"
+       MUPDF_LIBS="${requirements_libs} ${MUPDF_LIBS}"
+      ],
+      [have_dep="no"])
 
 dnl CJK fonts
    if ! test "x${want_mupdf_cjk}" = "xyes" ; then
@@ -165,22 +165,36 @@ AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
 
 dnl use: ETUI_CHECK_DEP_POSTSCRIPT(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
 
-AC_DEFUN([ETUI_CHECK_DEP_POSTSCRIPT],
+AC_DEFUN([ETUI_CHECK_DEP_PS],
 [
 
-requirement=""
+requirements_libs=""
 
-PKG_CHECK_MODULES([POSTSCRIPT],
-   [libspectre],
-   [
-    have_dep="yes"
-    requirement="libspectre"
-   ],
-   [have_dep="no"])
+PS_CFLAGS=""
+PS_LIBS=""
+
+have_dep="yes"
+
+AC_CHECK_HEADER([iapi.h], [have_dep="yes"], [have_dep="no"])
+if test "x${have_dep}" = "xyes" ; then
+   AC_CHECK_LIB([gsdll64], [gsapi_revision],
+      [
+       have_dep="yes"
+       requirements_libs="${requirements_libs} -lgsdll64"
+      ],
+      [have_dep="no"])
+fi
+
+PS_LIBS="${requirements_libs} ${PS_LIBS}"
 
 if test "x$1" = "xstatic" ; then
-   requirements_etui_pc="${requirement} ${requirements_etui_pc}"
+   requirements_etui_libs="${requirements_libs} ${requirements_etui_libs}"
 fi
+
+AC_ARG_VAR([PS_CFLAGS], [preprocessor flags for postscript backend])
+AC_SUBST([PS_CFLAGS])
+AC_ARG_VAR([PS_LIBS], [linker flags for postscript backend])
+AC_SUBST([PS_LIBS])
 
 AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
 

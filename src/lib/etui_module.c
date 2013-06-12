@@ -221,6 +221,11 @@ Eina_Bool etui_module_pdf_init(void);
 void etui_module_pdf_shutdown(void);
 #endif
 
+#ifdef ETUI_BUILD_STATIC_PS
+Eina_Bool etui_module_ps_init(void);
+void etui_module_ps_shutdown(void);
+#endif
+
 Eina_Bool
 etui_modules_init(void)
 {
@@ -236,6 +241,10 @@ etui_modules_init(void)
     etui_module_pdf_init();
 #endif
 
+#ifdef ETUI_BUILD_STATIC_PS
+    etui_module_ps_init();
+#endif
+
     return EINA_TRUE;
 }
 
@@ -245,6 +254,10 @@ etui_modules_shutdown(void)
     Etui_Provider_Registry_Entry *re;
 
     /* TODO : STATIC modules */
+#ifdef ETUI_BUILD_STATIC_PS
+    etui_module_ps_init();
+#endif
+
 #ifdef ETUI_BUILD_STATIC_PDF
     etui_module_pdf_shutdown();
 #endif
@@ -585,21 +598,40 @@ etui_provider_instance_page_rotation_get(Etui_Provider_Instance *inst)
 
 Eina_Bool
 etui_provider_instance_page_scale_set(Etui_Provider_Instance *inst,
-                                 float hscale,
-                                 float vscale)
+                                      float hscale,
+                                      float vscale)
 {
     ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_scale_set, EINA_FALSE, hscale, vscale);
 }
 
 void
 etui_provider_instance_page_scale_get(Etui_Provider_Instance *inst,
-                                 float *hscale,
-                                 float *vscale)
+                                      float *hscale,
+                                      float *vscale)
 {
     /* FIXME: if error, set the scales to 1.0f */
     ETUI_PROVIDER_INSTANCE_CHECK(inst, page_scale_get);
 
     inst->provider->page_scale_get(inst->data, hscale, vscale);
+}
+
+Eina_Bool
+etui_provider_instance_page_dpi_set(Etui_Provider_Instance *inst,
+                                    float hdpi,
+                                    float vdpi)
+{
+    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_dpi_set, EINA_FALSE, hdpi, vdpi);
+}
+
+void
+etui_provider_instance_page_dpi_get(Etui_Provider_Instance *inst,
+                                    float *hdpi,
+                                    float *vdpi)
+{
+    /* FIXME: if error, set the scales to 72.0f */
+    ETUI_PROVIDER_INSTANCE_CHECK(inst, page_dpi_get);
+
+    inst->provider->page_scale_get(inst->data, hdpi, vdpi);
 }
 
 const Eina_Array *
