@@ -64,6 +64,7 @@ PKG_PROG_PKG_CONFIG
 
 ### Checks for libraries
 
+ETUI_CHECK_MODULE([IMG], [${want_img}])
 ETUI_CHECK_MODULE([PDF], [${want_pdf}])
 ETUI_CHECK_MODULE([PS], [${want_postscript}])
 

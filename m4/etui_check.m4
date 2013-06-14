@@ -24,19 +24,12 @@ AC_DEFUN([ETUI_CHECK_DEP_IMG],
 [
 
 requirement=""
+have_dep="yes"
 
-PKG_CHECK_MODULES([ECORE_FILE],
-   [ecore-file],
-   [
-    have_dep="yes"
-    requirement="ecore-file"
-   ],
-   [have_dep="no"])
-
-if test "x$1" = "xstatic" ; then
-   requirements_etui_pc="${requirement} ${requirements_etui_pc}"
-fi
-
+AC_ARG_VAR([IMG_CFLAGS], [preprocessor flags for images backend])
+AC_SUBST([IMG_CFLAGS])
+AC_ARG_VAR([IMG_LIBS], [linker flags for images backend])
+AC_SUBST([IMG_LIBS])
 
 AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
 
