@@ -8,6 +8,7 @@ src_lib_libetui_la_SOURCES = \
 src/lib/etui_main.c \
 src/lib/etui_module.c \
 src/lib/etui_smart.c \
+src/lib/etui_module.h \
 src/lib/etui_private.h
 
 src_lib_libetui_la_CPPFLAGS = \
