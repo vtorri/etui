@@ -301,7 +301,7 @@ src/modules/pdf/mupdf-1.2/fitz/stm_output.c \
 src/modules/pdf/mupdf-1.2/fitz/stm_read.c \
 src/modules/pdf/mupdf-1.2/fitz/fitz.h \
 src/modules/pdf/mupdf-1.2/fitz/fitz-internal.h \
-src/modules/pdf/mupdf-1.2/fitz/memento/h
+src/modules/pdf/mupdf-1.2/fitz/memento.h
 
 DRAW_SOURCES = \
 src/modules/pdf/mupdf-1.2/draw/draw_affine.c \
