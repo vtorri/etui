@@ -30,7 +30,9 @@
 #define _WIN32_WINNT 0x0501
 
 #if !defined(ZIPSFX) && !defined(SHELL_EXT) && !defined(SETUP)
-#define RAR_SMP
+# ifndef RAR_SMP
+#  define RAR_SMP
+# endif
 #endif
 
 #define WIN32_LEAN_AND_MEAN
@@ -101,7 +103,7 @@
 #define APPENDTEXT   "at"
 
 #if defined(_WIN_ALL)
-  #ifdef _MSC_VER
+  #if defined(_MSC_VER) || defined(__GNUC__)
     #define _stdfunction __cdecl
     #define _forceinline __forceinline
   #else

@@ -394,7 +394,7 @@ void PASCAL RARSetPassword(HANDLE hArcData,char *Password)
 #endif
 
 
-int PASCAL RARGetDllVersion()
+int PASCAL RARGetDllVersion(void)
 {
   return RAR_DLL_VERSION;
 }
