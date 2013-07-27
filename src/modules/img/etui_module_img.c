@@ -22,6 +22,8 @@
 #include <Eina.h>
 #include <Evas.h>
 
+#include "unrar/dll.hpp"
+
 #include "Etui.h"
 #include "etui_module.h"
 #include "etui_module_img.h"
@@ -64,6 +66,25 @@
 #endif
 #define CRIT(...) EINA_LOG_DOM_CRIT(_etui_module_img_log_domain, __VA_ARGS__)
 
+typedef enum
+{
+    ETUI_IMG_CB_NONE,
+    ETUI_IMG_CB_CBZ,
+    ETUI_IMG_CB_CBR,
+    ETUI_IMG_CB_CBA,
+    ETUI_IMG_CB_CB7,
+    ETUI_IMG_CB_CBT,
+} Etui_Img_Cb_Type;
+
+typedef struct _Etui_Img_Cbr_Data Etui_Img_Cbr_Data;
+
+struct _Etui_Img_Cbr_Data
+{
+    char *file_name;
+    unsigned long long file_size;
+    unsigned int idx;
+};
+
 typedef struct _Etui_Provider_Data Etui_Provider_Data;
 
 struct _Etui_Provider_Data
@@ -83,7 +104,7 @@ struct _Etui_Provider_Data
         char *filename;
         int page_nbr;
         Eina_Array toc;
-        unsigned int is_archive : 1;
+        Etui_Img_Cb_Type cb_type;
     } doc;
 
     /* Current page */
@@ -95,11 +116,178 @@ struct _Etui_Provider_Data
         Etui_Rotation rotation;
         float hscale;
         float vscale;
+        struct
+        {
+            void *data;
+            unsigned long long size;
+            unsigned long long offset;
+            unsigned int getting_data : 1;
+        } rar;
     } page;
 };
 
 static int _etui_module_img_init_count = 0;
 static int _etui_module_img_log_domain = -1;
+
+static int
+_etui_img_cbr_sort_cb(const void *d1, const void *d2)
+{
+  return strcasecmp(((Etui_Img_Cbr_Data *)d1)->file_name,
+                    ((Etui_Img_Cbr_Data *)d2)->file_name);
+}
+
+static int CALLBACK
+_etui_img_cbr_cb(UINT msg, LPARAM user_data, LPARAM p1, LPARAM p2)
+{
+    switch(msg)
+    {
+        case UCM_CHANGEVOLUMEW:
+            break;
+        case UCM_PROCESSDATA:
+        {
+            Etui_Provider_Data *pd;
+
+            if (!user_data)
+                return 0;
+
+            pd = (Etui_Provider_Data *)user_data;
+            if (pd->page.rar.getting_data)
+            {
+              printf("  offset %llu   size %llu\n", pd->page.rar.offset, pd->page.rar.size);
+                if (pd->page.rar.offset < pd->page.rar.size)
+                {
+                  printf("  rar size  %zu\n", (size_t)p2);
+                  memcpy((unsigned char *)pd->page.rar.data + pd->page.rar.offset, (void *)p1, (size_t)p2);
+                  pd->page.rar.offset += p2;
+                }
+            }
+
+            return 1;
+        }
+    case UCM_NEEDPASSWORDW:
+      break;
+    default:
+      return 0;
+    }
+
+  return 0;
+}
+
+static Eina_Bool
+_etui_img_cb_is_valid(Etui_Provider_Data *pd)
+{
+    Eina_Bool res = EINA_FALSE;
+
+    /* pd is valid */
+
+    /* cbz */
+
+    /* cbr */
+
+    {
+        char buf[16384];
+        struct RAROpenArchiveDataEx rar_archive_data;
+        struct RARHeaderDataEx rar_header_data;
+        HANDLE rar_archive;
+        int rar_header_code;
+        int rar_process_file_code;
+        Eina_List *list = NULL;
+        Eina_List *l;
+        Etui_Img_Cbr_Data *data;
+        int idx;
+
+        memset(&rar_archive_data, 0, sizeof(rar_archive_data));
+        rar_archive_data.ArcName = pd->doc.filename;
+        rar_archive_data.CmtBuf = buf;
+        rar_archive_data.CmtBufSize = sizeof(buf);
+        rar_archive_data.OpenMode = RAR_OM_LIST;
+        rar_archive_data.Callback = NULL;
+        rar_archive_data.UserData = 0;
+        rar_archive = RAROpenArchiveEx(&rar_archive_data);
+
+        if (rar_archive_data.OpenResult != 0)
+        {
+            INF("Can not open RAR archive %s", pd->doc.filename);
+            RARCloseArchive(rar_archive);
+            goto try_cba;
+        }
+
+        INF("Comic Book %s successfully opened", pd->doc.filename);
+        INF("Volume: %s", (rar_archive_data.Flags & 1) ? "yes" : "no");
+        INF("Comment: %s", (rar_archive_data.Flags & 2) ? "yes" : "no");
+        INF("Locked: %s", (rar_archive_data.Flags & 4) ? "yes" : "no");
+        INF("Solid: %s", (rar_archive_data.Flags & 8) ? "yes" : "no");
+        INF("New Naming: %s", (rar_archive_data.Flags & 16) ? "yes" : "no");
+        INF("Authenticity: %s", (rar_archive_data.Flags & 32) ? "yes" : "no");
+        INF("Recovery: %s", (rar_archive_data.Flags & 64) ? "yes" : "no");
+        INF("Encrypted headers: %s", (rar_archive_data.Flags & 128) ? "yes" : "no");
+        INF("First Volume: %s", (rar_archive_data.Flags & 256) ? "yes" : "no");
+        if (rar_archive_data.CmtState == 1)
+            INF("Comment Description: %s", buf);
+
+        rar_header_data.CmtBuf = NULL;
+        memset(&rar_archive_data.Reserved, 0, sizeof(rar_archive_data.Reserved));
+
+        idx = 0;
+        while ((rar_header_code = RARReadHeaderEx(rar_archive, &rar_header_data)) == 0)
+        {
+            long long size;
+
+            size = rar_header_data.UnpSize + (((long long)rar_header_data.UnpSizeHigh) << 32);
+            printf("file name : %s %10Ld\n", rar_header_data.FileName, size);
+            data = (Etui_Img_Cbr_Data *)malloc(sizeof(Etui_Img_Cbr_Data));
+            if (data)
+            {
+                data->file_name = strdup(rar_header_data.FileName);
+                if (data->file_name)
+                {
+                    data->file_size = size;
+                    data->idx = idx;
+                    list = eina_list_append(list, data);
+                }
+                else
+                    free(data);
+            }
+            rar_process_file_code = RARProcessFile(rar_archive, RAR_SKIP,
+                                                   NULL, NULL);
+            if (rar_process_file_code != 0)
+            {
+                RARCloseArchive(rar_archive);
+                return EINA_FALSE;
+            }
+            idx++;
+        }
+
+        pd->doc.cb_type = ETUI_IMG_CB_CBR;
+        pd->doc.toc = *eina_array_new(eina_list_count(list));
+        list = eina_list_sort(list, eina_list_count(list), _etui_img_cbr_sort_cb);
+        EINA_LIST_FOREACH(list, l, data)
+            eina_array_push(&pd->doc.toc, data);
+        eina_list_free(list);
+
+        pd->doc.page_nbr = eina_array_count(&pd->doc.toc);
+        pd->page.page_num = 0;
+
+        RARCloseArchive(rar_archive);
+
+        return EINA_TRUE;
+    }
+
+    /* cba */
+
+  try_cba:
+
+    /* cb7 */
+
+    try_cb7:
+
+    {
+    }
+
+    /* cbt */
+
+    return res;
+}
 
 /* Virtual functions */
 
@@ -184,15 +372,19 @@ _etui_img_file_open(void *d, const char *filename)
 
     /* TODO: Comic Book */
 
-    pd->doc.is_archive = 1;
+    if (!_etui_img_cb_is_valid(pd))
+    {
+        ERR("Can not open Comic Book archive %s", pd->doc.filename);
+        goto free_filename;
+    }
 
     pd->page.page_num = -1;
 
     return EINA_TRUE;
 
-  /* free_filename: */
-  /*   free(pd->doc.filename); */
-  /*   pd->doc.filename = NULL; */
+  free_filename:
+    free(pd->doc.filename);
+    pd->doc.filename = NULL;
 
   return EINA_FALSE;
 }
@@ -215,20 +407,10 @@ _etui_img_file_close(void *d)
 }
 
 static void
-_etui_img_version_get(void *d, int *maj, int *min)
+_etui_img_version_get(void *d EINA_UNUSED, int *maj, int *min)
 {
-    Etui_Provider_Data *pd;
-
-    if (!d)
-        goto _err;
-
-    pd = (Etui_Provider_Data *)d;
-
-    return;
-
-  _err:
-    if (maj) *maj = -1;
-    if (min) *min = -1;
+    if (maj) *maj = 0;
+    if (min) *min = 0;
 }
 
 static char *
@@ -407,33 +589,125 @@ _etui_img_page_render_pre(void *d)
 
     pd = (Etui_Provider_Data *)d;
 
-    evas_object_image_size_get(pd->efl.obj, &width, &height);
-
-    /* rotation first */
-    switch (pd->page.rotation)
+    switch (pd->doc.cb_type)
     {
-        case ETUI_ROTATION_90:
-        case ETUI_ROTATION_270:
+        case ETUI_IMG_CB_NONE:
+            evas_object_image_size_get(pd->efl.obj, &width, &height);
+
+            /* rotation first */
+            switch (pd->page.rotation)
+            {
+                case ETUI_ROTATION_90:
+                case ETUI_ROTATION_270:
+                {
+                    int tmp;
+
+                    tmp = width;
+                    width = height;
+                    height = tmp;
+                    break;
+                }
+                default:
+                    break;
+            }
+
+            /* then scale */
+            width = (int)(width * pd->page.hscale);
+            height = (int)(height * pd->page.vscale);
+
+            evas_object_image_size_set(pd->efl.obj, width, height);
+            evas_object_image_fill_set(pd->efl.obj, 0, 0, width, height);
+            pd->efl.m = evas_object_image_data_get(pd->efl.obj, 1);
+            pd->page.width = width;
+            pd->page.height = height;
+
+            evas_object_resize(pd->efl.obj, width, height);
+            break;
+        case ETUI_IMG_CB_CBZ:
+            break;
+        case ETUI_IMG_CB_CBR:
         {
-            int tmp;
+            char buf[16384];
+            struct RAROpenArchiveDataEx rar_archive_data;
+            struct RARHeaderDataEx rar_header_data;
+            HANDLE rar_archive;
+            int rar_header_code;
+            int rar_process_file_code;
+            Etui_Img_Cbr_Data *data;
+            unsigned int idx;
 
-            tmp = width;
-            width = height;
-            height = tmp;
+            memset(&rar_archive_data, 0, sizeof(rar_archive_data));
+            rar_archive_data.ArcName = pd->doc.filename;
+            rar_archive_data.CmtBuf = buf;
+            rar_archive_data.CmtBufSize = sizeof(buf);
+            rar_archive_data.OpenMode = RAR_OM_EXTRACT;
+            rar_archive_data.Callback = _etui_img_cbr_cb;
+            rar_archive_data.UserData = (LPARAM)pd;
+            rar_archive = RAROpenArchiveEx(&rar_archive_data);
+
+            rar_header_data.CmtBuf = NULL;
+            memset(&rar_archive_data.Reserved, 0, sizeof(rar_archive_data.Reserved));
+
+            idx = 0;
+            data = eina_array_data_get(&pd->doc.toc, pd->page.page_num);
+            while ((rar_header_code = RARReadHeaderEx(rar_archive, &rar_header_data)) == 0)
+            {
+                if (idx == data->idx)
+                {
+                  printf(" * idx : %d %llu\n", idx, data->file_size);
+                    pd->page.rar.getting_data = 1;
+                    if (!pd->page.rar.data)
+                    {
+                        pd->page.rar.size = data->file_size;
+                        pd->page.rar.data = malloc(pd->page.rar.size);
+                    }
+                }
+                else
+                    pd->page.rar.getting_data = 0;
+
+                rar_process_file_code = RARProcessFile(rar_archive, RAR_TEST,
+                                                       NULL, NULL);
+                if (rar_process_file_code != 0)
+                {
+                    RARCloseArchive(rar_archive);
+                    return;
+                }
+                idx++;
+            }
+
+            RARCloseArchive(rar_archive);
+
+            printf(" * %p %p  %llu %llu\n", pd->efl.obj, pd->page.rar.data, pd->page.rar.size, pd->page.rar.offset);
+            evas_object_image_memfile_set(pd->efl.obj,
+                                          pd->page.rar.data,
+                                          pd->page.rar.size,
+                                          "jpeg", NULL);
+            printf(" * 10\n");
+            if (evas_object_image_load_error_get(pd->efl.obj) == EVAS_LOAD_ERROR_NONE)
+            {
+                ERR("CBR image format not supported");
+                return;
+            }
+
+            evas_object_image_size_get(pd->efl.obj, &width, &height);
+
+            evas_object_image_size_set(pd->efl.obj, width, height);
+            evas_object_image_fill_set(pd->efl.obj, 0, 0, width, height);
+            pd->efl.m = evas_object_image_data_get(pd->efl.obj, 1);
+            pd->page.width = width;
+            pd->page.height = height;
+
+            evas_object_resize(pd->efl.obj, width, height);
+
+            break;
         }
+        case ETUI_IMG_CB_CBA:
+            break;
+        case ETUI_IMG_CB_CB7:
+            break;
+        case ETUI_IMG_CB_CBT:
+            break;
     }
-
-    /* then scale */
-    width = (int)(width * pd->page.hscale);
-    height = (int)(height * pd->page.vscale);
-
-    evas_object_image_size_set(pd->efl.obj, width, height);
-    evas_object_image_fill_set(pd->efl.obj, 0, 0, width, height);
-    pd->efl.m = evas_object_image_data_get(pd->efl.obj, 1);
-    pd->page.width = width;
-    pd->page.height = height;
-
-    evas_object_resize(pd->efl.obj, width, height);
 }
 
 static void
@@ -463,9 +737,9 @@ _etui_img_page_render_end(void *d)
 
     pd = (Etui_Provider_Data *)d;
 
-    /* evas_object_image_size_get(pd->efl.obj, &width, &height); */
-    /* evas_object_image_data_set(pd->efl.obj, pd->efl.m); */
-    /* evas_object_image_data_update_add(pd->efl.obj, 0, 0, width, height); */
+    evas_object_image_size_get(pd->efl.obj, &width, &height);
+    evas_object_image_data_set(pd->efl.obj, pd->efl.m);
+    evas_object_image_data_update_add(pd->efl.obj, 0, 0, width, height);
 }
 
 static Etui_Provider_Descriptor _etui_provider_descriptor_img =
