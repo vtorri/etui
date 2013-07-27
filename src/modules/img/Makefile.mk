@@ -144,9 +144,7 @@ src_modules_img_module_la_CPPFLAGS = \
 src_modules_img_module_la_CPPFLAGS += \
 -DRAR_SMP \
 -DRARDLL \
--DUNRAR \
--DSILENT \
--D__USE_MINGW_ANSI_STDIO
+-DUNRAR
 
 src_modules_img_module_la_LIBADD = \
 src/lib/libetui.la \
