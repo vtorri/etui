@@ -53,12 +53,14 @@ if test "x${have_pkg_zlib}" = "xyes" ; then
 fi
 
 dnl check libraries
-if test "x${have_pkg_zlib}" = "xyes" ; then
+if ! test "x${requirements_pc}" = "x" ; then
    PKG_CHECK_MODULES([IMG],
       [${requirements_pc}],
-      [IMG_LIBS="${requirements_libs} ${IMG_LIBS}"],
-      [have_dep="no"])
+      [],
+      [])
 fi
+
+IMG_LIBS="${requirements_libs} ${IMG_LIBS}"
 
 AC_ARG_VAR([IMG_CFLAGS], [preprocessor flags for images backend])
 AC_SUBST([IMG_CFLAGS])
