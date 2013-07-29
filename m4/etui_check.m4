@@ -23,13 +23,52 @@ dnl use: ETUI_CHECK_DEP_IMG(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]
 AC_DEFUN([ETUI_CHECK_DEP_IMG],
 [
 
-requirement=""
+requirements_libs=""
+requirement_pc=""
 have_dep="yes"
+
+dnl zlib
+PKG_CHECK_EXISTS([zlib >= 1.2.5],
+   [
+    have_pkg_zlib="yes"
+    requirements_pc="zlib ${requirements_pc}"
+   ],
+   [have_pkg_zlib="no"])
+
+if test "x${have_pkg_zlib}" = "xno" ; then
+   AC_MSG_NOTICE([no pkg-config file for zlib, checking files individually])
+   AC_CHECK_HEADER([zlib.h], [have_pkg_zlib="yes"], [have_pkg_zlib="no"])
+   if test "x${have_pkg_zlib}" = "xyes" ; then
+      AC_CHECK_LIB([z], [zlibVersion],
+         [
+          have_pkg_zlib="yes"
+          requirements_libs="${requirements_libs} -lz"
+         ],
+         [have_pkg_zlib="no"])
+   fi
+fi
+
+if test "x${have_pkg_zlib}" = "xyes" ; then
+   AC_DEFINE([HAVE_ZLIB], [1], [Set to 1 if zlib is found])
+fi
+
+dnl check libraries
+if test "x${have_pkg_zlib}" = "xyes" ; then
+   PKG_CHECK_MODULES([IMG],
+      [${requirements_pc}],
+      [IMG_LIBS="${requirements_libs} ${IMG_LIBS}"],
+      [have_dep="no"])
+fi
 
 AC_ARG_VAR([IMG_CFLAGS], [preprocessor flags for images backend])
 AC_SUBST([IMG_CFLAGS])
 AC_ARG_VAR([IMG_LIBS], [linker flags for images backend])
 AC_SUBST([IMG_LIBS])
+
+if test "x$1" = "xstatic" ; then
+   requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
+   requirements_etui_libs="${requirements_libs} ${requirements_etui_libs}"
+fi
 
 AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
 
