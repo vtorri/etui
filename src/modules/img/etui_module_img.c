@@ -26,6 +26,7 @@
 # include <zlib.h>
 #endif
 
+#include "unrar/raros.hpp"
 #include "unrar/dll.hpp"
 
 #include "Etui.h"
