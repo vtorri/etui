@@ -99,11 +99,14 @@ _etui_provider_registry_entry_cmp(const void *pa, const void *pb)
 
     a = (Etui_Provider_Registry_Entry *)pa;
     b = (Etui_Provider_Registry_Entry *)pb;
-    r = a->priority - b->priority;
+    r = b->priority - a->priority;
+
+    if (r == 0)
+        r = b->provider->priority - a->provider->priority;
 
     if (r == 0)
         /* guarantee some order to ease debug */
-        r = strcmp(a->provider->name, b->provider->name);
+        r = strcmp(b->provider->name, a->provider->name);
 
     return r;
 }
