@@ -1612,7 +1612,7 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_pdf =
 {
     /* .name                          */ "pdf",
     /* .version                       */ ETUI_PROVIDER_DESCRIPTOR_VERSION,
-    /* .priority                      */ ETUI_PROVIDER_DESCRIPTOR_PRIORITY_DEFAULT,
+    /* .priority                      */ ETUI_PROVIDER_DESCRIPTOR_PRIORITY_HIGH,
     /* .init                          */ _etui_pdf_init,
     /* .shutdown                      */ _etui_pdf_shutdown,
     /* .evas_object_get               */ _etui_pdf_evas_object_get,

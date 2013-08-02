@@ -1093,7 +1093,7 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_img =
 {
     /* .name                          */ "img",
     /* .version                       */ ETUI_PROVIDER_DESCRIPTOR_VERSION,
-    /* .priority                      */ ETUI_PROVIDER_DESCRIPTOR_PRIORITY_DEFAULT,
+    /* .priority                      */ ETUI_PROVIDER_DESCRIPTOR_PRIORITY_NORMAL,
     /* .init                          */ _etui_img_init,
     /* .shutdown                      */ _etui_img_shutdown,
     /* .evas_object_get               */ _etui_img_evas_object_get,

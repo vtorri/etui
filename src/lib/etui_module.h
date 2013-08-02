@@ -19,7 +19,9 @@
 #define ETUI_MODULE_H
 
 #define ETUI_PROVIDER_DESCRIPTOR_VERSION (1U)
-#define ETUI_PROVIDER_DESCRIPTOR_PRIORITY_DEFAULT 50
+#define ETUI_PROVIDER_DESCRIPTOR_PRIORITY_LOW 30
+#define ETUI_PROVIDER_DESCRIPTOR_PRIORITY_NORMAL 50
+#define ETUI_PROVIDER_DESCRIPTOR_PRIORITY_HIGH 70
 
 typedef struct _Etui_Provider_Instance Etui_Provider_Instance;
 typedef struct _Etui_Provider_Descriptor Etui_Provider_Descriptor;
