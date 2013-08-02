@@ -656,10 +656,10 @@ etui_object_page_set(Evas_Object *obj, int page_num)
 
     INF("page set %d", page_num);
     if (etui_provider_instance_page_set(sd->provider_instance, page_num))
-      {
-         etui_provider_instance_page_render_pre(sd->provider_instance);
-         evas_object_smart_changed(obj);
-      }
+    {
+        etui_provider_instance_page_render_pre(sd->provider_instance);
+        evas_object_smart_changed(obj);
+    }
 }
 
 EAPI int
