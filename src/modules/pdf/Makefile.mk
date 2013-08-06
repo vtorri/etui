@@ -452,6 +452,9 @@ src_modules_pdf_module_la_CPPFLAGS = \
 @ETUI_CFLAGS@ \
 @MUPDF_CFLAGS@
 
+src_modules_pdf_module_la_CFLAGS = \
+@ETUI_LIB_CFLAGS@
+
 src_modules_pdf_module_la_LIBADD = \
 src/lib/libetui.la \
 @ETUI_LIBS@ \

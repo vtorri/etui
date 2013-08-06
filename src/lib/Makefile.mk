@@ -18,6 +18,9 @@ src_lib_libetui_la_CPPFLAGS = \
 -DECRIN_ETUI_BUILD \
 @ETUI_CFLAGS@
 
+src_lib_libetui_la_CFLAGS = \
+@ETUI_LIB_CFLAGS@
+
 src_lib_libetui_la_LIBADD = @ETUI_LIBS@
 
 src_lib_libetui_la_LDFLAGS = -no-undefined -version-info @version_info@ @release_info@

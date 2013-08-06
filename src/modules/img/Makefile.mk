@@ -141,13 +141,17 @@ src_modules_img_module_la_CPPFLAGS = \
 @IMG_CFLAGS@
 
 # unrar
-src_modules_img_module_la_CXXFLAGS = \
-@ETUI_CXXFLAGS@
 
 src_modules_img_module_la_CPPFLAGS += \
 -DRAR_SMP \
 -DRARDLL \
 -DUNRAR
+
+src_modules_img_module_la_CFLAGS = \
+@ETUI_LIB_CFLAGS@
+
+src_modules_img_module_la_CXXFLAGS = \
+@ETUI_LIB_CXXFLAGS@
 
 src_modules_img_module_la_LIBADD = \
 src/lib/libetui.la \
