@@ -28,9 +28,9 @@ typedef struct _Etui_Provider_Descriptor Etui_Provider_Descriptor;
 
 struct _Etui_Provider_Descriptor
 {
-    const char     *name;
-    unsigned int    version;
-    int             priority;
+    const char         *name;
+    unsigned int        version;
+    int                 priority;
     void             *(*init)(Evas *evas);
     void              (*shutdown)(void *d);
     Evas_Object      *(*evas_object_get)(void *d);
