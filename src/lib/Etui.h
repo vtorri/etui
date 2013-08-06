@@ -50,10 +50,10 @@
 
 typedef enum
 {
-    ETUI_ROTATION_0,
-    ETUI_ROTATION_90,
-    ETUI_ROTATION_180,
-    ETUI_ROTATION_270
+    ETUI_ROTATION_0 = 0,
+    ETUI_ROTATION_90 = 90,
+    ETUI_ROTATION_180 = 180,
+    ETUI_ROTATION_270 = 270
 } Etui_Rotation;
 
 typedef enum
