@@ -427,6 +427,15 @@ etui_provider_instance_data_get(const Etui_Provider_Instance *inst)
 
 /* private calls */
 
+const char *
+etui_provider_instance_module_name_get(Etui_Provider_Instance *inst)
+{
+    if (!inst)
+        return NULL;
+
+    return inst->provider->name;
+}
+
 Evas_Object *
 etui_provider_instance_evas_object_get(Etui_Provider_Instance *inst)
 {

@@ -141,6 +141,9 @@ src_modules_img_module_la_CPPFLAGS = \
 @IMG_CFLAGS@
 
 # unrar
+src_modules_img_module_la_CXXFLAGS = \
+@ETUI_CXXFLAGS@
+
 src_modules_img_module_la_CPPFLAGS += \
 -DRAR_SMP \
 -DRARDLL \

@@ -225,6 +225,7 @@ int main(int argc, char *argv[])
     evas_object_show(o);
 
     etui_object_version_get(o, &maj, &min);
+    printf("module : %s\n", etui_object_module_name_get(o));
     printf("version : %d.%d\n", maj, min);
     printf("title : %s\n", etui_object_title_get(o));
     printf("author : %s\n", etui_object_author_get(o));

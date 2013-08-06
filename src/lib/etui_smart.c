@@ -22,7 +22,6 @@
 #include <Eina.h>
 #include <Evas.h>
 #include <Ecore.h>
-#include <Efreet_Mime.h>
 
 #include "Etui.h"
 #include "etui_private.h"
@@ -345,6 +344,16 @@ etui_object_add(Evas *evas)
     return evas_object_smart_add(evas, _etui_smart);
 }
 
+EAPI const char *
+etui_object_module_name_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+
+    return etui_provider_instance_module_name_get(sd->provider_instance);
+}
+
 EAPI Eina_Bool
 etui_object_file_set(Evas_Object *obj, const char *filename)
 {
@@ -365,37 +374,45 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
     if (sd->filename && (!strcmp(file, sd->filename)))
         return EINA_TRUE;
 
-    mime = efreet_mime_type_get(file);
-    INF("mime type: %s", mime);
-    if (mime)
-    {
-        if (strcmp(mime, "application/pdf") == 0)
-            module_name = "pdf";
-        else if (strcmp(mime, "application/postscript") == 0)
-            module_name = "ps";
-        else if (strcmp(mime, "text/plain") == 0)
-            module_name = "txt";
-        else if ((strcmp(mime, "application/x-cba") == 0) ||
-                 (strcmp(mime, "application/x-cbr") == 0) ||
-                 (strcmp(mime, "application/x-cbt") == 0) ||
-                 (strcmp(mime, "application/x-cbz") == 0) ||
-                 (strcmp(mime, "application/x-cb7") == 0) ||
-                 (strcmp(mime, "image/bmp") == 0) ||
-                 (strcmp(mime, "image/gif") == 0) ||
-                 (strcmp(mime, "image/jpeg") == 0) ||
-                 (strcmp(mime, "image/pjpeg") == 0) ||
-                 (strcmp(mime, "image/png") == 0) ||
-                 (strcmp(mime, "image/x-png") == 0) ||
-                 (strcmp(mime, "image/x-portable-pixmap") == 0) || /* ppm */
-                 (strcmp(mime, "image/svg+xml") == 0) ||
-                 (strcmp(mime, "image/x-tga") == 0) ||
-                 (strcmp(mime, "image/tiff") == 0) ||
-                 (strcmp(mime, "image/x-xpixmap") == 0)) /* xpm */
-            module_name = "img";
-    }
+    if (eina_str_has_extension(file, "pdf") ||
+        eina_str_has_extension(file, "xps"))
+        module_name = "pdf";
+    else if (eina_str_has_extension(file, "ps") ||
+             eina_str_has_extension(file, "ps.gz") ||
+             eina_str_has_extension(file, "eps"))
+        module_name = "ps";
+    else if (eina_str_has_extension(file, "cbz") ||
+             eina_str_has_extension(file, "cbr") ||
+             eina_str_has_extension(file, "cba") ||
+             eina_str_has_extension(file, "cb7") ||
+             eina_str_has_extension(file, "cbt") ||
+             eina_str_has_extension(file, "bmp") ||
+             eina_str_has_extension(file, "gif") ||
+             eina_str_has_extension(file, "ico") ||
+             eina_str_has_extension(file, "jfif") ||
+             eina_str_has_extension(file, "jpe") ||
+             eina_str_has_extension(file, "jpg") ||
+             eina_str_has_extension(file, "jpeg") ||
+             eina_str_has_extension(file, "ppm") ||
+             eina_str_has_extension(file, "pgm") ||
+             eina_str_has_extension(file, "pbm") ||
+             eina_str_has_extension(file, "pnm") ||
+             eina_str_has_extension(file, "png") ||
+             eina_str_has_extension(file, "psd") ||
+             eina_str_has_extension(file, "tga") ||
+             eina_str_has_extension(file, "tif") ||
+             eina_str_has_extension(file, "tiff") ||
+             eina_str_has_extension(file, "wbmp") ||
+             eina_str_has_extension(file, "webp") ||
+             eina_str_has_extension(file, "xcf") ||
+             eina_str_has_extension(file, "xcf.gz") ||
+             eina_str_has_extension(file, "xpm"))
+        module_name = "img";
+    else
+        module_name = "txt";
     INF("module name: %s", module_name);
 
-    /* TODO : finish... */
+    /* TODO : iterate over all modules if failure */
 
     if (etui_provider_instance_name_equal(sd->provider_instance, module_name))
     {
