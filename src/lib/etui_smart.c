@@ -359,7 +359,6 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
 {
     char file[PATH_MAX];
     char *res;
-    const char *mime;
     const char *module_name = NULL;
     Etui_Smart_Data *sd;
 
