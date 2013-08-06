@@ -29,6 +29,9 @@
 
 #include <Etui.h>
 
+static Etui_Rotation rotation = ETUI_ROTATION_0;
+static float scale = 1.0f;
+
 static const Ecore_Getopt _etui_options =
 {
     "etui",
@@ -69,12 +72,36 @@ _etui_key_down(void *data, int type EINA_UNUSED, void *event)
 
     if (ev->key)
     {
-        if ((!strcmp(ev->key, "Up")) ||
-            (!strcmp(ev->key, "Right")))
-          etui_object_page_set(data, etui_object_page_get(data) + 1);
-        else if ((!strcmp(ev->key, "Down")) ||
-                 (!strcmp(ev->key, "Left")))
-          etui_object_page_set(data, etui_object_page_get(data) - 1);
+        if ((!strcmp(ev->key, "Right")))
+            etui_object_page_set(data, etui_object_page_get(data) + 1);
+        else if (!strcmp(ev->key, "Left"))
+            etui_object_page_set(data, etui_object_page_get(data) - 1);
+        else if (!strcmp(ev->key, "Up"))
+        {
+            scale *= M_SQRT2;
+            etui_object_page_scale_set(data, scale, scale);
+        }
+        else if (!strcmp(ev->key, "Down"))
+        {
+            scale *= M_SQRT1_2;
+            etui_object_page_scale_set(data, scale, scale);
+        }
+        else if (!strcmp(ev->key, "<"))
+        {
+            rotation += 90;
+            if (rotation > ETUI_ROTATION_270)
+                rotation = ETUI_ROTATION_0;
+            etui_object_page_rotation_set(data, rotation);
+        }
+        else if (!strcmp(ev->key, ">"))
+        {
+            rotation -= 90;
+            if (rotation < ETUI_ROTATION_0)
+                rotation = ETUI_ROTATION_270;
+            etui_object_page_rotation_set(data, rotation);
+        }
+        else if (!strcmp(ev->key, "q"))
+            ecore_main_loop_quit();
     }
 
     return ECORE_CALLBACK_PASS_ON;
