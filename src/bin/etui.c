@@ -155,6 +155,7 @@ int main(int argc, char *argv[])
     Ecore_Event_Handler *handler;
     Evas *evas;
     Evas_Object *o;
+    char *prop;
     int args;
     int w;
     int h;
@@ -227,14 +228,30 @@ int main(int argc, char *argv[])
     etui_object_version_get(o, &maj, &min);
     printf("module : %s\n", etui_object_module_name_get(o));
     printf("version : %d.%d\n", maj, min);
-    printf("title : %s\n", etui_object_title_get(o));
-    printf("author : %s\n", etui_object_author_get(o));
-    printf("subject : %s\n", etui_object_subject_get(o));
-    printf("keywords : %s\n", etui_object_keywords_get(o));
-    printf("creator : %s\n", etui_object_creator_get(o));
-    printf("producer : %s\n", etui_object_producer_get(o));
-    printf("creation date : %s\n", etui_object_creation_date_get(o));
-    printf("modification date : %s\n", etui_object_modification_date_get(o));
+    prop = etui_object_title_get(o);
+    printf("title : %s\n", prop);
+    free(prop);
+    prop = etui_object_author_get(o);
+    printf("author : %s\n", prop);
+    free(prop);
+    prop = etui_object_subject_get(o);
+    printf("subject : %s\n", prop);
+    free(prop);
+    prop = etui_object_keywords_get(o);
+    printf("keywords : %s\n", prop);
+    free(prop);
+    prop = etui_object_creator_get(o);
+    printf("creator : %s\n", prop);
+    free(prop);
+    prop = etui_object_producer_get(o);
+    printf("producer : %s\n", prop);
+    free(prop);
+    prop = etui_object_creation_date_get(o);
+    printf("creation date : %s\n", prop);
+    free(prop);
+    prop = etui_object_modification_date_get(o);
+    printf("modification date : %s\n", prop);
+    free(prop);
     printf("printable : %s\n", etui_object_is_printable(o) ? "yes" : "no");
     printf("changeable : %s\n", etui_object_is_changeable(o) ? "yes" : "no");
     printf("copyable : %s\n", etui_object_is_copyable(o) ? "yes" : "no");
@@ -250,6 +267,7 @@ int main(int argc, char *argv[])
         Eina_Rectangle rect = { 209, 680, 116, 24 };
         str = etui_object_page_text_extract(o, &rect);
         printf("text : \n**%s**\n", str);
+        free(str);
     }
 
     {
@@ -263,8 +281,13 @@ int main(int argc, char *argv[])
         if (!rects)
             printf("pas de rects\n");
         else
+        {
             EINA_ARRAY_ITER_NEXT(rects, i, r, iterator)
                 printf(" * %dx%d %dx%d\n", r->x, r->y, r->w, r->h);
+            EINA_ARRAY_ITER_NEXT(rects, i, r, iterator)
+                free(r);
+        }
+
     }
 
     handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, _etui_key_down, o);
@@ -283,8 +306,8 @@ int main(int argc, char *argv[])
 
     ecore_event_handler_del(handler);
 
-    etui_shutdown();
     ecore_evas_shutdown();
+    etui_shutdown();
 
     return 0;
 
