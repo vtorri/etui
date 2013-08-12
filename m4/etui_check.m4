@@ -209,14 +209,30 @@ PS_LIBS=""
 
 have_dep="yes"
 
-AC_CHECK_HEADER([iapi.h], [have_dep="yes"], [have_dep="no"])
+AC_CHECK_HEADERS([iapi.h ierrors.h gdevdsp.h], [have_dep="yes"], [have_dep="no"])
 if test "x${have_dep}" = "xyes" ; then
-   AC_CHECK_LIB([gsdll64], [gsapi_revision],
+   AC_MSG_CHECKING([for libgs library])
+   LIBS_save=${LIBS}
+   LIBS="${LIBS} -lgs"
+   AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM(
+          [[
+#include <stdlib.h>
+#include <iapi.h>
+	  ]],
+	  [[
+void *inst;
+
+gsapi_new_instance(&inst, NULL);
+	  ]])],
       [
        have_dep="yes"
-       requirements_libs="${requirements_libs} -lgsdll64"
+       requirements_libs="${requirements_libs} -lgs"
       ],
       [have_dep="no"])
+   LIBS=${LIBS_save}
+
+   AC_MSG_RESULT([${have_dep}])
 fi
 
 PS_LIBS="${requirements_libs} ${PS_LIBS}"
@@ -292,14 +308,14 @@ AM_CONDITIONAL(ETUI_BUILD_[]UP, [test "x${have_module}" = "xyes"])
 AM_CONDITIONAL(ETUI_BUILD_STATIC_[]UP, [test "x${static_module}" = "xyes"])
 
 if test "x${static_module}" = "xyes" ; then
-   AC_DEFINE(ETUI_BUILD_STATIC_[]UP, 1, [Set to 1 if $1 is statically built])
+   AC_DEFINE(ETUI_BUILD_STATIC_[]UP, [1], [Set to 1 if $1 is statically built])
    have_static_module="yes"
 fi
 
 enable_[]DOWN="no"
 if test "x${have_module}" = "xyes" ; then
    enable_[]DOWN=${enable_module}
-   AC_DEFINE(ETUI_BUILD_[]UP, 1, [Set to 1 if $1 is built])
+   AC_DEFINE(ETUI_BUILD_[]UP, [1], [Set to 1 if $1 is built])
 fi
 
 AS_IF([test "x$have_module" = "xyes"], [$3], [$4])
