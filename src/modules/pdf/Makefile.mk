@@ -301,7 +301,7 @@ src/modules/pdf/mupdf-1.2/fitz/stm_output.c \
 src/modules/pdf/mupdf-1.2/fitz/stm_read.c \
 src/modules/pdf/mupdf-1.2/fitz/fitz.h \
 src/modules/pdf/mupdf-1.2/fitz/fitz-internal.h \
-src/modules/pdf/mupdf-1.2/fitz/memento/h
+src/modules/pdf/mupdf-1.2/fitz/memento.h
 
 DRAW_SOURCES = \
 src/modules/pdf/mupdf-1.2/draw/draw_affine.c \
@@ -451,6 +451,9 @@ src_modules_pdf_module_la_CPPFLAGS = \
 -DECRIN_ETUI_BUILD \
 @ETUI_CFLAGS@ \
 @MUPDF_CFLAGS@
+
+src_modules_pdf_module_la_CFLAGS = \
+@ETUI_LIB_CFLAGS@
 
 src_modules_pdf_module_la_LIBADD = \
 src/lib/libetui.la \

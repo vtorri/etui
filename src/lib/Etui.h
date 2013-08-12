@@ -50,10 +50,10 @@
 
 typedef enum
 {
-    ETUI_ROTATION_0,
-    ETUI_ROTATION_90,
-    ETUI_ROTATION_180,
-    ETUI_ROTATION_270
+    ETUI_ROTATION_0 = 0,
+    ETUI_ROTATION_90 = 90,
+    ETUI_ROTATION_180 = 180,
+    ETUI_ROTATION_270 = 270
 } Etui_Rotation;
 
 typedef enum
@@ -147,6 +147,9 @@ EAPI int etui_init(void);
 EAPI int etui_shutdown(void);
 
 EAPI Evas_Object *etui_object_add(Evas *evas);
+
+EAPI const char *etui_object_module_name_get(Evas_Object *obj);
+
 EAPI Eina_Bool etui_object_file_set(Evas_Object *obj, const char *filename);
 EAPI const char *etui_object_filename_get(Evas_Object *obj);
 

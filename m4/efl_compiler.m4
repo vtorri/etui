@@ -4,12 +4,12 @@ dnl This code is public domain and can be freely used or copied.
 dnl Macro that check if compiler of linker flags are available
 
 
-dnl Macro that checks for a compiler flag availability
+dnl Macro that checks for a C compiler flag availability
 dnl
-dnl _EFL_CHECK_COMPILER_FLAG(EFL, FLAGS)
+dnl _EFL_CHECK_C_COMPILER_FLAG(EFL, FLAGS)
 dnl AC_SUBST : EFL_CFLAGS (EFL being replaced by its value)
 dnl have_flag: yes or no.
-AC_DEFUN([_EFL_CHECK_COMPILER_FLAG],
+AC_DEFUN([_EFL_CHECK_C_COMPILER_FLAG],
 [dnl
 m4_pushdef([UPEFL], m4_translit([[$1]], [-a-z], [_A-Z]))dnl
 
@@ -19,7 +19,7 @@ CFLAGS_save="${CFLAGS}"
 CFLAGS="${CFLAGS} ${option}"
 AC_LANG_PUSH([C])
 
-AC_MSG_CHECKING([whether the compiler supports $2])
+AC_MSG_CHECKING([whether the C compiler supports $2])
 AC_COMPILE_IFELSE(
    [AC_LANG_PROGRAM([[]])],
    [have_flag="yes"],
@@ -35,15 +35,58 @@ AC_SUBST(UPEFL[_CFLAGS])dnl
 m4_popdef([UPEFL])dnl
 ])
 
-dnl EFL_CHECK_COMPILER_FLAGS(EFL, FLAGS)
+dnl Macro that checks for a C++ compiler flag availability
+dnl
+dnl _EFL_CHECK_CXX_COMPILER_FLAG(EFL, FLAGS)
+dnl AC_SUBST : EFL_CXXFLAGS (EFL being replaced by its value)
+dnl have_flag: yes or no.
+AC_DEFUN([_EFL_CHECK_CXX_COMPILER_FLAG],
+[dnl
+m4_pushdef([UPEFL], m4_translit([[$1]], [-a-z], [_A-Z]))dnl
+
+dnl store in options -Wfoo if -Wno-foo is passed
+option="m4_bpatsubst([[$2]], [-Wno-], [-W])"
+CXXFLAGS_save="${CXXFLAGS}"
+CXXFLAGS="${CXXFLAGS} ${option}"
+AC_LANG_PUSH([C++])
+
+AC_MSG_CHECKING([whether the C++ compiler supports $2])
+AC_COMPILE_IFELSE(
+   [AC_LANG_PROGRAM([[]])],
+   [have_flag="yes"],
+   [have_flag="no"])
+AC_MSG_RESULT([${have_flag}])
+
+AC_LANG_POP([C++])
+CXXFLAGS="${CXXFLAGS_save}"
+if test "x${have_flag}" = "xyes" ; then
+   UPEFL[_CXXFLAGS]="${UPEFL[_CXXFLAGS]} [$2]"
+fi
+AC_SUBST(UPEFL[_CXXFLAGS])dnl
+m4_popdef([UPEFL])dnl
+])
+
+dnl EFL_CHECK_C_COMPILER_FLAGS(EFL, FLAGS)
 dnl Checks if FLAGS are supported and add to EFL_CLFAGS.
 dnl
 dnl It will first try every flag at once, if one fails will try them one by one.
-AC_DEFUN([EFL_CHECK_COMPILER_FLAGS],
+AC_DEFUN([EFL_CHECK_C_COMPILER_FLAGS],
 [dnl
-_EFL_CHECK_COMPILER_FLAG([$1], [$2])
+_EFL_CHECK_C_COMPILER_FLAG([$1], [$2])
 if test "${have_flag}" != "yes"; then
-m4_foreach_w([flag], [$2], [_EFL_CHECK_COMPILER_FLAG([$1], m4_defn([flag]))])
+m4_foreach_w([flag], [$2], [_EFL_CHECK_C_COMPILER_FLAG([$1], m4_defn([flag]))])
+fi
+])
+
+dnl EFL_CHECK_CXX_COMPILER_FLAGS(EFL, FLAGS)
+dnl Checks if FLAGS are supported and add to EFL_CXXLFAGS.
+dnl
+dnl It will first try every flag at once, if one fails will try them one by one.
+AC_DEFUN([EFL_CHECK_CXX_COMPILER_FLAGS],
+[dnl
+_EFL_CHECK_CXX_COMPILER_FLAG([$1], [$2])
+if test "${have_flag}" != "yes"; then
+m4_foreach_w([flag], [$2], [_EFL_CHECK_CXX_COMPILER_FLAG([$1], m4_defn([flag]))])
 fi
 ])
 

@@ -28,6 +28,9 @@ src_modules_ps_module_la_CPPFLAGS = \
 @ETUI_CFLAGS@ \
 @PS_CFLAGS@
 
+src_modules_ps_module_la_CFLAGS = \
+@ETUI_LIB_CFLAGS@
+
 src_modules_ps_module_la_LIBADD = \
 src/lib/libetui.la \
 @ETUI_LIBS@ \

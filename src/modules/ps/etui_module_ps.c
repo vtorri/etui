@@ -1029,7 +1029,7 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_ps =
 {
     /* .name                          */ "ps",
     /* .version                       */ ETUI_PROVIDER_DESCRIPTOR_VERSION,
-    /* .priority                      */ ETUI_PROVIDER_DESCRIPTOR_PRIORITY_DEFAULT,
+    /* .priority                      */ ETUI_PROVIDER_DESCRIPTOR_PRIORITY_LOW,
     /* .init                          */ _etui_ps_init,
     /* .shutdown                      */ _etui_ps_shutdown,
     /* .evas_object_get               */ _etui_ps_evas_object_get,

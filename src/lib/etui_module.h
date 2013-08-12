@@ -19,16 +19,18 @@
 #define ETUI_MODULE_H
 
 #define ETUI_PROVIDER_DESCRIPTOR_VERSION (1U)
-#define ETUI_PROVIDER_DESCRIPTOR_PRIORITY_DEFAULT 50
+#define ETUI_PROVIDER_DESCRIPTOR_PRIORITY_LOW 30
+#define ETUI_PROVIDER_DESCRIPTOR_PRIORITY_NORMAL 50
+#define ETUI_PROVIDER_DESCRIPTOR_PRIORITY_HIGH 70
 
 typedef struct _Etui_Provider_Instance Etui_Provider_Instance;
 typedef struct _Etui_Provider_Descriptor Etui_Provider_Descriptor;
 
 struct _Etui_Provider_Descriptor
 {
-    const char     *name;
-    unsigned int    version;
-    int             priority;
+    const char         *name;
+    unsigned int        version;
+    int                 priority;
     void             *(*init)(Evas *evas);
     void              (*shutdown)(void *d);
     Evas_Object      *(*evas_object_get)(void *d);
@@ -90,6 +92,8 @@ Eina_Bool etui_provider_instance_name_equal(const Etui_Provider_Instance *inst,
 void *etui_provider_instance_data_get(const Etui_Provider_Instance *inst);
 
 /* private calls */
+
+const char *etui_provider_instance_module_name_get(Etui_Provider_Instance *inst);
 
 Evas_Object *etui_provider_instance_evas_object_get(Etui_Provider_Instance *inst);
 

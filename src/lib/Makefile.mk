@@ -8,6 +8,7 @@ src_lib_libetui_la_SOURCES = \
 src/lib/etui_main.c \
 src/lib/etui_module.c \
 src/lib/etui_smart.c \
+src/lib/etui_module.h \
 src/lib/etui_private.h
 
 src_lib_libetui_la_CPPFLAGS = \
@@ -16,6 +17,9 @@ src_lib_libetui_la_CPPFLAGS = \
 -DPACKAGE_DATA_DIR=\"$(pkgdatadir)\" \
 -DECRIN_ETUI_BUILD \
 @ETUI_CFLAGS@
+
+src_lib_libetui_la_CFLAGS = \
+@ETUI_LIB_CFLAGS@
 
 src_lib_libetui_la_LIBADD = @ETUI_LIBS@
 
