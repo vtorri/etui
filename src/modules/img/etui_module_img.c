@@ -679,6 +679,9 @@ _etui_img_file_open(void *d, const char *filename)
     {
         pd->doc.page_nbr = 1;
         pd->page.page_num = -1;
+        pd->page.rotation = ETUI_ROTATION_0;
+        pd->page.hscale = 1.0f;
+        pd->page.vscale = 1.0f;
         return EINA_TRUE;
     }
 
