@@ -20,6 +20,8 @@
 # include <config.h>
 #endif
 
+#include <math.h>
+
 #include <Eina.h>
 #include <Evas.h>
 #include <Ecore.h>
