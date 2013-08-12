@@ -405,6 +405,7 @@ etui_provider_instance_del(Etui_Provider_Instance *inst)
 {
     EINA_SAFETY_ON_NULL_RETURN(inst);
     inst->provider->shutdown(inst->data);
+    free(inst);
 }
 
 Eina_Bool
