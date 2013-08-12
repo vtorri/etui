@@ -331,7 +331,7 @@ _etui_pdf_page_links_fill(Etui_Provider_Data *pd, fz_link *links)
                 break;
         }
 
-        /* FIXME: take into account the rotation and the zoom ?*/
+        /* FIXME: take into account the rotation and the zoom ? */
         fz_irect_from_rect(&rect, &links->rect);
         item->rect.x = rect.x0;
         item->rect.y = rect.y0;
@@ -340,6 +340,45 @@ _etui_pdf_page_links_fill(Etui_Provider_Data *pd, fz_link *links)
 
         eina_array_push(&pd->page.links, item);
     }
+}
+
+static void
+_etui_pdf_links_unfill(Eina_Array *items)
+{
+    Etui_Link_Item *item;
+    Eina_Array_Iterator iterator;
+    unsigned int i;
+
+    if (!items)
+        return;
+
+    EINA_ARRAY_ITER_NEXT(items, i, item, iterator)
+    {
+        switch (item->kind)
+        {
+            case ETUI_LINK_KIND_GOTO:
+                break;
+            case ETUI_LINK_KIND_GOTO_REMOTE:
+                free(item->dest.goto_remote.filename);
+                break;
+            case ETUI_LINK_KIND_URI:
+                free(item->dest.uri.uri);
+                break;
+            case ETUI_LINK_KIND_LAUNCH:
+                free(item->dest.launch.filename);
+                break;
+            case ETUI_LINK_KIND_NAMED:
+                free(item->dest.named.named);
+                break;
+            default:
+                break;
+        }
+
+        free(item);
+    }
+
+    /* FIXME: to add ? valgrind reports an invalid read with it */
+    eina_array_free(items);
 }
 
 static Eina_Array *
@@ -397,6 +436,48 @@ _etui_pdf_toc_fill(Eina_Array *items, fz_outline *outline)
     }
 
     return res;
+}
+
+static void
+_etui_pdf_toc_unfill(Eina_Array *items)
+{
+    Etui_Toc_Item *item;
+    Eina_Array_Iterator iterator;
+    unsigned int i;
+
+    if (!items)
+        return;
+
+    EINA_ARRAY_ITER_NEXT(items, i, item, iterator)
+    {
+        switch (item->kind)
+        {
+            case ETUI_LINK_KIND_GOTO:
+                break;
+            case ETUI_LINK_KIND_GOTO_REMOTE:
+                free(item->dest.goto_remote.filename);
+                break;
+            case ETUI_LINK_KIND_URI:
+                free(item->dest.uri.uri);
+                break;
+            case ETUI_LINK_KIND_LAUNCH:
+                free(item->dest.launch.filename);
+                break;
+            case ETUI_LINK_KIND_NAMED:
+                free(item->dest.named.named);
+                break;
+            default:
+                break;
+        }
+
+        if (item->child)
+            _etui_pdf_toc_unfill(item->child);
+
+        free(item);
+    }
+
+    /* FIXME: to add ? valgrind reports an invalid read with it */
+    eina_array_free(items);
 }
 
 /* Virtual functions */
@@ -539,6 +620,9 @@ _etui_pdf_file_close(void *d)
     pd = (Etui_Provider_Data *)d;
 
     DBG("close file %s", pd->doc.filename);
+
+    _etui_pdf_links_unfill(&pd->page.links);
+    _etui_pdf_toc_unfill(&pd->doc.toc);
 
     if (pd->doc.doc)
         fz_close_document(pd->doc.doc);
@@ -955,7 +1039,7 @@ _etui_pdf_page_set(void *d, int page_num)
         fz_free_page(pd->doc.doc, pd->page.page);
 
     while (eina_array_count(&pd->page.links))
-           free(eina_array_pop(&pd->page.links));
+        free(eina_array_pop(&pd->page.links));
     eina_array_step_set(&pd->page.links, sizeof(Eina_Array), 4);
 
     links = fz_load_links(pd->doc.doc, page);
@@ -1246,7 +1330,7 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
 
     sheet = fz_new_text_sheet(pd->doc.ctx);
     if (!sheet)
-        return NULL;
+        goto free_text_page;
 
     if (pd->page.use_display_list)
     {
@@ -1301,7 +1385,7 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
     if (!res)
         return NULL;
 
-    /* second un, we fill the string */
+    /* second run, we fill the string */
     iter = res;
     seen = 0;
     for (block = text->blocks; block < text->blocks + text->len; block++)
@@ -1338,7 +1422,15 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
     }
     *iter = '\0';
 
+    fz_free_text_sheet(pd->doc.ctx, sheet);
+    fz_free_text_page(pd->doc.ctx, text);
+
     return res;
+
+  free_text_page:
+    fz_free_text_page(pd->doc.ctx, text);
+
+    return NULL;
 }
 
 /* code borrowed from doc_search.c */
@@ -1380,7 +1472,7 @@ _etui_pdf_page_text_find(void *d, const char *needle)
 
     sheet = fz_new_text_sheet(pd->doc.ctx);
     if (!sheet)
-        return NULL;
+        goto free_text_page;
 
     if (pd->page.use_display_list)
     {
@@ -1479,10 +1571,16 @@ _etui_pdf_page_text_find(void *d, const char *needle)
         }
     }
 
+    fz_free_text_sheet(pd->doc.ctx, sheet);
+    fz_free_text_page(pd->doc.ctx, text);
+
     return rects;
 
+  free_text_page:
+    fz_free_text_page(pd->doc.ctx, text);
   free_rects:
-    eina_array_free(rects);
+    if (rects)
+        eina_array_free(rects);
 
     return NULL;
 }
