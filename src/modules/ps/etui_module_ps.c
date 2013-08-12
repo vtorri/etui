@@ -120,6 +120,42 @@ static int _etui_module_ps_init_count = 0;
 static int _etui_module_ps_log_domain = -1;
 
 static int
+_etui_ps_stdout_cb(void *caller_handle EINA_UNUSED, const char *buf, int len)
+{
+    char *str;
+
+    /* according to chris, buf might be not nul terminated */
+    str = (char *)malloc((len + 1) * sizeof(char));
+    if (!str)
+        return len;
+
+    memcpy(str, buf, len);
+    str[len] = '\0';
+    INF(str);
+    free(str);
+
+    return len;
+};
+
+static int
+_etui_ps_stderr_cb(void *caller_handle EINA_UNUSED, const char *buf, int len)
+{
+    char *str;
+
+    /* according to chris, buf might be not nul terminated */
+    str = (char *)malloc((len + 1) * sizeof(char));
+    if (!str)
+        return len;
+
+    memcpy(str, buf, len);
+    str[len] = '\0';
+    ERR(str);
+    free(str);
+
+    return len;
+}
+
+static int
 _etui_ps_display_cb_open(void *d EINA_UNUSED, void *device EINA_UNUSED)
 {
     return 0;
@@ -739,6 +775,17 @@ _etui_ps_page_render_pre(void *d)
         ERR("can not create ghostscript instance");
         pd->gs.instance = NULL;
         return;
+    }
+
+    err = gsapi_set_stdio(pd->gs.instance,
+                          NULL,
+                          _etui_ps_stdout_cb,
+                          _etui_ps_stderr_cb);
+    if (err < 0)
+    {
+        gsapi_exit(pd->gs.instance);
+        gsapi_delete_instance(pd->gs.instance);
+        pd->gs.instance = NULL;
     }
 
     err = gsapi_set_display_callback(pd->gs.instance,
