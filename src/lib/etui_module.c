@@ -229,6 +229,11 @@ Eina_Bool etui_module_ps_init(void);
 void etui_module_ps_shutdown(void);
 #endif
 
+#ifdef ETUI_BUILD_STATIC_IMG
+Eina_Bool etui_module_img_init(void);
+void etui_module_img_shutdown(void);
+#endif
+
 Eina_Bool
 etui_modules_init(void)
 {
@@ -248,6 +253,10 @@ etui_modules_init(void)
     etui_module_ps_init();
 #endif
 
+#ifdef ETUI_BUILD_STATIC_IMG
+    etui_module_img_init();
+#endif
+
     return EINA_TRUE;
 }
 
@@ -257,6 +266,10 @@ etui_modules_shutdown(void)
     Etui_Provider_Registry_Entry *re;
 
     /* TODO : STATIC modules */
+#ifdef ETUI_BUILD_STATIC_IMG
+    etui_module_img_init();
+#endif
+
 #ifdef ETUI_BUILD_STATIC_PS
     etui_module_ps_init();
 #endif
