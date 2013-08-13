@@ -267,11 +267,11 @@ etui_modules_shutdown(void)
 
     /* TODO : STATIC modules */
 #ifdef ETUI_BUILD_STATIC_IMG
-    etui_module_img_init();
+    etui_module_img_shutdown();
 #endif
 
 #ifdef ETUI_BUILD_STATIC_PS
-    etui_module_ps_init();
+    etui_module_ps_shutdown();
 #endif
 
 #ifdef ETUI_BUILD_STATIC_PDF
