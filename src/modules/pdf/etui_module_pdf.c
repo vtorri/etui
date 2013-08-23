@@ -648,10 +648,6 @@ _etui_pdf_file_close(void *d)
     _etui_pdf_toc_unfill(&pd->doc.toc, EINA_FALSE);
     eina_array_flush(&pd->doc.toc);
 
-    if (pd->doc.doc)
-        fz_close_document(pd->doc.doc);
-    pd->doc.doc = NULL;
-
     if (pd->page.page)
         fz_free_page(pd->doc.doc, pd->page.page);
     pd->page.page = NULL;
@@ -662,6 +658,10 @@ _etui_pdf_file_close(void *d)
             fz_free_display_list(pd->doc.ctx, pd->page.list);
     }
     pd->page.list = NULL;
+
+    if (pd->doc.doc)
+        fz_close_document(pd->doc.doc);
+    pd->doc.doc = NULL;
 
     if (pd->doc.filename)
         free(pd->doc.filename);
