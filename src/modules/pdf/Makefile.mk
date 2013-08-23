@@ -420,6 +420,7 @@ $(XPS_SOURCES) \
 $(CBZ_SOURCES)
 
 src_lib_libetui_la_CPPFLAGS += \
+-I$(top_srcdir)/src/lib \
 -I$(top_srcdir)/src/modules/pdf/mupdf-1.2/fitz \
 -I$(top_srcdir)/src/modules/pdf/mupdf-1.2/pdf \
 -I$(top_srcdir)/src/modules/pdf/mupdf-1.2/thirdparty/jbig2dec \
