@@ -956,7 +956,7 @@ _etui_img_page_render_pre(void *d)
                                           data,
                                           size,
                                           NULL, NULL);
-            if (evas_object_image_load_error_get(pd->efl.obj) == EVAS_LOAD_ERROR_NONE)
+            if (evas_object_image_load_error_get(pd->efl.obj) != EVAS_LOAD_ERROR_NONE)
             {
                 ERR("CBZ image format not supported");
                 return;
@@ -1033,7 +1033,7 @@ _etui_img_page_render_pre(void *d)
                                           pd->page.rar.size,
                                           "jpeg", NULL);
             printf(" * 10\n");
-            if (evas_object_image_load_error_get(pd->efl.obj) == EVAS_LOAD_ERROR_NONE)
+            if (evas_object_image_load_error_get(pd->efl.obj) != EVAS_LOAD_ERROR_NONE)
             {
                 ERR("CBR image format not supported");
                 return;
