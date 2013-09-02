@@ -291,7 +291,7 @@ _etui_ps_gs_process(Etui_Provider_Data *pd, int x, int y, long begin, long end)
                                         0, &exit_code);
         err = (err == e_NeedInput) ? 0 : err;
         if ((err != e_NeedInput) && err < 0)
-		return FALSE;
+		return EINA_FALSE;
     }
 
     left = end - begin;
