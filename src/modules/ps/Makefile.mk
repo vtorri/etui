@@ -9,6 +9,13 @@ src/modules/ps/ps.h \
 src/modules/ps/etui_module_ps.h \
 src/modules/ps/etui_module_ps_utils.h
 
+src_lib_libetui_la_CPPFLAGS += \
+-I$(top_srcdir)/src/lib \
+@PS_CFLAGS@
+
+src_lib_libetui_la_LIBADD += \
+@PS_LIBS@
+
 else
 
 etui_modules_psdir = $(pkglibdir)/modules/ps/$(MODULE_ARCH)
