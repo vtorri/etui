@@ -29,6 +29,8 @@
 #include "unrar/raros.hpp"
 #include "unrar/dll.hpp"
 
+#include "untar/tar.h"
+
 #include "Etui.h"
 #include "etui_module.h"
 #include "etui_module_img.h"
@@ -134,6 +136,15 @@ struct _Etui_Provider_Data
             size_t size;
         } zip;
 #endif
+        struct
+        {
+            Eina_File *file;
+            unsigned char *data;
+            unsigned char *iter;
+            size_t size;
+            size_t next_entry_position;
+            size_t header_size; /* for checksum. Maybe useless for our usage */
+        } tar;
     } doc;
 
     /* Current page */
@@ -378,7 +389,7 @@ _etui_img_cbz_central_directory_parse(Etui_Provider_Data *pd, size_t start_offse
     }
 
     pd->doc.cb_type = ETUI_IMG_CB_CBZ;
-    pd->doc.toc = *eina_array_new(eina_list_count(list));
+    eina_array_step_set(&pd->doc.toc, sizeof(Eina_Array), 4);
     list = eina_list_sort(list, eina_list_count(list), _etui_img_cbz_sort_cb);
     EINA_LIST_FOREACH(list, l, data)
         eina_array_push(&pd->doc.toc, data);
@@ -425,13 +436,15 @@ _etui_img_cbr_cb(UINT msg, LPARAM user_data, LPARAM p1, LPARAM p2)
             pd = (Etui_Provider_Data *)user_data;
             if (pd->page.rar.getting_data)
             {
-              printf("  offset %llu   size %llu\n", pd->page.rar.offset, pd->page.rar.size);
+              printf("  rar cb : offset %llu   size %llu\n", pd->page.rar.offset, pd->page.rar.size);
                 if (pd->page.rar.offset < pd->page.rar.size)
                 {
-                  printf("  rar size  %zu\n", (size_t)p2);
+                  printf("  rar cb : size  %zu\n", (size_t)p2);
                   memcpy((unsigned char *)pd->page.rar.data + pd->page.rar.offset, (void *)p1, (size_t)p2);
                   pd->page.rar.offset += p2;
                 }
+                if (pd->page.rar.offset >= pd->page.rar.size)
+		    pd->page.rar.offset = 0;
             }
 
             return 1;
@@ -484,7 +497,6 @@ _etui_img_cb_is_valid(Etui_Provider_Data *pd)
             {
                 if (!memcmp(pd->doc.zip.iter - n + i, "PK\5\6", 4))
                 {
-                  printf(" * bon !\n");
                     if (_etui_img_cbz_central_directory_parse(pd, pd->doc.zip.size - back + i))
                         return EINA_TRUE;
                 }
@@ -571,11 +583,22 @@ _etui_img_cb_is_valid(Etui_Provider_Data *pd)
         }
 
         pd->doc.cb_type = ETUI_IMG_CB_CBR;
-        pd->doc.toc = *eina_array_new(eina_list_count(list));
+	eina_array_step_set(&pd->doc.toc, sizeof(Eina_Array), 4);
         list = eina_list_sort(list, eina_list_count(list), _etui_img_cbr_sort_cb);
         EINA_LIST_FOREACH(list, l, data)
             eina_array_push(&pd->doc.toc, data);
         eina_list_free(list);
+
+	{
+	    Eina_Array_Iterator iterator;
+	    unsigned int i;
+
+	    printf("\n\n");
+	    EINA_ARRAY_ITER_NEXT(&pd->doc.toc, i, data, iterator)
+	    {
+	      printf("file name : %s %llu (%d)\n", data->file_name, data->file_size, data->idx);
+	    }
+	}
 
         pd->doc.page_nbr = eina_array_count(&pd->doc.toc);
         pd->page.page_num = 0;
@@ -597,6 +620,37 @@ _etui_img_cb_is_valid(Etui_Provider_Data *pd)
     }
 
     /* cbt */
+
+    {
+        Etui_Img_Cbt tar;
+        Etui_Img_Cbt_Entry *entry;
+        Eina_List *list;
+        Eina_List *l;
+
+        pd->doc.tar.file = eina_file_open(pd->doc.filename, EINA_FALSE);
+        if (!pd->doc.tar.file)
+            return EINA_FALSE;
+
+        pd->doc.tar.data = eina_file_map_all(pd->doc.tar.file,
+                                             EINA_FILE_POPULATE);
+        pd->doc.tar.iter = pd->doc.tar.data;
+        pd->doc.tar.size = eina_file_size_get(pd->doc.tar.file);
+        pd->doc.tar.header_size = 0;
+        pd->doc.tar.next_entry_position = 0;
+        memcpy(&tar, &pd->doc.tar, sizeof(tar));
+        list = etui_img_cbt_entries_get(&tar);
+
+        pd->doc.cb_type = ETUI_IMG_CB_CBT;
+	eina_array_step_set(&pd->doc.toc, sizeof(Eina_Array), 4);
+        EINA_LIST_FOREACH(list, l, entry)
+            eina_array_push(&pd->doc.toc, entry);
+        eina_list_free(list);
+
+        pd->doc.page_nbr = eina_array_count(&pd->doc.toc);
+        pd->page.page_num = 0;
+
+    return EINA_TRUE;
+    }
 
     return res;
 }
@@ -715,6 +769,44 @@ _etui_img_file_close(void *d)
     pd = (Etui_Provider_Data *)d;
 
     DBG("close file %s", pd->doc.filename);
+    switch (pd->doc.cb_type)
+    {
+        case ETUI_IMG_CB_CBZ:
+	{
+	    Etui_Img_Cbz_Data *data;
+	    Eina_Array_Iterator iterator;
+	    unsigned int i;
+
+	    EINA_ARRAY_ITER_NEXT(&pd->doc.toc, i, data, iterator)
+	    {
+	        free(data->file_name);
+	        free(data);
+	    }
+	    eina_array_flush(&pd->doc.toc);
+	    eina_file_close(pd->doc.zip.file);
+	}
+	    break;
+        case ETUI_IMG_CB_CBR:
+	{
+	    Etui_Img_Cbz_Data *data;
+	    Eina_Array_Iterator iterator;
+	    unsigned int i;
+
+	    EINA_ARRAY_ITER_NEXT(&pd->doc.toc, i, data, iterator)
+	    {
+	        free(data->file_name);
+	        free(data);
+	    }
+	    eina_array_flush(&pd->doc.toc);
+	}
+	    break;
+        case ETUI_IMG_CB_CBT:
+	    eina_array_flush(&pd->doc.toc);
+	    eina_file_close(pd->doc.tar.file);
+	    break;
+        default:
+	    break;
+    }
 
     if (pd->doc.filename)
         free(pd->doc.filename);
@@ -787,6 +879,8 @@ _etui_img_page_set(void *d, int page_num)
     pd->page.rotation = ETUI_ROTATION_0;
     pd->page.hscale = 1.0f;
     pd->page.vscale = 1.0f;
+
+    pd->page.rar.data = NULL;
 
     return EINA_TRUE;
 }
@@ -903,7 +997,7 @@ _etui_img_page_render_pre(void *d)
     DBG("render pre");
 
     pd = (Etui_Provider_Data *)d;
-    DBG("render pre %d\n", pd->doc.cb_type);
+    DBG("render pre %d", pd->doc.cb_type);
 
     switch (pd->doc.cb_type)
     {
@@ -956,6 +1050,7 @@ _etui_img_page_render_pre(void *d)
                                           data,
                                           size,
                                           NULL, NULL);
+	    free(data);
             if (evas_object_image_load_error_get(pd->efl.obj) != EVAS_LOAD_ERROR_NONE)
             {
                 ERR("CBZ image format not supported");
@@ -1004,7 +1099,7 @@ _etui_img_page_render_pre(void *d)
             {
                 if (idx == data->idx)
                 {
-                  printf(" * idx : %d %llu\n", idx, data->file_size);
+                  printf("  rar render pre: idx : %d %llu (%d)\n", idx, data->file_size, pd->page.rar.getting_data);
                     pd->page.rar.getting_data = 1;
                     if (!pd->page.rar.data)
                     {
@@ -1013,7 +1108,9 @@ _etui_img_page_render_pre(void *d)
                     }
                 }
                 else
+		{
                     pd->page.rar.getting_data = 0;
+		}
 
                 rar_process_file_code = RARProcessFile(rar_archive, RAR_TEST,
                                                        NULL, NULL);
@@ -1027,12 +1124,16 @@ _etui_img_page_render_pre(void *d)
 
             RARCloseArchive(rar_archive);
 
-            printf(" * %p %p  %llu %llu\n", pd->efl.obj, pd->page.rar.data, pd->page.rar.size, pd->page.rar.offset);
+            printf(" rar render pre : %p %p  %llu %llu\n", pd->efl.obj, pd->page.rar.data, pd->page.rar.size, pd->page.rar.offset);
             evas_object_image_memfile_set(pd->efl.obj,
                                           pd->page.rar.data,
                                           pd->page.rar.size,
                                           "jpeg", NULL);
-            printf(" * 10\n");
+	    if (pd->page.rar.data)
+	    {
+	        free(pd->page.rar.data);
+		pd->page.rar.data = NULL;
+	    }
             if (evas_object_image_load_error_get(pd->efl.obj) != EVAS_LOAD_ERROR_NONE)
             {
                 ERR("CBR image format not supported");
@@ -1056,6 +1157,51 @@ _etui_img_page_render_pre(void *d)
         case ETUI_IMG_CB_CB7:
             break;
         case ETUI_IMG_CB_CBT:
+        {
+            Etui_Img_Cbt_Entry *cbt_entry;
+            void *data;
+            size_t total;
+
+            cbt_entry = eina_array_data_get(&pd->doc.toc, pd->page.page_num);
+            data = malloc(cbt_entry->header.file_size);
+            if (!data)
+                return;
+            if (!etui_img_cbt_entry_is_file(cbt_entry))
+                return;
+
+            total = 0;
+            etui_img_cbt_entry_rewind(cbt_entry);
+            do
+            {
+                size_t is_read;
+
+                is_read = etui_img_cbt_entry_read(cbt_entry, data, cbt_entry->header.file_size);
+                total += is_read;
+} while (total < cbt_entry->header.file_size);
+            
+            printf(" page num : %d  data : %p size %llu\n", pd->page.page_num, data, cbt_entry->header.file_size);
+
+            evas_object_image_memfile_set(pd->efl.obj,
+                                          data,
+                                          cbt_entry->header.file_size,
+                                          NULL, NULL);
+            if (evas_object_image_load_error_get(pd->efl.obj) != EVAS_LOAD_ERROR_NONE)
+            {
+                ERR("CBT image format not supported");
+                return;
+            }
+
+            evas_object_image_size_get(pd->efl.obj, &width, &height);
+            printf(" * (%dx%d)\n", width, height);
+
+            evas_object_image_size_set(pd->efl.obj, width, height);
+            evas_object_image_fill_set(pd->efl.obj, 0, 0, width, height);
+            pd->efl.m = evas_object_image_data_get(pd->efl.obj, 1);
+            pd->page.width = width;
+            pd->page.height = height;
+
+            evas_object_resize(pd->efl.obj, width, height);
+        }
             break;
     }
 }
@@ -1063,14 +1209,14 @@ _etui_img_page_render_pre(void *d)
 static void
 _etui_img_page_render(void *d)
 {
-    Etui_Provider_Data *pd;
+    /* Etui_Provider_Data *pd; */
 
     if (!d)
         return;
 
     DBG("render");
 
-    pd = (Etui_Provider_Data *)d;
+    /* pd = (Etui_Provider_Data *)d; */
 }
 
 static void

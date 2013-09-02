@@ -308,8 +308,8 @@ int main(int argc, char *argv[])
 
     ecore_event_handler_del(handler);
 
-    ecore_evas_shutdown();
     etui_shutdown();
+    ecore_evas_shutdown();
 
     return 0;
 

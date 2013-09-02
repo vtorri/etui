@@ -152,6 +152,11 @@ src/modules/img/etui_module_img.h
 # unrar
 src_lib_libetui_la_SOURCES += $(UNRAR_SOURCES)
 
+# untar
+src_lib_libetui_la_SOURCES += \
+src/modules/img/untar/tar.c \
+src/modules/img/untar/tar.h
+
 src_lib_libetui_la_CPPFLAGS += \
 @IMG_CFLAGS@
 
@@ -180,7 +185,13 @@ src_modules_img_module_la_SOURCES = \
 src/modules/img/etui_module_img.c \
 src/modules/img/etui_module_img.h
 
+# unrar
 src_modules_img_module_la_SOURCES += $(UNRAR_SOURCES)
+
+# untar
+src_modules_img_module_la_SOURCES += \
+src/modules/img/untar/tar.c \
+src/modules/img/untar/tar.h
 
 src_modules_img_module_la_CPPFLAGS = \
 -I$(top_srcdir)/src/lib \
