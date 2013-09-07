@@ -254,17 +254,6 @@ _etui_img_cbt_entry_new(Etui_Img_Cbt *tar, Etui_Img_Cbt_Header *header)
     return entry;
 }
 
-static void
-_etui_img_cbt_entry_free(Etui_Img_Cbt_Entry *entry)
-{
-    if (!entry)
-        return;
-
-    free(entry->header.link_name);
-    free(entry->header.file_name);
-    free(entry);
-}
-
 static Etui_Img_Cbt_Entry *
 _etui_img_cbt_entry_next_get(Etui_Img_Cbt *tar)
 {
@@ -328,6 +317,17 @@ _etui_img_cbt_entry_first_get(Etui_Img_Cbt *tar)
 
 /***** API *****/
 
+void
+etui_img_cbt_entry_free(Etui_Img_Cbt_Entry *entry)
+{
+    if (!entry)
+        return;
+
+    free(entry->header.link_name);
+    free(entry->header.file_name);
+    free(entry);
+}
+
 Eina_List *
 etui_img_cbt_entries_get(Etui_Img_Cbt *tar)
 {
@@ -349,15 +349,6 @@ etui_img_cbt_entries_get(Etui_Img_Cbt *tar)
     return list;
 }
 
-void
-etui_img_cbt_entries_free(Eina_List *list)
-{
-    Etui_Img_Cbt_Entry *e;
-
-    EINA_LIST_FREE(list, e)
-        _etui_img_cbt_entry_free(e);
-}
-
 Eina_Bool
 etui_img_cbt_entry_is_file(Etui_Img_Cbt_Entry *e)
 {
@@ -375,6 +366,7 @@ etui_img_cbt_entry_rewind(Etui_Img_Cbt_Entry *entry)
 
     if ((size_t)(entry->iter - entry->data) != entry->position)
         entry->iter = entry->data + entry->position;
+    entry->total_read = 0;
 }
 
 size_t

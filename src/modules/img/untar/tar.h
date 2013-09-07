@@ -57,8 +57,8 @@ struct _Etui_Img_Cbt
     unsigned long next_entry_position;
 };
 
+void etui_img_cbt_entry_free(Etui_Img_Cbt_Entry *entry);
 Eina_List *etui_img_cbt_entries_get(Etui_Img_Cbt *tar);
-void etui_img_cbt_entries_free(Eina_List *list);
 Eina_Bool etui_img_cbt_entry_is_file(Etui_Img_Cbt_Entry *e);
 void etui_img_cbt_entry_rewind(Etui_Img_Cbt_Entry *entry);
 size_t etui_img_cbt_entry_read(Etui_Img_Cbt_Entry *entry, unsigned char *buffer, size_t chunk_size);
