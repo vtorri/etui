@@ -948,13 +948,13 @@ _etui_ps_page_render(void *d)
 
     if (pd->doc.doc->numpages > 0)
     {
-                page_hoffset = hoffset;
-                page_voffset = voffset;
+        page_hoffset = hoffset;
+        page_voffset = voffset;
     }
     else
     {
-                doc_hoffset = hoffset;
-                doc_voffset = voffset;
+        doc_hoffset = hoffset;
+        doc_voffset = voffset;
     }
 
     if (!_etui_ps_gs_process(pd, doc_hoffset, doc_voffset, pd->doc.doc->beginprolog, pd->doc.doc->endprolog))
