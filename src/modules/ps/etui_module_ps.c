@@ -103,6 +103,7 @@ struct _Etui_Provider_Data
         float vdpi;
         int text_alpha_bits;
         int graphic_alpha_bits;
+        unsigned int use_platform_fonts : 1;
     } page;
 
     struct
@@ -112,7 +113,6 @@ struct _Etui_Provider_Data
         int height;
         int stride;
         unsigned char *image;
-        unsigned int page_called : 1;
     } gs;
 };
 
@@ -183,7 +183,6 @@ _etui_ps_display_cb_presize(void *d, void *device EINA_UNUSED, int width, int he
 
     pd = (Etui_Provider_Data *)d;
 
-    printf(" * size cb : %dx%d\n", width, height);
     pd->gs.width = width;
     pd->gs.height = height;
     pd->gs.stride = stride;
@@ -217,23 +216,6 @@ static int
 _etui_ps_display_cb_page(void *d, void *device EINA_UNUSED, int copies EINA_UNUSED, int flush EINA_UNUSED)
 {
     Etui_Provider_Data *pd;
-
-    if (!d)
-        return 0;
-
-    pd = (Etui_Provider_Data *)d;
-
-    printf(" * display cb : %dx%d\n", pd->gs.stride, pd->gs.height);
-    pd->gs.page_called = 1;
-    memcpy(pd->efl.m, pd->gs.image, pd->gs.stride * pd->gs.height);
-
-    return 0;
-}
-
-static int
-_etui_ps_display_cb_update(void *d, void *device EINA_UNUSED, int x, int y, int width, int height)
-{
-    Etui_Provider_Data *pd;
     int i;
 
     if (!d)
@@ -241,14 +223,17 @@ _etui_ps_display_cb_update(void *d, void *device EINA_UNUSED, int x, int y, int 
 
     pd = (Etui_Provider_Data *)d;
 
-    if (!pd->gs.image || pd->gs.page_called)
-        return 0;
+    for (i = 0; i < pd->gs.height; i++)
+        memcpy((unsigned char *)pd->efl.m + pd->gs.width * 4 * i,
+               pd->gs.image + pd->gs.stride * i,
+               pd->gs.width * 4);
 
-    for (i = y; i < (y + height); i++)
-        memcpy((unsigned char *)pd->efl.m + pd->gs.stride * i + x * 4,
-               pd->gs.image + pd->gs.stride * i + x * 4,
-               width * 4);
+    return 0;
+}
 
+static int
+_etui_ps_display_cb_update(void *d EINA_UNUSED, void *device EINA_UNUSED, int x EINA_UNUSED, int y EINA_UNUSED, int width EINA_UNUSED, int height EINA_UNUSED)
+{
     return 0;
 }
 
@@ -546,7 +531,11 @@ _etui_ps_pages_count(void *d)
         return -1;
     }
 
-    return pd->doc.doc->numpages;
+    if ((!pd->doc.doc->epsf && pd->doc.doc->numpages > 0) ||
+        (pd->doc.doc->epsf && pd->doc.doc->numpages > 1))
+        return pd->doc.doc->numpages;
+    else
+        return 1;
 }
 
 static Eina_Bool
@@ -579,6 +568,9 @@ _etui_ps_page_set(void *d, int page_num)
     if (idx == pd->page.page_num)
         return EINA_FALSE;
 
+    pd->page.width = 0;
+    pd->page.height = 0;
+
     pd->page.page_num = idx;
     pd->page.rotation = ETUI_ROTATION_0;
     pd->page.hscale = 1.0f;
@@ -587,6 +579,7 @@ _etui_ps_page_set(void *d, int page_num)
     pd->page.vdpi = 72.0f;
     pd->page.text_alpha_bits = 4;
     pd->page.graphic_alpha_bits = 2;
+    pd->page.use_platform_fonts = EINA_TRUE;
 
     return EINA_TRUE;
 }
@@ -624,10 +617,18 @@ _etui_ps_page_size_get(void *d, int *width, int *height)
         goto _err;
     }
 
-    psgetpagebox(pd->doc.doc, pd->page.page_num,
-                 &x0, &y0, &x1, &y1);
-    if (width) *width = x0 - x1;
-    if (height) *height = y0 - y1;
+    if ((pd->page.width == 0) || (pd->page.width == 0))
+    {
+        psgetpagebox(pd->doc.doc, pd->page.page_num,
+                     &x0, &y0, &x1, &y1);
+        if (width) *width = x0 - x1;
+        if (height) *height = y0 - y1;
+    }
+    else
+    {
+        if (width) *width = pd->page.width;
+        if (height) *height = pd->page.width;
+    }
 
     return;
 
@@ -750,7 +751,6 @@ _etui_ps_page_render_pre(void *d)
     int y1;
     int width;
     int height;
-    int err;
 
     if (!d)
         return;
@@ -769,45 +769,14 @@ _etui_ps_page_render_pre(void *d)
                  &x0, &y0, &x1, &y1);
     width = (int)(((x0 - x1) * pd->page.hscale) + 0.5);
     height = (int)(((y0 - y1) * pd->page.vscale) + 0.5);
-    printf(" * render_pre : %dx%d\n", width, height);
 
     evas_object_image_size_set(pd->efl.obj, width, height);
     evas_object_image_fill_set(pd->efl.obj, 0, 0, width, height);
     pd->efl.m = evas_object_image_data_get(pd->efl.obj, 1);
     pd->page.width = width;
     pd->page.height = height;
-    printf(" * size : %dx%d\n", (int)(x0 - x1), (int)(y0 - y1));
 
     evas_object_resize(pd->efl.obj, width, height);
-
-    err = gsapi_new_instance(&pd->gs.instance, pd);
-    /* TODO: should I call some functions here ? */
-    if (err < 0)
-    {
-        ERR("can not create ghostscript instance");
-        pd->gs.instance = NULL;
-        return;
-    }
-
-    err = gsapi_set_stdio(pd->gs.instance,
-                          NULL,
-                          _etui_ps_stdout_cb,
-                          _etui_ps_stderr_cb);
-    if (err < 0)
-    {
-        gsapi_exit(pd->gs.instance);
-        gsapi_delete_instance(pd->gs.instance);
-        pd->gs.instance = NULL;
-    }
-
-    err = gsapi_set_display_callback(pd->gs.instance,
-                                     (display_callback *)&_etui_ps_display_cb);
-    if (err < 0)
-    {
-        gsapi_exit(pd->gs.instance);
-        gsapi_delete_instance(pd->gs.instance);
-        pd->gs.instance = NULL;
-    }
 }
 
 static void
@@ -849,8 +818,34 @@ _etui_ps_page_render(void *d)
 
     pd = (Etui_Provider_Data *)d;
 
-    if (!pd->gs.instance)
+    err = gsapi_new_instance(&pd->gs.instance, pd);
+    /* TODO: should I call some functions here ? */
+    if (err < 0)
+    {
+        ERR("can not create ghostscript instance");
+        pd->gs.instance = NULL;
         return;
+    }
+
+    err = gsapi_set_stdio(pd->gs.instance,
+                          NULL,
+                          _etui_ps_stdout_cb,
+                          _etui_ps_stderr_cb);
+    if (err < 0)
+    {
+        gsapi_exit(pd->gs.instance);
+        gsapi_delete_instance(pd->gs.instance);
+        pd->gs.instance = NULL;
+    }
+
+    err = gsapi_set_display_callback(pd->gs.instance,
+                                     (display_callback *)&_etui_ps_display_cb);
+    if (err < 0)
+    {
+        gsapi_exit(pd->gs.instance);
+        gsapi_delete_instance(pd->gs.instance);
+        pd->gs.instance = NULL;
+    }
 
     n_args = 14;
     arg = 0;
@@ -920,7 +915,6 @@ _etui_ps_page_render(void *d)
     snprintf(str, sizeof(str),
              "<< /Orientation %d >> setpagedevice .locksafe",
              pd->page.rotation);
-    printf("%s\n", str);
     err = gsapi_run_string_with_length(pd->gs.instance,
                                        str, strlen(str), 0, &exit_code);
 
@@ -1013,6 +1007,10 @@ _etui_ps_page_render(void *d)
         pd->gs.instance = NULL;
         return;
     }
+
+    gsapi_exit(pd->gs.instance);
+    gsapi_delete_instance(pd->gs.instance);
+    pd->gs.instance = NULL;
 }
 
 static void
