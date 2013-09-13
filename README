@@ -35,7 +35,7 @@ Binary:
 Supported backends:
 -------------------
 
-PDF
+PDF and XPS
  Requirements:
   zlib
   freetype
@@ -44,3 +44,7 @@ PDF
 Image / Comic Book
  Requirements:
   zlib (cbz)
+
+Postscript
+ Requirements:
+  libgs
