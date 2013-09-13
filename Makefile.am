@@ -56,7 +56,7 @@ pc_verbose_ = $(pc_verbose_@AM_DEFAULT_V@)
 pc_verbose_0 = @echo "  PC      " $@;
 
 etui.pc: $(top_srcdir)/etui.pc.in Makefile
-	@rm -f $@
+	@AM_V_at@rm -f $@
 	$(pc_verbose)$(sed_process)
 
 pkgconfigdir = $(libdir)/pkgconfig
