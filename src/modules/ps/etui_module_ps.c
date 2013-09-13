@@ -103,6 +103,7 @@ struct _Etui_Provider_Data
         float vdpi;
         int text_alpha_bits;
         int graphic_alpha_bits;
+        unsigned int use_platform_fonts : 1;
     } page;
 
     struct
@@ -112,7 +113,6 @@ struct _Etui_Provider_Data
         int height;
         int stride;
         unsigned char *image;
-        unsigned int page_called : 1;
     } gs;
 };
 
@@ -216,22 +216,6 @@ static int
 _etui_ps_display_cb_page(void *d, void *device EINA_UNUSED, int copies EINA_UNUSED, int flush EINA_UNUSED)
 {
     Etui_Provider_Data *pd;
-
-    if (!d)
-        return 0;
-
-    pd = (Etui_Provider_Data *)d;
-
-    pd->gs.page_called = 1;
-    memcpy(pd->efl.m, pd->gs.image, pd->gs.stride * pd->gs.height);
-
-    return 0;
-}
-
-static int
-_etui_ps_display_cb_update(void *d, void *device EINA_UNUSED, int x, int y, int width, int height)
-{
-    Etui_Provider_Data *pd;
     int i;
 
     if (!d)
@@ -239,14 +223,17 @@ _etui_ps_display_cb_update(void *d, void *device EINA_UNUSED, int x, int y, int 
 
     pd = (Etui_Provider_Data *)d;
 
-    if (!pd->gs.image || pd->gs.page_called)
-        return 0;
+    for (i = 0; i < pd->gs.height; i++)
+        memcpy((unsigned char *)pd->efl.m + pd->gs.width * 4 * i,
+               pd->gs.image + pd->gs.stride * i,
+               pd->gs.width * 4);
 
-    for (i = y; i < (y + height); i++)
-        memcpy((unsigned char *)pd->efl.m + pd->gs.stride * i + x * 4,
-               pd->gs.image + pd->gs.stride * i + x * 4,
-               width * 4);
+    return 0;
+}
 
+static int
+_etui_ps_display_cb_update(void *d EINA_UNUSED, void *device EINA_UNUSED, int x EINA_UNUSED, int y EINA_UNUSED, int width EINA_UNUSED, int height EINA_UNUSED)
+{
     return 0;
 }
 
@@ -291,7 +278,7 @@ _etui_ps_gs_process(Etui_Provider_Data *pd, int x, int y, long begin, long end)
                                         0, &exit_code);
         err = (err == e_NeedInput) ? 0 : err;
         if ((err != e_NeedInput) && err < 0)
-		return FALSE;
+                return EINA_FALSE;
     }
 
     left = end - begin;
@@ -418,6 +405,7 @@ _etui_ps_file_open(void *d, const char *filename)
     else if ((pd->doc.doc->numpages == 0) &&
              (!pd->doc.doc->format))
     {
+        /* FIXME: render the first page */
         ERR("Invalid PostScript file");
         goto destroy_doc;
     }
@@ -461,6 +449,13 @@ _etui_ps_file_close(void *d)
     if (pd->doc.filename)
         free(pd->doc.filename);
     pd->doc.filename = NULL;
+}
+
+static void
+_etui_ps_version_get(void *d EINA_UNUSED, int *maj, int *min)
+{
+    if (maj) *maj = -1;
+    if (min) *min = -1;
 }
 
 static char *
@@ -536,7 +531,11 @@ _etui_ps_pages_count(void *d)
         return -1;
     }
 
-    return pd->doc.doc->numpages;
+    if ((!pd->doc.doc->epsf && pd->doc.doc->numpages > 0) ||
+        (pd->doc.doc->epsf && pd->doc.doc->numpages > 1))
+        return pd->doc.doc->numpages;
+    else
+        return 1;
 }
 
 static Eina_Bool
@@ -569,6 +568,9 @@ _etui_ps_page_set(void *d, int page_num)
     if (idx == pd->page.page_num)
         return EINA_FALSE;
 
+    pd->page.width = 0;
+    pd->page.height = 0;
+
     pd->page.page_num = idx;
     pd->page.rotation = ETUI_ROTATION_0;
     pd->page.hscale = 1.0f;
@@ -577,6 +579,7 @@ _etui_ps_page_set(void *d, int page_num)
     pd->page.vdpi = 72.0f;
     pd->page.text_alpha_bits = 4;
     pd->page.graphic_alpha_bits = 2;
+    pd->page.use_platform_fonts = EINA_TRUE;
 
     return EINA_TRUE;
 }
@@ -614,10 +617,18 @@ _etui_ps_page_size_get(void *d, int *width, int *height)
         goto _err;
     }
 
-    psgetpagebox(pd->doc.doc, pd->page.page_num,
-                 &x0, &y0, &x1, &y1);
-    if (width) *width = x0 - x1;
-    if (height) *height = y0 - y1;
+    if ((pd->page.width == 0) || (pd->page.width == 0))
+    {
+        psgetpagebox(pd->doc.doc, pd->page.page_num,
+                     &x0, &y0, &x1, &y1);
+        if (width) *width = x0 - x1;
+        if (height) *height = y0 - y1;
+    }
+    else
+    {
+        if (width) *width = pd->page.width;
+        if (height) *height = pd->page.width;
+    }
 
     return;
 
@@ -740,7 +751,6 @@ _etui_ps_page_render_pre(void *d)
     int y1;
     int width;
     int height;
-    int err;
 
     if (!d)
         return;
@@ -767,35 +777,6 @@ _etui_ps_page_render_pre(void *d)
     pd->page.height = height;
 
     evas_object_resize(pd->efl.obj, width, height);
-
-    err = gsapi_new_instance(&pd->gs.instance, pd);
-    /* TODO: should I call some functions here ? */
-    if (err < 0)
-    {
-        ERR("can not create ghostscript instance");
-        pd->gs.instance = NULL;
-        return;
-    }
-
-    err = gsapi_set_stdio(pd->gs.instance,
-                          NULL,
-                          _etui_ps_stdout_cb,
-                          _etui_ps_stderr_cb);
-    if (err < 0)
-    {
-        gsapi_exit(pd->gs.instance);
-        gsapi_delete_instance(pd->gs.instance);
-        pd->gs.instance = NULL;
-    }
-
-    err = gsapi_set_display_callback(pd->gs.instance,
-                                     (display_callback *)&_etui_ps_display_cb);
-    if (err < 0)
-    {
-        gsapi_exit(pd->gs.instance);
-        gsapi_delete_instance(pd->gs.instance);
-        pd->gs.instance = NULL;
-    }
 }
 
 static void
@@ -837,10 +818,36 @@ _etui_ps_page_render(void *d)
 
     pd = (Etui_Provider_Data *)d;
 
-    if (!pd->gs.instance)
+    err = gsapi_new_instance(&pd->gs.instance, pd);
+    /* TODO: should I call some functions here ? */
+    if (err < 0)
+    {
+        ERR("can not create ghostscript instance");
+        pd->gs.instance = NULL;
         return;
+    }
 
-    n_args = 13;
+    err = gsapi_set_stdio(pd->gs.instance,
+                          NULL,
+                          _etui_ps_stdout_cb,
+                          _etui_ps_stderr_cb);
+    if (err < 0)
+    {
+        gsapi_exit(pd->gs.instance);
+        gsapi_delete_instance(pd->gs.instance);
+        pd->gs.instance = NULL;
+    }
+
+    err = gsapi_set_display_callback(pd->gs.instance,
+                                     (display_callback *)&_etui_ps_display_cb);
+    if (err < 0)
+    {
+        gsapi_exit(pd->gs.instance);
+        gsapi_delete_instance(pd->gs.instance);
+        pd->gs.instance = NULL;
+    }
+
+    n_args = 14;
     arg = 0;
 
     args = (char **)calloc(n_args, sizeof(char *));
@@ -855,24 +862,25 @@ _etui_ps_page_render(void *d)
     args[arg++] = "etui";
     args[arg++] = "-dMaxBitmap=10000000";
     args[arg++] = "-dSAFER";
-	args[arg++] = "-dNOPAUSE";
-	args[arg++] = "-dNOPAGEPROMPT";
-	args[arg++] = "-P-";
-	args[arg++] = "-sDEVICE=display";
+    args[arg++] = "-dNOPAUSE";
+    args[arg++] = "-dNOPAGEPROMPT";
+    args[arg++] = "-P-";
+    args[arg++] = "-sDEVICE=display";
     snprintf(text_alpha, sizeof(text_alpha),
              "-dTextAlphaBits=%d",
              pd->page.text_alpha_bits);
-	args[arg++] = text_alpha;
+    args[arg++] = text_alpha;
     snprintf(graphic_alpha, sizeof(graphic_alpha),
              "-dGraphicsAlphaBits=%d",
              pd->page.graphic_alpha_bits);
-	args[arg++] = graphic_alpha;
+    args[arg++] = graphic_alpha;
+    printf("%dx%d\n", pd->page.width, pd->page.height);
     snprintf(size, sizeof(size), "-g%dx%d", pd->page.width, pd->page.height);
-	args[arg++] = size;
+    args[arg++] = size;
     snprintf(resolution, sizeof(resolution), "-r%fx%f",
              pd->page.hscale * pd->page.hdpi,
              pd->page.vscale * pd->page.vdpi);
-	args[arg++] = resolution;
+    args[arg++] = resolution;
     snprintf(display_format, sizeof(display_format),
              "-dDisplayFormat=%d",
              DISPLAY_COLORS_RGB |
@@ -886,12 +894,14 @@ _etui_ps_page_render(void *d)
              DISPLAY_LITTLEENDIAN |
 #endif
              DISPLAY_TOPFIRST);
-	args[arg++] = display_format;
+    args[arg++] = display_format;
     snprintf(fmt, sizeof(fmt),
               "-sDisplayHandle=16#%s",
               sizeof(d) == 4 ? "%lx" : "%llx");
     snprintf(display_handle, sizeof(display_handle), fmt, d);
-	args[arg++] = display_handle;
+    args[arg++] = display_handle;
+    /* FIXME: platform fonts */
+    args[arg++] = "-dNOPLATFONTS";
 
     err = gsapi_init_with_args(pd->gs.instance, n_args, args);
     if (err < 0)
@@ -923,11 +933,11 @@ _etui_ps_page_render(void *d)
     page_voffset = 0;
     doc_hoffset = 0;
     doc_voffset = 0;
-    if (psgetpagebbox (pd->doc.doc, pd->page.page_num,
-                       &bbox_urx, &bbox_ury, &bbox_llx, &bbox_lly))
+    if (psgetpagebbox(pd->doc.doc, pd->page.page_num,
+                      &bbox_urx, &bbox_ury, &bbox_llx, &bbox_lly))
     {
-        psgetpagebox (pd->doc.doc, pd->page.page_num,
-                      &page_urx, &page_ury, &page_llx, &page_lly);
+        psgetpagebox(pd->doc.doc, pd->page.page_num,
+                     &page_urx, &page_ury, &page_llx, &page_lly);
         if ((bbox_urx - bbox_llx) == (page_urx - page_llx) ||
             (bbox_ury - bbox_lly) == (page_ury - page_lly))
         {
@@ -938,13 +948,13 @@ _etui_ps_page_render(void *d)
 
     if (pd->doc.doc->numpages > 0)
     {
-		page_hoffset = hoffset;
-		page_voffset = voffset;
+                page_hoffset = hoffset;
+                page_voffset = voffset;
     }
     else
     {
-		doc_hoffset = hoffset;
-		doc_voffset = voffset;
+                doc_hoffset = hoffset;
+                doc_voffset = voffset;
     }
 
     if (!_etui_ps_gs_process(pd, doc_hoffset, doc_voffset, pd->doc.doc->beginprolog, pd->doc.doc->endprolog))
@@ -997,6 +1007,10 @@ _etui_ps_page_render(void *d)
         pd->gs.instance = NULL;
         return;
     }
+
+    gsapi_exit(pd->gs.instance);
+    gsapi_delete_instance(pd->gs.instance);
+    pd->gs.instance = NULL;
 }
 
 static void
@@ -1035,7 +1049,7 @@ static Etui_Provider_Descriptor _etui_provider_descriptor_ps =
     /* .evas_object_get               */ _etui_ps_evas_object_get,
     /* .file_open                     */ _etui_ps_file_open,
     /* .file_close                    */ _etui_ps_file_close,
-    /* .version_get                   */ NULL,
+    /* .version_get                   */ _etui_ps_version_get,
     /* .title_get                     */ _etui_ps_title_get,
     /* .author_get                    */ NULL,
     /* .subject_get                   */ NULL,

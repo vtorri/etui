@@ -40,3 +40,7 @@ PDF
   zlib
   freetype
   openjpeg
+
+Image / Comic Book
+ Requirements:
+  zlib (cbz)

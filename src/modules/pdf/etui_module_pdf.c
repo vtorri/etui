@@ -203,7 +203,7 @@ _etui_pdf_document_date_get(fz_document *doc, const char *prop)
 
     date = _etui_pdf_document_property_get(doc, prop);
     if (!date)
-	    return NULL;
+            return NULL;
 
     /* FIXME: manage minutes and seconds ? */
 
@@ -291,8 +291,8 @@ _etui_pdf_link_named_fill(fz_link_dest *dest)
     return l;
 }
 
-static void
-_etui_pdf_page_links_fill(Etui_Provider_Data *pd, fz_link *links)
+static Eina_Array *
+_etui_pdf_page_links_fill(Eina_Array *items, fz_link *links)
 {
     fz_link *iter;
     fz_irect rect;
@@ -338,8 +338,10 @@ _etui_pdf_page_links_fill(Etui_Provider_Data *pd, fz_link *links)
         item->rect.w = rect.x1 - rect.x0;
         item->rect.h = rect.y1 - rect.y0;
 
-        eina_array_push(&pd->page.links, item);
+        eina_array_push(items, item);
     }
+
+    return items;
 }
 
 static void
@@ -376,9 +378,6 @@ _etui_pdf_links_unfill(Eina_Array *items)
 
         free(item);
     }
-
-    /* FIXME: to add ? valgrind reports an invalid read with it */
-    eina_array_free(items);
 }
 
 static Eina_Array *
@@ -439,7 +438,7 @@ _etui_pdf_toc_fill(Eina_Array *items, fz_outline *outline)
 }
 
 static void
-_etui_pdf_toc_unfill(Eina_Array *items)
+_etui_pdf_toc_unfill(Eina_Array *items, Eina_Bool free_array)
 {
     Etui_Toc_Item *item;
     Eina_Array_Iterator iterator;
@@ -470,14 +469,17 @@ _etui_pdf_toc_unfill(Eina_Array *items)
                 break;
         }
 
+        if (item->title)
+            free(item->title);
+
         if (item->child)
-            _etui_pdf_toc_unfill(item->child);
+            _etui_pdf_toc_unfill(item->child, EINA_TRUE);
 
         free(item);
     }
 
-    /* FIXME: to add ? valgrind reports an invalid read with it */
-    eina_array_free(items);
+    if (free_array)
+        eina_array_free(items);
 }
 
 /* Virtual functions */
@@ -566,20 +568,36 @@ _etui_pdf_file_open(void *d, const char *filename)
 
     if (pd->doc.filename)
         free(pd->doc.filename);
+
     pd->doc.filename = strdup(filename);
     if (!pd->doc.filename)
         return EINA_FALSE;
 
     if (pd->doc.doc)
         fz_close_document(pd->doc.doc);
+
     fz_try(pd->doc.ctx)
     {
+        fz_page *page;
+
         pd->doc.doc = fz_open_document(pd->doc.ctx, filename);
+        if (!pd->doc.doc)
+        {
+            ERR("could not open document %s", filename);
+            goto free_filename;
+        }
 
         /* try to open the first page */
         /* if it's a damaged PDF, no error */
         /* if not, an error will be thrown */
-        fz_load_page(pd->doc.doc, 0);
+        page = fz_load_page(pd->doc.doc, 0);
+        if (!page)
+        {
+            ERR("could not open first page from the document");
+            goto close_doc;
+        }
+
+        fz_free_page(pd->doc.doc, page);
 
         while (eina_array_count(&pd->doc.toc))
             free(eina_array_pop(&pd->doc.toc));
@@ -602,6 +620,9 @@ _etui_pdf_file_open(void *d, const char *filename)
 
     return EINA_TRUE;
 
+  close_doc:
+    fz_close_document(pd->doc.doc);
+    pd->doc.doc = NULL;
   free_filename:
     free(pd->doc.filename);
     pd->doc.filename = NULL;
@@ -622,11 +643,10 @@ _etui_pdf_file_close(void *d)
     DBG("close file %s", pd->doc.filename);
 
     _etui_pdf_links_unfill(&pd->page.links);
-    _etui_pdf_toc_unfill(&pd->doc.toc);
+    eina_array_flush(&pd->page.links);
 
-    if (pd->doc.doc)
-        fz_close_document(pd->doc.doc);
-    pd->doc.doc = NULL;
+    _etui_pdf_toc_unfill(&pd->doc.toc, EINA_FALSE);
+    eina_array_flush(&pd->doc.toc);
 
     if (pd->page.page)
         fz_free_page(pd->doc.doc, pd->page.page);
@@ -638,6 +658,10 @@ _etui_pdf_file_close(void *d)
             fz_free_display_list(pd->doc.ctx, pd->page.list);
     }
     pd->page.list = NULL;
+
+    if (pd->doc.doc)
+        fz_close_document(pd->doc.doc);
+    pd->doc.doc = NULL;
 
     if (pd->doc.filename)
         free(pd->doc.filename);
@@ -1038,14 +1062,16 @@ _etui_pdf_page_set(void *d, int page_num)
     if (pd->page.page)
         fz_free_page(pd->doc.doc, pd->page.page);
 
-    while (eina_array_count(&pd->page.links))
-        free(eina_array_pop(&pd->page.links));
+    _etui_pdf_links_unfill(&pd->page.links);
+    if (pd->page.links.data)
+        eina_array_flush(&pd->page.links);
+
     eina_array_step_set(&pd->page.links, sizeof(Eina_Array), 4);
 
     links = fz_load_links(pd->doc.doc, page);
     if (links)
     {
-        _etui_pdf_page_links_fill(pd, links);
+        pd->page.links = *_etui_pdf_page_links_fill(&pd->page.links, links);
         fz_drop_link(pd->doc.ctx, links);
     }
 
@@ -1444,9 +1470,9 @@ _etui_pdf_page_text_find(void *d, const char *needle)
     fz_device *dev;
     fz_cookie cookie = { 0 };
     fz_rect bounds;
-	fz_text_block *block;
-	fz_text_line *line;
-	fz_text_span *span;
+    fz_text_block *block;
+    fz_text_line *line;
+    fz_text_span *span;
     size_t text_len;
     int n;
     size_t pos;
@@ -1492,8 +1518,8 @@ _etui_pdf_page_text_find(void *d, const char *needle)
     fz_free_device(dev);
 
     text_len = 0;
-	for (block = text->blocks; block < text->blocks + text->len; block++)
-	{
+    for (block = text->blocks; block < text->blocks + text->len; block++)
+    {
         for (line = block->lines; line < block->lines + block->len; line++)
         {
             for (span = line->spans; span < line->spans + line->len; span++)
