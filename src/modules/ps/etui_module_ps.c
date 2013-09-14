@@ -832,32 +832,19 @@ _etui_ps_page_render(void *d)
                           _etui_ps_stdout_cb,
                           _etui_ps_stderr_cb);
     if (err < 0)
-    {
-        gsapi_exit(pd->gs.instance);
-        gsapi_delete_instance(pd->gs.instance);
-        pd->gs.instance = NULL;
-    }
+        goto delete_gs_instance;
 
     err = gsapi_set_display_callback(pd->gs.instance,
                                      (display_callback *)&_etui_ps_display_cb);
     if (err < 0)
-    {
-        gsapi_exit(pd->gs.instance);
-        gsapi_delete_instance(pd->gs.instance);
-        pd->gs.instance = NULL;
-    }
+        goto delete_gs_instance;
 
     n_args = 14;
     arg = 0;
 
     args = (char **)calloc(n_args, sizeof(char *));
     if (!args)
-    {
-        gsapi_exit(pd->gs.instance);
-        gsapi_delete_instance(pd->gs.instance);
-        pd->gs.instance = NULL;
-        return;
-    }
+        goto delete_gs_instance;
 
     args[arg++] = "etui";
     args[arg++] = "-dMaxBitmap=10000000";
@@ -904,13 +891,9 @@ _etui_ps_page_render(void *d)
     args[arg++] = "-dNOPLATFONTS";
 
     err = gsapi_init_with_args(pd->gs.instance, n_args, args);
+    free(args);
     if (err < 0)
-    {
-        gsapi_exit(pd->gs.instance);
-        gsapi_delete_instance(pd->gs.instance);
-        pd->gs.instance = NULL;
-        return;
-    }
+        goto delete_gs_instance;
 
     snprintf(str, sizeof(str),
              "<< /Orientation %d >> setpagedevice .locksafe",
@@ -919,12 +902,7 @@ _etui_ps_page_render(void *d)
                                        str, strlen(str), 0, &exit_code);
 
     if (err < 0)
-    {
-        gsapi_exit(pd->gs.instance);
-        gsapi_delete_instance(pd->gs.instance);
-        pd->gs.instance = NULL;
-        return;
-    }
+        goto delete_gs_instance;
 
     /* offsets */
     hoffset = 0;
@@ -958,20 +936,10 @@ _etui_ps_page_render(void *d)
     }
 
     if (!_etui_ps_gs_process(pd, doc_hoffset, doc_voffset, pd->doc.doc->beginprolog, pd->doc.doc->endprolog))
-    {
-        gsapi_exit(pd->gs.instance);
-        gsapi_delete_instance(pd->gs.instance);
-        pd->gs.instance = NULL;
-        return;
-    }
+        goto delete_gs_instance;
 
     if (!_etui_ps_gs_process(pd, 0, 0, pd->doc.doc->beginsetup, pd->doc.doc->endsetup))
-    {
-        gsapi_exit(pd->gs.instance);
-        gsapi_delete_instance(pd->gs.instance);
-        pd->gs.instance = NULL;
-        return;
-    }
+        goto delete_gs_instance;
 
     if (pd->doc.doc->numpages > 0)
     {
@@ -1008,6 +976,9 @@ _etui_ps_page_render(void *d)
         return;
     }
 
+    return;
+
+  delete_gs_instance:
     gsapi_exit(pd->gs.instance);
     gsapi_delete_instance(pd->gs.instance);
     pd->gs.instance = NULL;
