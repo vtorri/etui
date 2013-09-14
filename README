@@ -48,3 +48,5 @@ Image / Comic Book
 Postscript
  Requirements:
   libgs
+   compilation: make so (debug mode: make sodebug)
+   installation: make soinstall (debug mode: make sodebuginstall)
