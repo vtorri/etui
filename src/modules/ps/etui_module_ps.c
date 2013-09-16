@@ -1001,12 +1001,6 @@ _etui_ps_page_render_end(void *d)
     evas_object_image_size_get(pd->efl.obj, &width, &height);
     evas_object_image_data_set(pd->efl.obj, pd->efl.m);
     evas_object_image_data_update_add(pd->efl.obj, 0, 0, width, height);
-    if (pd->gs.instance)
-    {
-        gsapi_exit(pd->gs.instance);
-        gsapi_delete_instance(pd->gs.instance);
-        pd->gs.instance = NULL;
-    }
 }
 
 
