@@ -135,7 +135,7 @@ _etui_ps_stdout_cb(void *caller_handle EINA_UNUSED, const char *buf, int len)
     free(str);
 
     return len;
-};
+}
 
 static int
 _etui_ps_stderr_cb(void *caller_handle EINA_UNUSED, const char *buf, int len)
