@@ -18,6 +18,37 @@ dnl This code is licensed as WTFPL
 
 dnl Macros that check if Etui dependencies are available
 
+dnl use: ETUI_CHECK_DEP_DJVU(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+
+AC_DEFUN([ETUI_CHECK_DEP_DJVU],
+[
+
+requirement_pc=""
+
+dnl libdjvu
+PKG_CHECK_EXISTS([ddjvuapi],
+   [
+    have_dep="yes"
+    requirements_pc="ddjvuapi ${requirements_pc}"
+   ],
+   [have_dep="no"])
+
+dnl check libraries
+if ! test "x${requirements_pc}" = "x" ; then
+   PKG_CHECK_MODULES([DJVU],
+      [${requirements_pc}],
+      [],
+      [])
+fi
+
+if test "x$1" = "xstatic" ; then
+   requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
+fi
+
+AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
+
+])
+
 dnl use: ETUI_CHECK_DEP_IMG(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
 
 AC_DEFUN([ETUI_CHECK_DEP_IMG],

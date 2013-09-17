@@ -28,6 +28,9 @@ ETUI_CLEANFILES =
 
 include src/lib/Makefile.mk
 include src/bin/Makefile.mk
+if ETUI_BUILD_DJVU
+include src/modules/djvu/Makefile.mk
+endif
 if ETUI_BUILD_IMG
 include src/modules/img/Makefile.mk
 endif

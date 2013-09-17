@@ -41,7 +41,7 @@ PDF and XPS
   freetype
   openjpeg
 
-Image / Comic Book
+Image / Comic Book (cbz, cbr, cbt)
  Requirements:
   zlib (cbz)
 
@@ -50,3 +50,7 @@ Postscript
   libgs
    compilation: make so (debug mode: make sodebug)
    installation: make soinstall (debug mode: make sodebuginstall)
+
+DjVu:
+ Requirements:
+  libdjvu (DjVuLibre)

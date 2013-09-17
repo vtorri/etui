@@ -49,6 +49,7 @@ AC_SUBST([requirements_etui_pc])
 
 requirements_etui_bin_pc="ecore-input >= ${efl_version} ecore-evas >= ${efl_version} ecore >= ${efl_version} evas >= ${efl_version} eina >= ${efl_version}"
 
+want_djvu="yes"
 want_img="yes"
 want_pdf="yes"
 want_postscript="yes"
@@ -66,6 +67,7 @@ PKG_PROG_PKG_CONFIG
 
 ### Checks for libraries
 
+ETUI_CHECK_MODULE([DJVU], [${want_djvu}])
 ETUI_CHECK_MODULE([IMG], [${want_img}])
 ETUI_CHECK_MODULE([PDF], [${want_pdf}])
 ETUI_CHECK_MODULE([PS], [${want_postscript}])
@@ -114,6 +116,7 @@ echo
 echo "  OS...................: ${host_os}"
 echo
 echo "  Modules..............:"
+echo "    DjVu...............: ${enable_djvu}"
 echo "    Image..............: ${enable_img}"
 echo "      Comic Book CBZ...: ${have_pkg_zlib}"
 echo "      Comic Book CBR...: yes"

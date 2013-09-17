@@ -407,6 +407,9 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
              eina_str_has_extension(file, "xcf.gz") ||
              eina_str_has_extension(file, "xpm"))
         module_name = "img";
+    else if (eina_str_has_extension(file, "djvu") ||
+             eina_str_has_extension(file, "djv"))
+        module_name = "djvu";
     else
         module_name = "txt";
     INF("module name: %s", module_name);
