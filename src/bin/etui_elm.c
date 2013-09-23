@@ -23,6 +23,64 @@
 
 #include <Etui.h>
 
+typedef struct
+{
+    Evas_Object *o;
+    Ecore_Event_Handler *handler;
+    Etui_Rotation rotation;
+    float scale;
+} Etui_Config;
+
+
+static Eina_Bool
+_etui_key_down(void *data, int type EINA_UNUSED, void *event)
+{
+    Etui_Config *cfg;
+    Ecore_Event_Key *ev;
+
+    cfg = evas_object_data_get((Evas_Object *)data, "config");
+    ev = event;
+
+    if (ev->key)
+    {
+        if ((!strcmp(ev->key, "Right")))
+            etui_object_page_set(cfg->o, etui_object_page_get(cfg->o) + 1);
+        else if (!strcmp(ev->key, "Left"))
+            etui_object_page_set(cfg->o, etui_object_page_get(cfg->o) - 1);
+        else if (!strcmp(ev->key, "Up"))
+        {
+            cfg->scale *= M_SQRT2;
+            etui_object_page_scale_set(cfg->o, cfg->scale, cfg->scale);
+        }
+        else if (!strcmp(ev->key, "Down"))
+        {
+            int w,h;
+            cfg->scale *= M_SQRT1_2;
+            etui_object_page_scale_set(cfg->o, cfg->scale, cfg->scale);
+            evas_object_geometry_get(cfg->o, NULL, NULL, &w, &h);
+            printf(" bin ** %dx%d\n", w, h);
+        }
+        else if (!strcmp(ev->key, "<"))
+        {
+            cfg->rotation += 90;
+            if (cfg->rotation > ETUI_ROTATION_270)
+                cfg->rotation = ETUI_ROTATION_0;
+            etui_object_page_rotation_set(cfg->o, cfg->rotation);
+        }
+        else if (!strcmp(ev->key, ">"))
+        {
+            cfg->rotation -= 90;
+            if (cfg->rotation < ETUI_ROTATION_0)
+                cfg->rotation = ETUI_ROTATION_270;
+            etui_object_page_rotation_set(cfg->o, cfg->rotation);
+        }
+        else if (!strcmp(ev->key, "q"))
+            elm_exit();
+    }
+
+    return ECORE_CALLBACK_PASS_ON;
+}
+
 static void
 etui_win_del(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_info EINA_UNUSED)
 {
@@ -32,20 +90,28 @@ etui_win_del(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event_i
 static Eina_Bool
 etui_win_main(const char *filename)
 {
+    Etui_Config *cfg;
+    Ecore_Event_Handler *handler;
     Evas_Object *win;
     Evas_Object *sc;
     Evas_Object *etui;
     int w;
     int h;
 
-    win = elm_win_add(NULL, "maiiin", ELM_WIN_BASIC);
-    if (!win)
+    cfg = (Etui_Config *)malloc(sizeof(Etui_Config));
+    if (!cfg)
         return 0;
+
+    win = elm_win_add(NULL, "main", ELM_WIN_BASIC);
+    if (!win)
+        goto free_cfg;
 
     elm_win_title_set(win, "test etui");
     evas_object_smart_callback_add(win, "delete,request", etui_win_del, NULL);
 
     sc = elm_scroller_add(win);
+    elm_scroller_policy_set(sc, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_AUTO);
+    elm_scroller_gravity_set(sc, 0.5, 0.5);
     elm_scroller_bounce_set(sc, EINA_TRUE, EINA_TRUE);
     evas_object_size_hint_weight_set(sc, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_fill_set(sc, EVAS_HINT_FILL, EVAS_HINT_FILL);
@@ -54,10 +120,10 @@ etui_win_main(const char *filename)
 
     etui = etui_object_add(evas_object_evas_get(win));
     if (!etui)
-        return 0;
+        goto free_cfg;
 
     if (!etui_object_file_set(etui, filename))
-        return 0;
+        goto free_cfg;
 
     etui_object_page_set(etui, 0);
     evas_object_focus_set(etui, EINA_TRUE);
@@ -69,10 +135,23 @@ etui_win_main(const char *filename)
     elm_object_content_set(sc, etui);
     evas_object_show(etui);
 
+    handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, _etui_key_down, win);
+
+    cfg->o = etui;
+    cfg->handler = handler;
+    cfg->rotation = ETUI_ROTATION_0;
+    cfg->scale = 1.0f;
+    evas_object_data_set(win, "config", cfg);
+
     evas_object_resize(win, 600, 800);
     evas_object_show(win);
 
-    return 1;
+    return EINA_TRUE;
+
+  free_cfg:
+    free(cfg);
+
+    return EINA_FALSE;
 }
 
 EAPI_MAIN int
