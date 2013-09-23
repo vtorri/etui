@@ -1236,14 +1236,18 @@ _etui_pdf_page_render_pre(void *d)
 
     width = ibounds.x1 - ibounds.x0;
     height = ibounds.y1 - ibounds.y0;
+    printf(" pre 0 $$ %dx%d\n", width, height);
 
     evas_object_image_size_set(pd->efl.obj, width, height);
+    printf(" pre 1 $$ %dx%d\n", width, height);
     evas_object_image_fill_set(pd->efl.obj, 0, 0, width, height);
+    printf(" pre 2 $$ %dx%d\n", width, height);
     pd->efl.m = evas_object_image_data_get(pd->efl.obj, 1);
     pd->page.width = width;
     pd->page.height = height;
 
     evas_object_resize(pd->efl.obj, width, height);
+    printf(" pre 3 $$ %dx%d\n", width, height);
 }
 
 static void
@@ -1256,6 +1260,8 @@ _etui_pdf_page_render(void *d)
     fz_matrix ctm;
     fz_rect bounds;
     fz_irect ibounds;
+    int width;
+    int height;
 
     if (!d)
         return;
@@ -1277,8 +1283,10 @@ _etui_pdf_page_render(void *d)
     fz_bound_page(pd->doc.doc, pd->page.page, &bounds);
     fz_pre_scale(fz_rotate(&ctm, pd->page.rotation), pd->page.hscale, pd->page.vscale);
     fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
+    width = ibounds.x1 - ibounds.x0;
+    height = ibounds.y1 - ibounds.y0;
     image = fz_new_pixmap_with_data(pd->doc.ctx, fz_device_bgr,
-                                    pd->page.width, pd->page.height,
+                                    width, height,
                                     (unsigned char *)pd->efl.m);
 
     fz_clear_pixmap_with_value(pd->doc.ctx, image, 0xff);
@@ -1307,6 +1315,7 @@ _etui_pdf_page_render_end(void *d)
     pd = (Etui_Provider_Data *)d;
 
     evas_object_image_size_get(pd->efl.obj, &width, &height);
+    printf(" end $$ %dx%d\n", width, height);
     evas_object_image_data_set(pd->efl.obj, pd->efl.m);
     evas_object_image_data_update_add(pd->efl.obj, 0, 0, width, height);
     fz_drop_pixmap(pd->doc.ctx, pd->page.image);

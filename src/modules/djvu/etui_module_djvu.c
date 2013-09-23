@@ -231,6 +231,21 @@ _etui_djvu_file_open(void *d, const char *filename)
 
     pd->page.page_num = -1;
 
+    printf("%d %d\n", ddjvu_document_get_pagenum(pd->doc.doc), ddjvu_document_get_filenum(pd->doc.doc));
+
+    {
+        ddjvu_fileinfo_t info;
+        int n = ddjvu_document_get_filenum(pd->doc.doc);
+        int i;
+
+        for (i = 0; i < n; i++)
+        {
+            ddjvu_document_get_fileinfo(pd->doc.doc, i, &info);
+            printf("%c %d %d %s %s %s\n",
+                   info.type, info.pageno, info.size, info.id, info.name, info.title);
+        }
+    }
+
     return EINA_TRUE;
 
   release_document:

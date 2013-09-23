@@ -181,6 +181,7 @@ _etui_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
 
     /* FIXME: not always image object */
 
+    printf(" %s : %dx%d\n", __FUNCTION__, w, h);
     evas_object_image_fill_set(sd->obj, 0, 0, w, h);
     evas_object_resize(sd->obj, w, h);
 }
@@ -321,7 +322,8 @@ _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *e
     int h;
 
     evas_object_geometry_get(obj, NULL, NULL, &w, &h);
-    evas_object_resize((Evas_Object *)data, w, h);
+    evas_object_resize(obj, w, h);
+    printf(" %s : %dx%d\n", __FUNCTION__, w, h);
 }
 
 /**
@@ -746,8 +748,13 @@ etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale)
 
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
+    printf(" %s 2\n", __FUNCTION__);
     if (etui_provider_instance_page_scale_set(sd->provider_instance, hscale, vscale))
+    {
+        etui_provider_instance_page_render_pre(sd->provider_instance);
         evas_object_smart_changed(obj);
+    }
+    printf(" %s 1\n", __FUNCTION__);
 }
 
 EAPI void
