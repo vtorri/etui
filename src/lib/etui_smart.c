@@ -22,6 +22,7 @@
 #include <Eina.h>
 #include <Evas.h>
 #include <Ecore.h>
+#include <Efreet_Mime.h>
 
 #include "Etui.h"
 #include "etui_private.h"
@@ -361,6 +362,7 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
 {
     char file[PATH_MAX];
     char *res;
+    const char *mime;
     const char *module_name = NULL;
     Etui_Smart_Data *sd;
 
@@ -375,45 +377,66 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
     if (sd->filename && (!strcmp(file, sd->filename)))
         return EINA_TRUE;
 
-    if (eina_str_has_extension(file, "pdf") ||
-        eina_str_has_extension(file, "xps"))
-        module_name = "pdf";
-    else if (eina_str_has_extension(file, "ps") ||
-             eina_str_has_extension(file, "ps.gz") ||
-             eina_str_has_extension(file, "eps"))
-        module_name = "ps";
-    else if (eina_str_has_extension(file, "cbz") ||
-             eina_str_has_extension(file, "cbr") ||
-             eina_str_has_extension(file, "cba") ||
-             eina_str_has_extension(file, "cb7") ||
-             eina_str_has_extension(file, "cbt") ||
-             eina_str_has_extension(file, "bmp") ||
-             eina_str_has_extension(file, "gif") ||
-             eina_str_has_extension(file, "ico") ||
-             eina_str_has_extension(file, "jfif") ||
-             eina_str_has_extension(file, "jpe") ||
-             eina_str_has_extension(file, "jpg") ||
-             eina_str_has_extension(file, "jpeg") ||
-             eina_str_has_extension(file, "ppm") ||
-             eina_str_has_extension(file, "pgm") ||
-             eina_str_has_extension(file, "pbm") ||
-             eina_str_has_extension(file, "pnm") ||
-             eina_str_has_extension(file, "png") ||
-             eina_str_has_extension(file, "psd") ||
-             eina_str_has_extension(file, "tga") ||
-             eina_str_has_extension(file, "tif") ||
-             eina_str_has_extension(file, "tiff") ||
-             eina_str_has_extension(file, "wbmp") ||
-             eina_str_has_extension(file, "webp") ||
-             eina_str_has_extension(file, "xcf") ||
-             eina_str_has_extension(file, "xcf.gz") ||
-             eina_str_has_extension(file, "xpm"))
-        module_name = "img";
-    else if (eina_str_has_extension(file, "djvu") ||
-             eina_str_has_extension(file, "djv"))
-        module_name = "djvu";
-    else
-        module_name = "txt";
+    mime = efreet_mime_type_get(file);
+    INF("mime type: %s", mime);
+    if (mime)
+    {
+        if ((strcmp(mime, "application/pdf") == 0) ||
+            (strcmp(mime, "application/vnd.ms-xpsdocument") == 0))
+            module_name = "pdf";
+        else if (strcmp(mime, "application/postscript") == 0)
+            module_name = "ps";
+        else if (strcmp(mime, "text/plain") == 0)
+            module_name = "txt";
+        else if ((strcmp(mime, "application/x-cba") == 0) ||
+                 (strcmp(mime, "application/x-cbr") == 0) ||
+                 (strcmp(mime, "application/x-cbt") == 0) ||
+                 (strcmp(mime, "application/x-cbz") == 0) ||
+                 (strcmp(mime, "application/x-cb7") == 0) ||
+                 (strcmp(mime, "image/bmp") == 0) ||
+                 (strcmp(mime, "image/gif") == 0) ||
+                 (strcmp(mime, "image/vnd.microsoft.icon") == 0) ||
+                 (strcmp(mime, "image/x-icon") == 0) ||
+                 (strcmp(mime, "image/ico") == 0) ||
+                 (strcmp(mime, "image/icon") == 0) ||
+                 (strcmp(mime, "txt/ico") == 0) ||
+                 (strcmp(mime, "application/ico") == 0) ||
+                 (strcmp(mime, "image/jpeg") == 0) ||
+                 (strcmp(mime, "image/pjpeg") == 0) ||
+                 (strcmp(mime, "image/x-portable-pixmap") == 0) ||
+                 (strcmp(mime, "image/x-p") == 0) ||
+                 (strcmp(mime, "image/x-ppm") == 0) ||
+                 (strcmp(mime, "application/ppm") == 0) ||
+                 (strcmp(mime, "application/x-ppm") == 0) ||
+                 (strcmp(mime, "image/x-portable-greymap") == 0) ||
+                 (strcmp(mime, "image/x-pgm") == 0) ||
+                 (strcmp(mime, "image/x-portable-bitmap") == 0) ||
+                 (strcmp(mime, "image/portable-bitmap") == 0) ||
+                 (strcmp(mime, "image/pbm") == 0) ||
+                 (strcmp(mime, "image/x-pbm") == 0) ||
+                 (strcmp(mime, "image/x-portable-anymap") == 0) ||
+                 (strcmp(mime, "image/x-portable/anymap") == 0) ||
+                 (strcmp(mime, "image/pbm") == 0) ||
+                 (strcmp(mime, "image/png") == 0) ||
+                 (strcmp(mime, "image/x-png") == 0) ||
+                 (strcmp(mime, "image/x-photoshop") == 0) ||
+                 (strcmp(mime, "image/photoshop") == 0) ||
+                 (strcmp(mime, "image/psd") == 0) ||
+                 (strcmp(mime, "application/photoshop") == 0) ||
+                 (strcmp(mime, "application/psd") == 0) ||
+                 (strcmp(mime, "zz-application/zz-winassoc-psd") == 0) ||
+                 (strcmp(mime, "image/svg+xml") == 0) ||
+                 (strcmp(mime, "image/x-tga") == 0) ||
+                 (strcmp(mime, "image/tiff") == 0) ||
+                 (strcmp(mime, "image/vnd.wap.wbmp") == 0) ||
+                 (strcmp(mime, "image/webp") == 0) ||
+                 (strcmp(mime, "image/xcf") == 0) ||
+                 (strcmp(mime, "image/x-xpixmap") == 0)) /* xpm */
+            module_name = "img";
+        else if ((strcmp(mime, "image/vnd.djvu") == 0) ||
+                 (strcmp(mime, "image/x-djvu") == 0))
+            module_name = "djvu";
+    }
     INF("module name: %s", module_name);
 
     /* TODO : iterate over all modules if failure */

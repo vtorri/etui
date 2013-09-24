@@ -21,6 +21,7 @@
 
 #include <Eina.h>
 #include <Ecore.h>
+#include <Efreet_Mime.h>
 #include <Eio.h>
 
 #include "Etui.h"
@@ -81,10 +82,16 @@ etui_init(void)
         goto unregister_log_domain;
     }
 
+    if (!efreet_mime_init())
+    {
+        ERR("Could not initialize Efreet Mime.");
+        goto shutdown_ecore;
+    }
+
     if (!eio_init())
     {
         ERR("Could not initialize Eio.");
-        goto shutdown_ecore;
+        goto shutdown_efreet_mime;
     }
 
     if (!etui_modules_init())
@@ -97,6 +104,8 @@ etui_init(void)
 
   shutdown_eio:
     eio_shutdown();
+  shutdown_efreet_mime:
+    efreet_mime_shutdown();
   shutdown_ecore:
     ecore_shutdown();
   unregister_log_domain:
@@ -120,6 +129,7 @@ etui_shutdown(void)
 
     etui_modules_shutdown();
     eio_shutdown();
+    efreet_mime_shutdown();
     ecore_shutdown();
     eina_log_domain_unregister(etui_log_dom_global);
     etui_log_dom_global = -1;
