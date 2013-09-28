@@ -323,7 +323,7 @@ _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *e
     int h;
 
     evas_object_geometry_get(obj, NULL, NULL, &w, &h);
-    evas_object_resize(obj, w, h);
+    evas_object_resize((Evas_Object *)data, w, h);
     printf(" %s : %dx%d\n", __FUNCTION__, w, h);
 }
 
