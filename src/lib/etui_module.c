@@ -73,6 +73,8 @@ struct _Etui_Provider_Registry_Entry
 
 struct _Etui_Provider_Instance
 {
+    EINA_REFCOUNT;
+
     const Etui_Provider_Descriptor *provider;
     Evas *evas;
     void *data;
@@ -137,6 +139,8 @@ _etui_provider_instance_new(const Etui_Provider_Descriptor *provider,
     inst->provider = provider;
     inst->evas = evas;
     inst->data = data;
+
+    EINA_REFCOUNT_INIT(inst);
 
     return inst;
 
@@ -430,8 +434,12 @@ void
 etui_provider_instance_del(Etui_Provider_Instance *inst)
 {
     EINA_SAFETY_ON_NULL_RETURN(inst);
-    inst->provider->shutdown(inst->data);
-    free(inst);
+
+    EINA_REFCOUNT_UNREF(inst)
+    {
+        inst->provider->shutdown(inst->data);
+        free(inst);
+    }
 }
 
 Eina_Bool
