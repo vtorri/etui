@@ -230,6 +230,7 @@ int main(int argc, char *argv[])
     evas_object_focus_set(o, EINA_TRUE);
     etui_object_page_use_display_list_set(o, EINA_FALSE);
     evas_object_show(o);
+    ecore_evas_object_associate(ee, o, ECORE_EVAS_OBJECT_ASSOCIATE_BASE);
 
     etui_object_version_get(o, &maj, &min);
     printf("module : %s\n", etui_object_module_name_get(o));
@@ -305,7 +306,6 @@ int main(int argc, char *argv[])
     evas_object_show(o);
 
     printf(" $$$$ size : %dx%d\n", w, h);
-    ecore_evas_object_associate(ee, o, ECORE_EVAS_OBJECT_ASSOCIATE_BASE);
     ecore_evas_resize(ee, w, h);
     ecore_evas_show(ee);
 
