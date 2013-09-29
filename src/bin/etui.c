@@ -85,8 +85,11 @@ _etui_key_down(void *data, int type EINA_UNUSED, void *event)
         }
         else if (!strcmp(ev->key, "Down"))
         {
+            int w,h;
             scale *= M_SQRT1_2;
             etui_object_page_scale_set(data, scale, scale);
+            evas_object_geometry_get(data, NULL, NULL, &w, &h);
+            printf(" bin ** %dx%d\n", w, h);
         }
         else if (!strcmp(ev->key, "<"))
         {
@@ -219,6 +222,7 @@ int main(int argc, char *argv[])
 
     etui_object_page_set(o, 0);
     evas_object_geometry_get(o, NULL, NULL, &w, &h);
+    printf(" $$$$ size : %dx%d\n", w, h);
     evas_object_move(o, 0, 0);
     /* evas_object_size_hint_min_set(o, w, h); */
     /* evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, 0.0); */
@@ -300,6 +304,8 @@ int main(int argc, char *argv[])
     evas_object_resize(o, 116, 24);
     evas_object_show(o);
 
+    printf(" $$$$ size : %dx%d\n", w, h);
+    ecore_evas_object_associate(ee, o, ECORE_EVAS_OBJECT_ASSOCIATE_BASE);
     ecore_evas_resize(ee, w, h);
     ecore_evas_show(ee);
 

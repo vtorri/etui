@@ -183,6 +183,7 @@ _etui_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
     /* FIXME: not always image object */
 
     printf(" %s : %dx%d\n", __FUNCTION__, w, h);
+    printf(" 도도 _etui_smart_resize : %p\n", obj);
     evas_object_image_fill_set(sd->obj, 0, 0, w, h);
     evas_object_resize(sd->obj, w, h);
 }
@@ -324,6 +325,7 @@ _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *e
 
     evas_object_geometry_get(obj, NULL, NULL, &w, &h);
     evas_object_resize((Evas_Object *)data, w, h);
+    printf(" 도도 _etui_smart_resize_cb : data : %p   obj : %p\n", data, obj);
     printf(" %s : %dx%d\n", __FUNCTION__, w, h);
 }
 
@@ -343,8 +345,11 @@ _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *e
 EAPI Evas_Object *
 etui_object_add(Evas *evas)
 {
+  Evas_Object *o;
     _etui_smart_init();
-    return evas_object_smart_add(evas, _etui_smart);
+    o= evas_object_smart_add(evas, _etui_smart);
+    printf(" 도도 smart object : %p\n", o);
+    return o;
 }
 
 EAPI const char *
@@ -365,6 +370,7 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
     const char *mime;
     const char *module_name = NULL;
     Etui_Smart_Data *sd;
+    printf(" 도도 etui_object_file_set : %p\n", obj);
 
     if (!filename || !*filename)
         return EINA_FALSE;
