@@ -58,7 +58,10 @@ _etui_key_down(void *data, int type EINA_UNUSED, void *event)
             cfg->scale *= M_SQRT1_2;
             etui_object_page_scale_set(cfg->o, cfg->scale, cfg->scale);
             evas_object_geometry_get(cfg->o, NULL, NULL, &w, &h);
-            printf(" bin ** %dx%d\n", w, h);
+            printf(" bin 1 ** %dx%d\n", w, h);
+            evas_object_size_hint_min_set(cfg->o, cfg->scale*w, cfg->scale*h);
+            evas_object_size_hint_max_set(cfg->o, cfg->scale*w, cfg->scale*h);
+            printf(" bin 2 ** %dx%d\n", w, h);
         }
         else if (!strcmp(ev->key, "<"))
         {
@@ -130,8 +133,7 @@ etui_win_main(const char *filename)
     etui_object_page_use_display_list_set(etui, EINA_FALSE);
     evas_object_geometry_get(etui, NULL, NULL, &w, &h);
     evas_object_size_hint_min_set(etui, w, h);
-    evas_object_size_hint_weight_set(etui, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    evas_object_size_hint_align_set(etui, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    evas_object_size_hint_max_set(etui, w, h);
     elm_object_content_set(sc, etui);
     evas_object_show(etui);
 
