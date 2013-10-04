@@ -26,6 +26,7 @@
 typedef struct
 {
     Evas_Object *o;
+    Evas_Object *sc;
     Ecore_Event_Handler *handler;
     Etui_Rotation rotation;
     float scale;
@@ -57,10 +58,12 @@ _etui_key_down(void *data, int type EINA_UNUSED, void *event)
             int w,h;
             cfg->scale *= M_SQRT1_2;
             etui_object_page_scale_set(cfg->o, cfg->scale, cfg->scale);
+            elm_scroller_child_size_get(cfg->sc, &w, &h);
+            printf(" bin 0 ** %dx%d\n", w, h);
             evas_object_geometry_get(cfg->o, NULL, NULL, &w, &h);
             printf(" bin 1 ** %dx%d\n", w, h);
             evas_object_size_hint_min_set(cfg->o, cfg->scale*w, cfg->scale*h);
-            evas_object_size_hint_max_set(cfg->o, cfg->scale*w, cfg->scale*h);
+            /* evas_object_size_hint_max_set(cfg->o, cfg->scale*w, cfg->scale*h); */
             printf(" bin 2 ** %dx%d\n", w, h);
         }
         else if (!strcmp(ev->key, "<"))
@@ -97,6 +100,7 @@ etui_win_main(const char *filename)
     Ecore_Event_Handler *handler;
     Evas_Object *win;
     Evas_Object *sc;
+    Evas_Object *box;
     Evas_Object *etui;
     int w;
     int h;
@@ -114,12 +118,16 @@ etui_win_main(const char *filename)
 
     sc = elm_scroller_add(win);
     elm_scroller_policy_set(sc, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_AUTO);
-    elm_scroller_gravity_set(sc, 0.5, 0.5);
     elm_scroller_bounce_set(sc, EINA_TRUE, EINA_TRUE);
     evas_object_size_hint_weight_set(sc, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    evas_object_size_hint_fill_set(sc, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    evas_object_size_hint_align_set(sc, EVAS_HINT_FILL, EVAS_HINT_FILL);
     elm_win_resize_object_add(win, sc);
     evas_object_show(sc);
+
+    box = elm_box_add(win);
+    evas_object_size_hint_weight_set(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    elm_object_content_set(sc, box);
+    evas_object_show(box);
 
     etui = etui_object_add(evas_object_evas_get(win));
     if (!etui)
@@ -129,17 +137,20 @@ etui_win_main(const char *filename)
         goto free_cfg;
 
     etui_object_page_set(etui, 0);
-    evas_object_focus_set(etui, EINA_TRUE);
-    etui_object_page_use_display_list_set(etui, EINA_FALSE);
     evas_object_geometry_get(etui, NULL, NULL, &w, &h);
     evas_object_size_hint_min_set(etui, w, h);
     evas_object_size_hint_max_set(etui, w, h);
-    elm_object_content_set(sc, etui);
+    evas_object_size_hint_weight_set(etui, 0.5, 0.5);
+    evas_object_size_hint_fill_set(etui, 0.5, 0.5);
+    evas_object_focus_set(etui, EINA_TRUE);
+    etui_object_page_use_display_list_set(etui, EINA_FALSE);
+    elm_box_pack_end(box, etui);
     evas_object_show(etui);
 
     handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, _etui_key_down, win);
 
     cfg->o = etui;
+    cfg->sc = sc;
     cfg->handler = handler;
     cfg->rotation = ETUI_ROTATION_0;
     cfg->scale = 1.0f;

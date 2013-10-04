@@ -224,13 +224,12 @@ int main(int argc, char *argv[])
     evas_object_geometry_get(o, NULL, NULL, &w, &h);
     printf(" $$$$ size : %dx%d\n", w, h);
     evas_object_move(o, 0, 0);
-    /* evas_object_size_hint_min_set(o, w, h); */
-    /* evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, 0.0); */
-    /* evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, 0.0); */
     evas_object_focus_set(o, EINA_TRUE);
     etui_object_page_use_display_list_set(o, EINA_FALSE);
     evas_object_show(o);
     ecore_evas_object_associate(ee, o, ECORE_EVAS_OBJECT_ASSOCIATE_BASE);
+
+    handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, _etui_key_down, o);
 
     etui_object_version_get(o, &maj, &min);
     printf("module : %s\n", etui_object_module_name_get(o));
@@ -267,7 +266,9 @@ int main(int argc, char *argv[])
     printf("size : %dx%d\n", w, h);
 
     /* printf("\n"); */
-    /* _etui_toc_display(etui_object_toc_get(o), 0); */
+
+#if 0
+    _etui_toc_display(etui_object_toc_get(o), 0);
 
     {
         char *str;
@@ -297,13 +298,12 @@ int main(int argc, char *argv[])
 
     }
 
-    handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, _etui_key_down, o);
-
     o = evas_object_rectangle_add(evas);
     evas_object_color_set(o, 128, 128, 0, 128);
     evas_object_move(o, 209, 680);
     evas_object_resize(o, 116, 24);
     evas_object_show(o);
+#endif
 
     printf(" $$$$ size : %dx%d\n", w, h);
     ecore_evas_resize(ee, w, h);
