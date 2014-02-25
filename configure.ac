@@ -35,6 +35,15 @@ AC_SUBST([VMAJ])
 
 AC_CANONICAL_HOST
 
+have_win32="no"
+case "$host_os" in
+   mingw*)
+      have_win32="yes"
+   ;;
+esac
+
+AM_CONDITIONAL([HAVE_WIN32], [test "x${have_win32}" = "xyes"])
+
 MODULE_ARCH="$host_os-$host_cpu-v_maj.v_min.v_mic"
 AC_DEFINE_UNQUOTED([MODULE_ARCH], ["${MODULE_ARCH}"], ["Module architecture"])
 AC_SUBST([MODULE_ARCH])
