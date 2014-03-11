@@ -44,6 +44,9 @@ file512_DATA = data/512x512/etui.png
 filesvgdir = $(datadir)/icons/hicolor/scalable/apps
 filesvg_DATA = data/scalable/etui.svg
 
+filesdir = $(datadir)/applications
+files_DATA = data/desktop/etui.desktop
+
 EXTRA_DIST += \
 data/scalable/etui.svg \
 data/16x16/etui.png \
@@ -60,4 +63,5 @@ data/192x192/etui.png \
 data/256x256/etui.png \
 data/384x384/etui.png \
 data/512x512/etui.png \
-data/ico/etui.ico
+data/ico/etui.ico \
+data/desktop/etui.desktop
