@@ -40,6 +40,7 @@ endif
 if ETUI_BUILD_PS
 include src/modules/ps/Makefile.mk
 endif
+include data/Makefile.mk
 
 sed_process = \
 $(SED) \
@@ -67,9 +68,7 @@ pkgconfig_DATA = etui.pc
 
 EXTRA_DIST += \
 autogen.sh \
-etui.pc.in \
-data/etui_logo.svg \
-data/etui_logo.ico
+etui.pc.in
 
 ETUI_CLEANFILES += etui.pc
 
