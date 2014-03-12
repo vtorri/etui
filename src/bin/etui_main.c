@@ -25,11 +25,12 @@
 #include <Etui.h>
 
 #include "etui_private.h"
+#include "etui_win.h"
 
 
 static const Ecore_Getopt options = {
    PACKAGE_NAME,
-   "%prog [options]",
+   "%prog [options] [filename]",
    PACKAGE_VERSION,
    "(C) 2014 Vincent Torri",
    "GPL v3",
@@ -51,6 +52,8 @@ static const Ecore_Getopt options = {
 
 int etui_app_log_dom_global = 1;
 
+int elm_main(int argc, char **argv);
+
 EAPI_MAIN int
 elm_main(int argc, char **argv)
 {
@@ -68,6 +71,7 @@ elm_main(int argc, char **argv)
 
         ECORE_GETOPT_VALUE_NONE
     };
+    const char *filename = NULL;
     int args;
 
     etui_app_log_dom_global = eina_log_domain_register("etui-app", NULL);
@@ -87,6 +91,9 @@ elm_main(int argc, char **argv)
     if (quit_option)
         goto shutdown_elm;
 
+    if (args != argc)
+        filename = argv[args];
+
     elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
     elm_app_compile_bin_dir_set(PACKAGE_BIN_DIR);
     elm_app_compile_data_dir_set(PACKAGE_DATA_DIR);
@@ -95,8 +102,8 @@ elm_main(int argc, char **argv)
     if (!etui_init())
         goto shutdown_elm;
 
-    /* if (!etui_win_main(argv[1])) */
-    /*     goto shutdown_etui; */
+    if (!etui_win_new(filename))
+        goto shutdown_etui;
 
     elm_run();
 

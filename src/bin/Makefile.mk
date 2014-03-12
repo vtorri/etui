@@ -3,7 +3,9 @@ bin_PROGRAMS = src/bin/etui
 
 src_bin_etui_SOURCES = \
 src/bin/etui_main.c \
-src/bin/etui_private.h
+src/bin/etui_win.c \
+src/bin/etui_private.h \
+src/bin/etui_win.h
 
 src_bin_etui_CPPFLAGS = \
 -I$(top_srcdir)/src/lib \
