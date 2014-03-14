@@ -98,6 +98,8 @@ elm_main(int argc, char **argv)
     elm_app_compile_bin_dir_set(PACKAGE_BIN_DIR);
     elm_app_compile_data_dir_set(PACKAGE_DATA_DIR);
     elm_app_info_set(elm_main, "etui", "themes/default.edj");
+    elm_app_name_set("etui");
+    /* elm_theme_overlay_add(NULL, _theme_default_get()); */
 
     if (!etui_init())
         goto shutdown_elm;
@@ -108,6 +110,7 @@ elm_main(int argc, char **argv)
     elm_run();
 
     etui_shutdown();
+    /* elm_theme_overlay_del(NULL, _theme_default_get()); */
     eina_log_domain_unregister(etui_app_log_dom_global);
     etui_app_log_dom_global = -1;
     elm_shutdown();
@@ -117,6 +120,7 @@ elm_main(int argc, char **argv)
   shutdown_etui:
     etui_shutdown();
   shutdown_elm:
+    /* elm_theme_overlay_del(NULL, _theme_default_get()); */
     eina_log_domain_unregister(etui_app_log_dom_global);
     etui_app_log_dom_global = -1;
     elm_shutdown();
