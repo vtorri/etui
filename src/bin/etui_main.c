@@ -62,7 +62,7 @@ _etui_new(const char *filename)
     if (filename)
     {
         etui->filename = strdup(filename);
-        if (!etui_filename)
+        if (!etui->filename)
         {
             ERR("Can not allocate memory for filename %s", filename);
             goto free_etui;

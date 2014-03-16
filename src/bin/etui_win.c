@@ -24,14 +24,14 @@
 #include "etui_private.h"
 #include "etui_win.h"
 
-static void 
+static void
 _etui_win_delete_request_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
 {
     elm_exit();
 }
 
-static void 
-_etui_win_delete_cb(void *data, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+static void
+_etui_win_delete_cb(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
 {
     Etui *etui = (Etui *)data;
 
@@ -43,7 +43,7 @@ static void
 _etui_win_focus_in_cb(void *data, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
 {
     Etui *etui = (Etui *)data;
-   
+
     if (!etui->window.focused)
         elm_win_urgent_set(etui->window.win, EINA_FALSE);
     etui->window.focused = EINA_TRUE;
@@ -53,13 +53,15 @@ static void
 _etui_win_focus_out_cb(void *data, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
 {
     Etui *etui = (Etui *)data;
-   
+
     etui->window.focused = EINA_FALSE;
 }
 
 static void
 _etui_win_title_set(Etui *etui)
 {
+    char buf[PATH_MAX];
+
     if (etui->filename)
     {
         snprintf(buf, sizeof(buf), "etui - %s", etui->filename);
@@ -73,19 +75,20 @@ Eina_Bool etui_win_new(Etui *etui)
 {
     char buf[PATH_MAX];
     Evas_Object *o;
+    Evas_Load_Error err;
 
     etui->window.win = elm_win_add(NULL, PACKAGE_NAME, ELM_WIN_BASIC);
     _etui_win_title_set(etui);
 
-    evas_object_smart_callback_add(etui->window.win, "delete,request", 
+    evas_object_smart_callback_add(etui->window.win, "delete,request",
                                    _etui_win_delete_request_cb,
                                    NULL);
 
-    evas_object_event_callback_add(_win->o_win, EVAS_CALLBACK_DEL, 
+    evas_object_event_callback_add(etui->window.win, EVAS_CALLBACK_DEL,
                                    _etui_win_delete_cb, etui);
 
-    elm_win_autodel_set(win, EINA_TRUE);
-   
+    elm_win_autodel_set(etui->window.win, EINA_TRUE);
+
     o = evas_object_image_add(evas_object_evas_get(etui->window.win));
     snprintf(buf, sizeof(buf), "%s/256x256/etui.png",
              elm_app_data_dir_get());
@@ -132,8 +135,8 @@ etui_win_free(Etui *etui)
     if (etui->window.base)
         evas_object_del(etui->window.base);
 
-    if (etui->window.confirm)
-        evas_object_del(etui->window.confirm);
+    if (etui->window.conform)
+        evas_object_del(etui->window.conform);
 
     if (etui->window.bg)
         evas_object_del(etui->window.bg);

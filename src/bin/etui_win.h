@@ -18,7 +18,7 @@
 #ifndef ETUI_WIN_H
 #define ETUI_WIN_H
 
-Eina_Bool etui_win_new(Etui *etui, const char *filename);
+Eina_Bool etui_win_new(Etui *etui);
 void etui_win_free(Etui *etui);
 
 #endif
