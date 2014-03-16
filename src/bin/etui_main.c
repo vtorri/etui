@@ -108,6 +108,12 @@ elm_main(int argc, char **argv)
     };
     const char *filename = NULL;
     int args;
+    int pos_set = 0;
+    int size_set = 0;
+    int pos_x = 0;
+    int pos_y = 0;
+    int size_w = 1;
+    int size_h = 1;
 
     etui_app_log_dom_global = eina_log_domain_register("etui-app", NULL);
     if (etui_app_log_dom_global < 0)
@@ -125,6 +131,72 @@ elm_main(int argc, char **argv)
 
     if (quit_option)
         goto shutdown_elm;
+
+    if (geometry)
+    {
+        if (sscanf(geometry,"%ix%i+%i+%i", &size_w, &size_h, &pos_x, &pos_y) == 4)
+        {
+            pos_set = 1;
+            size_set = 1;
+        }
+        else if (sscanf(geometry,"%ix%i-%i+%i", &size_w, &size_h, &pos_x, &pos_y) == 4)
+        {
+            pos_x = -pos_x;
+            pos_set = 1;
+            size_set = 1;
+        }
+        else if (sscanf(geometry,"%ix%i-%i-%i", &size_w, &size_h, &pos_x, &pos_y) == 4)
+        {
+            pos_x = -pos_x;
+            pos_y = -pos_y;
+            pos_set = 1;
+            size_set = 1;
+        }
+        else if (sscanf(geometry,"%ix%i+%i-%i", &size_w, &size_h, &pos_x, &pos_y) == 4)
+        {
+            pos_y = -pos_y;
+            pos_set = 1;
+            size_set = 1;
+        }
+        else if (sscanf(geometry,"%ix%i", &size_w, &size_h) == 2)
+        {
+            size_set = 1;
+        }
+        else if (sscanf(geometry,"+%i+%i", &pos_x, &pos_y) == 2)
+        {
+            pos_set = 1;
+        }
+        else if (sscanf(geometry,"-%i+%i", &pos_x, &pos_y) == 2)
+        {
+            pos_x = -pos_x;
+            pos_set = 1;
+        }
+        else if (sscanf(geometry,"+%i-%i", &pos_x, &pos_y) == 2)
+        {
+            pos_y = -pos_y;
+            pos_set = 1;
+        }
+        else if (sscanf(geometry,"-%i-%i", &pos_x, &pos_y) == 2)
+        {
+            pos_x = -pos_x;
+            pos_y = -pos_y;
+            pos_set = 1;
+        }
+    }
+
+    if (!size_set)
+    {
+        /* if (config->custom_geometry) */
+        /* { */
+        /*     size_w = config->cg_width; */
+        /*     size_h = config->cg_height; */
+        /* } */
+        /* else */
+        {
+            size_w = 600;
+            size_h = 800;
+        }
+    }
 
     if (args != argc)
         filename = argv[args];
@@ -145,6 +217,22 @@ elm_main(int argc, char **argv)
 
     if (!etui_win_new(etui))
         goto free_etui;
+
+    evas_object_size_hint_min_set(etui->window.bg, size_w, size_h);
+    evas_object_resize(etui->window.win, size_w, size_h);
+
+    if (pos_set)
+    {
+        int screen_w;
+        int screen_h;
+
+        elm_win_screen_size_get(etui->window.win, NULL, NULL, &screen_w, &screen_h);
+        if (pos_x < 0) pos_x = screen_w + pos_x;
+        if (pos_y < 0) pos_y = screen_h + pos_y;
+        evas_object_move(etui->window.win, pos_x, pos_y);
+     }
+
+    evas_object_show(etui->window.win);
 
     elm_run();
 
