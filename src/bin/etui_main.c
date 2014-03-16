@@ -50,6 +50,40 @@ static const Ecore_Getopt options = {
    }
 };
 
+static Etui *
+_etui_new(const char *filename)
+{
+    Etui *etui;
+
+    etui = (Etui *)calloc(1, sizeof(Etui));
+    if (!etui)
+        return NULL;
+
+    if (filename)
+    {
+        etui->filename = strdup(filename);
+        if (!etui_filename)
+        {
+            ERR("Can not allocate memory for filename %s", filename);
+            goto free_etui;
+        }
+    }
+
+    return etui;
+
+  free_etui:
+    free(etui);
+
+    return NULL;
+}
+
+static void
+_etui_free(Etui *etui)
+{
+    free(etui->filename);
+    free(etui);
+}
+
 int etui_app_log_dom_global = 1;
 
 int elm_main(int argc, char **argv);
@@ -57,6 +91,7 @@ int elm_main(int argc, char **argv);
 EAPI_MAIN int
 elm_main(int argc, char **argv)
 {
+    Etui *etui;
     char *geometry = NULL;
     Eina_Bool fullscreen = EINA_FALSE;
     Eina_Bool quit_option = EINA_FALSE;
@@ -104,11 +139,17 @@ elm_main(int argc, char **argv)
     if (!etui_init())
         goto shutdown_elm;
 
-    if (!etui_win_new(filename))
+    etui = _etui_new(filename);
+    if (!etui)
         goto shutdown_etui;
+
+    if (!etui_win_new(etui))
+        goto free_etui;
 
     elm_run();
 
+    etui_win_free(etui);
+    _etui_free(etui);
     etui_shutdown();
     /* elm_theme_overlay_del(NULL, _theme_default_get()); */
     eina_log_domain_unregister(etui_app_log_dom_global);
@@ -117,6 +158,8 @@ elm_main(int argc, char **argv)
 
     return EXIT_SUCCESS;
 
+  free_etui:
+    _etui_free(etui);
   shutdown_etui:
     etui_shutdown();
   shutdown_elm:

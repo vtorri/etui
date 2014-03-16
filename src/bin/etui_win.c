@@ -24,9 +24,124 @@
 #include "etui_private.h"
 #include "etui_win.h"
 
-
-Etui_Win *etui_win_new(const char *filename)
+static void 
+_etui_win_delete_request_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
 {
-    printf("filename : %s\n", filename);
-    return NULL;
+    elm_exit();
+}
+
+static void 
+_etui_win_delete_cb(void *data, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+{
+    Etui *etui = (Etui *)data;
+
+    etui->window.win = NULL;
+    etui_win_free(etui);
+}
+
+static void
+_etui_win_focus_in_cb(void *data, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+{
+    Etui *etui = (Etui *)data;
+   
+    if (!etui->window.focused)
+        elm_win_urgent_set(etui->window.win, EINA_FALSE);
+    etui->window.focused = EINA_TRUE;
+}
+
+static void
+_etui_win_focus_out_cb(void *data, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+{
+    Etui *etui = (Etui *)data;
+   
+    etui->window.focused = EINA_FALSE;
+}
+
+static void
+_etui_win_title_set(Etui *etui)
+{
+    if (etui->filename)
+    {
+        snprintf(buf, sizeof(buf), "etui - %s", etui->filename);
+        elm_win_title_set(etui->window.win, buf);
+    }
+    else
+        elm_win_title_set(etui->window.win, "etui");
+}
+
+Eina_Bool etui_win_new(Etui *etui)
+{
+    char buf[PATH_MAX];
+    Evas_Object *o;
+
+    etui->window.win = elm_win_add(NULL, PACKAGE_NAME, ELM_WIN_BASIC);
+    _etui_win_title_set(etui);
+
+    evas_object_smart_callback_add(etui->window.win, "delete,request", 
+                                   _etui_win_delete_request_cb,
+                                   NULL);
+
+    evas_object_event_callback_add(_win->o_win, EVAS_CALLBACK_DEL, 
+                                   _etui_win_delete_cb, etui);
+
+    elm_win_autodel_set(win, EINA_TRUE);
+   
+    o = evas_object_image_add(evas_object_evas_get(etui->window.win));
+    snprintf(buf, sizeof(buf), "%s/256x256/etui.png",
+             elm_app_data_dir_get());
+    evas_object_image_file_set(o, buf, NULL);
+    err = evas_object_image_load_error_get(o);
+    if (err != EVAS_LOAD_ERROR_NONE)
+        INF("Can not find icon: %s", buf);
+    elm_win_icon_object_set(etui->window.win, o);
+
+    o = evas_object_rectangle_add(evas_object_evas_get(etui->window.win));
+    evas_object_color_set(o, 0, 0, 0, 255);
+    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    elm_win_resize_object_add(etui->window.win, o);
+    evas_object_show(o);
+    etui->window.bg = o;
+
+    o = elm_conformant_add(etui->window.win);
+    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    elm_win_resize_object_add(etui->window.win, o);
+    evas_object_show(o);
+    etui->window.conform = o;
+
+    o = edje_object_add(evas_object_evas_get(etui->window.win));
+    /* etui_theme_apply(o, etui, "etui/base"); */
+    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    elm_object_content_set(etui->window.conform, o);
+    evas_object_show(o);
+    etui->window.base = o;
+
+    evas_object_smart_callback_add(etui->window.win, "focus,in",
+                                   _etui_win_focus_in_cb, etui);
+    evas_object_smart_callback_add(etui->window.win, "focus,out",
+                                   _etui_win_focus_out_cb, etui);
+
+    return EINA_TRUE;
+}
+
+void
+etui_win_free(Etui *etui)
+{
+    if (etui->window.base)
+        evas_object_del(etui->window.base);
+
+    if (etui->window.confirm)
+        evas_object_del(etui->window.confirm);
+
+    if (etui->window.bg)
+        evas_object_del(etui->window.bg);
+
+    if (etui->window.win)
+    {
+        evas_object_event_callback_del_full(etui->window.win, EVAS_CALLBACK_DEL,
+                                            _etui_win_delete_cb, etui);
+        evas_object_del(etui->window.win);
+    }
 }

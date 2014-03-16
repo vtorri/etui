@@ -18,8 +18,7 @@
 #ifndef ETUI_WIN_H
 #define ETUI_WIN_H
 
-typedef struct Etui_Win_ Etui_Win;
-
-Etui_Win *etui_win_new(const char *filename);
+Eina_Bool etui_win_new(Etui *etui, const char *filename);
+void etui_win_free(Etui *etui);
 
 #endif

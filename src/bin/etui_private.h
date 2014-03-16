@@ -50,4 +50,19 @@ extern int etui_app_log_dom_global;
 #endif
 #define CRIT(...) EINA_LOG_DOM_CRIT(etui_app_log_dom_global, __VA_ARGS__)
 
+typedef struct Etui_ Etui;
+
+struct Etui_
+{
+    char *filename;
+    struct
+    {
+        Evas_Object *win;
+        Evas_Object *bg;
+        Evas_Object *conform;
+        Evas_Object *base;
+        Eina_Bool focused : 1;
+    } window;
+};
+
 #endif
