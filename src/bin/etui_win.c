@@ -34,11 +34,7 @@ _etui_win_delete_request_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED
 static void
 _etui_win_delete_cb(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
 {
-    Etui *etui = (Etui *)data;
-
-    printf(" * 31 %p\n", etui);
-    /* etui->window.win = NULL; */
-    etui_win_free(etui);
+    etui_win_free((Etui *)data);
 }
 
 static void
@@ -116,10 +112,11 @@ Eina_Bool etui_win_new(Etui *etui)
     etui->window.conform = o;
 
     o = edje_object_add(evas_object_evas_get(etui->window.win));
-    printf(" * 1\n");
     if (!etui_theme_apply(o, etui, "etui/base"))
+    {
+        etui_win_free(etui);
         return EINA_FALSE;
-    printf(" * 2\n");
+    }
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
     elm_object_content_set(etui->window.conform, o);

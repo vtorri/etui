@@ -40,13 +40,21 @@ _etui_theme_reload_cb(void *data EINA_UNUSED, Evas_Object *obj, const char *emis
    if (func) func(func_data);
 }
 
-const char *
+char *
 etui_theme_default_get(Etui *etui)
 {
-    if (*etui->theme.file)
+    int size;
+
+    if (etui->theme.file)
         return etui->theme.file;
 
-    snprintf(etui->theme.file, sizeof(etui->theme.file),
+    size = snprintf(NULL, 0,
+                    "%s/themes/default.edj", elm_app_data_dir_get());
+    etui->theme.file = (char *)malloc(size + 2);
+    if (!etui->theme.file)
+        return NULL;
+
+    snprintf(etui->theme.file, size + 1,
              "%s/themes/default.edj", elm_app_data_dir_get());
 
     return etui->theme.file;
@@ -58,7 +66,6 @@ etui_theme_apply(Evas_Object *obj, Etui *etui, const char *group)
     if ((!obj) || (!group))
         return EINA_FALSE;
 
-    printf(" * 30 %s %s\n", etui_theme_default_get(etui), group);
     if (edje_object_file_set(obj, etui_theme_default_get(etui), group))
         return EINA_TRUE;
 

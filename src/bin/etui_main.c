@@ -70,8 +70,6 @@ _etui_new(const char *filename)
         }
     }
 
-    etui->theme.file[0] = '\0';
-
     return etui;
 
   free_etui:
@@ -83,7 +81,10 @@ _etui_new(const char *filename)
 static void
 _etui_free(Etui *etui)
 {
-    free(etui->filename);
+    if (etui->theme.file)
+        free(etui->theme.file);
+    if (etui->filename)
+        free(etui->filename);
     free(etui);
 }
 
@@ -110,6 +111,7 @@ elm_main(int argc, char **argv)
         ECORE_GETOPT_VALUE_NONE
     };
     const char *filename = NULL;
+    char *theme = NULL;
     int args;
     int pos_set = 0;
     int size_set = 0;
@@ -203,7 +205,11 @@ elm_main(int argc, char **argv)
     if (!etui)
         goto shutdown_etui;
 
-    elm_theme_overlay_add(NULL, etui_theme_default_get(etui));
+    theme = etui_theme_default_get(etui);
+    if (!theme)
+        goto shutdown_etui;
+
+    elm_theme_overlay_add(NULL, theme);
 
     if (!etui_win_new(etui))
         goto free_etui;
@@ -251,21 +257,15 @@ elm_main(int argc, char **argv)
     return EXIT_SUCCESS;
 
   free_etui:
-    printf(" * 10\n");
     elm_theme_overlay_del(NULL, etui_theme_default_get(etui));
-    printf(" * 11 %p\n", etui);
     _etui_free(etui);
     etui = NULL;
-    printf(" * 12\n");
   shutdown_etui:
     etui_shutdown();
-    printf(" * 13\n");
   shutdown_elm:
     eina_log_domain_unregister(etui_app_log_dom_global);
-    printf(" * 14 %p\n", etui);
     etui_app_log_dom_global = -1;
     elm_shutdown();
-    printf(" * 15\n");
 
     return EXIT_FAILURE;
 }

@@ -67,7 +67,7 @@ struct Etui_
 
     struct
     {
-        char file[PATH_MAX];
+        char *file;
     } theme;
 };
 
