@@ -22,6 +22,7 @@
 #include <Elementary.h>
 
 #include "etui_private.h"
+#include "etui_theme.h"
 #include "etui_win.h"
 
 static void
@@ -35,7 +36,8 @@ _etui_win_delete_cb(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UN
 {
     Etui *etui = (Etui *)data;
 
-    etui->window.win = NULL;
+    printf(" * 31 %p\n", etui);
+    /* etui->window.win = NULL; */
     etui_win_free(etui);
 }
 
@@ -114,7 +116,10 @@ Eina_Bool etui_win_new(Etui *etui)
     etui->window.conform = o;
 
     o = edje_object_add(evas_object_evas_get(etui->window.win));
-    /* etui_theme_apply(o, etui, "etui/base"); */
+    printf(" * 1\n");
+    if (!etui_theme_apply(o, etui, "etui/base"))
+        return EINA_FALSE;
+    printf(" * 2\n");
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
     elm_object_content_set(etui->window.conform, o);
@@ -133,18 +138,28 @@ void
 etui_win_free(Etui *etui)
 {
     if (etui->window.base)
+    {
         evas_object_del(etui->window.base);
+        etui->window.base = NULL;
+    }
 
     if (etui->window.conform)
+    {
         evas_object_del(etui->window.conform);
+        etui->window.conform = NULL;
+    }
 
     if (etui->window.bg)
+    {
         evas_object_del(etui->window.bg);
+        etui->window.bg = NULL;
+    }
 
     if (etui->window.win)
     {
         evas_object_event_callback_del_full(etui->window.win, EVAS_CALLBACK_DEL,
                                             _etui_win_delete_cb, etui);
         evas_object_del(etui->window.win);
+        etui->window.win = NULL;
     }
 }

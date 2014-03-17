@@ -55,6 +55,7 @@ typedef struct Etui_ Etui;
 struct Etui_
 {
     char *filename;
+
     struct
     {
         Evas_Object *win;
@@ -63,6 +64,11 @@ struct Etui_
         Evas_Object *base;
         Eina_Bool focused : 1;
     } window;
+
+    struct
+    {
+        char file[PATH_MAX];
+    } theme;
 };
 
 #endif

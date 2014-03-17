@@ -25,6 +25,7 @@
 #include <Etui.h>
 
 #include "etui_private.h"
+#include "etui_theme.h"
 #include "etui_win.h"
 
 
@@ -68,6 +69,8 @@ _etui_new(const char *filename)
             goto free_etui;
         }
     }
+
+    etui->theme.file[0] = '\0';
 
     return etui;
 
@@ -184,6 +187,30 @@ elm_main(int argc, char **argv)
         }
     }
 
+    if (args != argc)
+        filename = argv[args];
+
+    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
+    elm_app_compile_bin_dir_set(PACKAGE_BIN_DIR);
+    elm_app_compile_data_dir_set(PACKAGE_DATA_DIR);
+    elm_app_info_set(elm_main, "etui", "themes/default.edj");
+    elm_app_name_set("etui");
+
+    if (!etui_init())
+        goto shutdown_elm;
+
+    etui = _etui_new(filename);
+    if (!etui)
+        goto shutdown_etui;
+
+    elm_theme_overlay_add(NULL, etui_theme_default_get(etui));
+
+    if (!etui_win_new(etui))
+        goto free_etui;
+
+    evas_object_size_hint_min_set(etui->window.bg, size_w, size_h);
+    evas_object_resize(etui->window.win, size_w, size_h);
+
     if (!size_set)
     {
         /* if (config->custom_geometry) */
@@ -197,29 +224,6 @@ elm_main(int argc, char **argv)
             size_h = 800;
         }
     }
-
-    if (args != argc)
-        filename = argv[args];
-
-    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
-    elm_app_compile_bin_dir_set(PACKAGE_BIN_DIR);
-    elm_app_compile_data_dir_set(PACKAGE_DATA_DIR);
-    elm_app_info_set(elm_main, "etui", "themes/default.edj");
-    elm_app_name_set("etui");
-    /* elm_theme_overlay_add(NULL, _theme_default_get()); */
-
-    if (!etui_init())
-        goto shutdown_elm;
-
-    etui = _etui_new(filename);
-    if (!etui)
-        goto shutdown_etui;
-
-    if (!etui_win_new(etui))
-        goto free_etui;
-
-    evas_object_size_hint_min_set(etui->window.bg, size_w, size_h);
-    evas_object_resize(etui->window.win, size_w, size_h);
 
     if (pos_set)
     {
@@ -237,9 +241,9 @@ elm_main(int argc, char **argv)
     elm_run();
 
     etui_win_free(etui);
+    elm_theme_overlay_del(NULL, etui_theme_default_get(etui));
     _etui_free(etui);
     etui_shutdown();
-    /* elm_theme_overlay_del(NULL, _theme_default_get()); */
     eina_log_domain_unregister(etui_app_log_dom_global);
     etui_app_log_dom_global = -1;
     elm_shutdown();
@@ -247,14 +251,21 @@ elm_main(int argc, char **argv)
     return EXIT_SUCCESS;
 
   free_etui:
+    printf(" * 10\n");
+    elm_theme_overlay_del(NULL, etui_theme_default_get(etui));
+    printf(" * 11 %p\n", etui);
     _etui_free(etui);
+    etui = NULL;
+    printf(" * 12\n");
   shutdown_etui:
     etui_shutdown();
+    printf(" * 13\n");
   shutdown_elm:
-    /* elm_theme_overlay_del(NULL, _theme_default_get()); */
     eina_log_domain_unregister(etui_app_log_dom_global);
+    printf(" * 14 %p\n", etui);
     etui_app_log_dom_global = -1;
     elm_shutdown();
+    printf(" * 15\n");
 
     return EXIT_FAILURE;
 }
