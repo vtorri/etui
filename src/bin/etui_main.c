@@ -214,9 +214,6 @@ elm_main(int argc, char **argv)
     if (!etui_win_new(etui))
         goto free_etui;
 
-    evas_object_size_hint_min_set(etui->window.bg, size_w, size_h);
-    evas_object_resize(etui->window.win, size_w, size_h);
-
     if (!size_set)
     {
         /* if (config->custom_geometry) */
@@ -230,6 +227,9 @@ elm_main(int argc, char **argv)
             size_h = 800;
         }
     }
+
+    evas_object_size_hint_min_set(etui->window.bg, size_w, size_h);
+    evas_object_resize(etui->window.win, size_w, size_h);
 
     if (pos_set)
     {

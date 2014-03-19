@@ -17,6 +17,7 @@ config.log
 config.status
 config.sub
 configure
+default.edj
 depcomp
 etui.pc
 install-sh

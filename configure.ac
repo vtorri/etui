@@ -73,6 +73,8 @@ AC_LANG([C])
 
 PKG_PROG_PKG_CONFIG
 
+EFL_WITH_BIN([edje], [edje-cc], [edje_cc])
+
 
 ### Checks for libraries
 

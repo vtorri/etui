@@ -87,6 +87,7 @@ Eina_Bool etui_win_new(Etui *etui)
 
     elm_win_autodel_set(etui->window.win, EINA_TRUE);
 
+    /* icon */
     o = evas_object_image_add(evas_object_evas_get(etui->window.win));
     snprintf(buf, sizeof(buf), "%s/256x256/etui.png",
              elm_app_data_dir_get());
@@ -96,6 +97,7 @@ Eina_Bool etui_win_new(Etui *etui)
         INF("Can not find icon: %s", buf);
     elm_win_icon_object_set(etui->window.win, o);
 
+    /* background */
     o = evas_object_rectangle_add(evas_object_evas_get(etui->window.win));
     evas_object_color_set(o, 0, 0, 0, 255);
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -104,6 +106,7 @@ Eina_Bool etui_win_new(Etui *etui)
     evas_object_show(o);
     etui->window.bg = o;
 
+    /* conformant */
     o = elm_conformant_add(etui->window.win);
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
@@ -111,6 +114,7 @@ Eina_Bool etui_win_new(Etui *etui)
     evas_object_show(o);
     etui->window.conform = o;
 
+    /* gui */
     o = edje_object_add(evas_object_evas_get(etui->window.win));
     if (!etui_theme_apply(o, etui, "etui/base"))
     {

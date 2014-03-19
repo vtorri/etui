@@ -40,6 +40,7 @@ endif
 if ETUI_BUILD_PS
 include src/modules/ps/Makefile.mk
 endif
+include data/themes/Makefile.mk
 include data/Makefile.mk
 
 sed_process = \
