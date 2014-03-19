@@ -11,7 +11,7 @@ edje_verbose = $(edje_verbose_@AM_V@)
 edje_verbose_ = $(edje_verbose_@AM_DEFAULT_V@)
 edje_verbose_0 = @echo "  EDJ     " $@;
 
-data/themes/default.edj: $(top_srcdir)/data/themes/default.edc Makefile
+data/themes/default.edj: $(top_srcdir)/data/themes/default.edc $(top_srcdir)/data/themes/Makefile.mk
 	$(AM_V_at)rm -f $@
 	$(edje_verbose)$(edje_process)
 
@@ -22,6 +22,11 @@ EXTRA_DIST += \
 default.edc \
 images/bg_shadow.png \
 images/bg_shadow2.png \
-images/bg_shadow3.png
+images/bg_shadow3.png \
+images/bg_bevel.png \
+images/bg_glint.png \
+images/bg_glow_in.png \
+images/bg_shine.png
+
 
 ETUI_CLEANFILES += default.edj
