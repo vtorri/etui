@@ -122,7 +122,7 @@ Eina_Bool etui_win_new(Etui *etui)
     etui->window.conform = o;
 
     /* gui */
-    o = edje_object_add(evas_object_evas_get(etui->window.win));
+    o = elm_layout_add(etui->window.win);
     if (!etui_theme_apply(o, etui, "etui/base"))
     {
         etui_win_free(etui);
@@ -134,6 +134,7 @@ Eina_Bool etui_win_new(Etui *etui)
     evas_object_show(o);
     etui->window.base = o;
 
+    /* FIXME: focus seems to not work anymore */
     evas_object_smart_callback_add(etui->window.win, "focus,in",
                                    _etui_win_focus_in_cb, etui);
     evas_object_smart_callback_add(etui->window.win, "focus,out",

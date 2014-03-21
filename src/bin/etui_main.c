@@ -26,6 +26,7 @@
 
 #include "etui_private.h"
 #include "etui_theme.h"
+#include "etui_doc.h"
 #include "etui_win.h"
 
 
@@ -241,6 +242,8 @@ elm_main(int argc, char **argv)
         if (pos_y < 0) pos_y = screen_h + pos_y;
         evas_object_move(etui->window.win, pos_x, pos_y);
      }
+
+    etui_doc_set(etui);
 
     evas_object_show(etui->window.win);
 

@@ -2,9 +2,11 @@
 bin_PROGRAMS = src/bin/etui
 
 src_bin_etui_SOURCES = \
+src/bin/etui_doc.c \
 src/bin/etui_main.c \
 src/bin/etui_theme.c \
 src/bin/etui_win.c \
+src/bin/etui_doc.h \
 src/bin/etui_private.h \
 src/bin/etui_theme.h \
 src/bin/etui_win.h

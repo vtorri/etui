@@ -2,6 +2,7 @@
 edje_process = \
 $(edje) \
 -id $(top_srcdir)/data/themes/images \
+-id $(top_srcdir)/data/icons/384x384 \
 -fd $(top_srcdir)/data/fonts \
 -sd $(top_srcdir)/data/themes/sounds \
 $< $@ || rm -f $@

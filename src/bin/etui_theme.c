@@ -66,7 +66,7 @@ etui_theme_apply(Evas_Object *obj, Etui *etui, const char *group)
     if ((!obj) || (!group))
         return EINA_FALSE;
 
-    if (edje_object_file_set(obj, etui_theme_default_get(etui), group))
+    if (elm_layout_file_set(obj, etui_theme_default_get(etui), group))
         return EINA_TRUE;
 
     return EINA_FALSE;
