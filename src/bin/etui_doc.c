@@ -58,7 +58,6 @@ void etui_doc_set(Etui *etui)
     elm_scroller_bounce_set(sc, EINA_TRUE, EINA_TRUE);
     evas_object_size_hint_weight_set(sc, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(sc, EVAS_HINT_FILL, EVAS_HINT_FILL);
-    elm_win_resize_object_add(etui->window.win, sc);
     evas_object_show(sc);
 
     box = elm_box_add(etui->window.win);
