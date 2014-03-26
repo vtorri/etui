@@ -24,7 +24,28 @@
 
 #include "etui_private.h"
 #include "etui_theme.h"
+#include "etui_win.h"
 #include "etui_doc.h"
+
+ static void
+_smart_cb_key_up(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event)
+{
+    Evas_Event_Key_Up *ev = (Evas_Event_Key_Up *)event;
+    Etui *etui = (Etui *)data;
+    int alt;
+    int shift;
+    int ctrl;
+
+    alt = evas_key_modifier_is_set(ev->modifiers, "Alt");
+    shift = evas_key_modifier_is_set(ev->modifiers, "Shift");
+    ctrl = evas_key_modifier_is_set(ev->modifiers, "Control");
+
+    if ((!alt) && (ctrl) && (!shift))
+    {
+        if (!strcmp(ev->key, "q"))
+            etui_win_free(etui);
+    }
+}
 
 static void
 etui_splash_icon_set(Etui *etui)
@@ -48,10 +69,7 @@ void etui_doc_set(Etui *etui)
     int h;
 
     if (!etui->filename)
-    {
-        etui_splash_icon_set(etui);
-        return;
-    }
+        goto splash;
 
     sc = elm_scroller_add(etui->window.win);
     elm_scroller_policy_set(sc, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_AUTO);
@@ -62,15 +80,16 @@ void etui_doc_set(Etui *etui)
 
     box = elm_box_add(etui->window.win);
     evas_object_size_hint_weight_set(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_align_set(box, EVAS_HINT_FILL, EVAS_HINT_FILL);
     elm_object_content_set(sc, box);
     evas_object_show(box);
 
     doc = etui_object_add(evas_object_evas_get(etui->window.win));
     if (!doc)
-        return;
+        goto splash;
 
     if (!etui_object_file_set(doc, etui->filename))
-        return;
+        goto splash;
 
     etui_object_page_set(doc, 0);
     evas_object_geometry_get(doc, NULL, NULL, &w, &h);
@@ -84,4 +103,11 @@ void etui_doc_set(Etui *etui)
     evas_object_show(doc);
 
     elm_layout_content_set(etui->window.base, "base.content", sc);
+
+    evas_object_event_callback_add(sc, EVAS_CALLBACK_KEY_UP,
+                                   _smart_cb_key_up, etui);
+    return;
+
+  splash:
+    etui_splash_icon_set(etui);
 }
