@@ -23,7 +23,7 @@ $(top_builddir)/src/lib/libetui.la \
 
 if HAVE_WIN32
 src_bin_etui_SOURCES += \
-src/bin/etui.rc
+src/bin/etui_res.rc
 
 windres_verbose = $(windres_verbose_@AM_V@)
 windres_verbose_ = $(windres_verbose_@AM_DEFAULT_V@)
