@@ -62,6 +62,11 @@ struct Etui_
         Evas_Object *bg;
         Evas_Object *conform;
         Evas_Object *base;
+        Evas_Object *sc;
+        Evas_Object *doc;
+        int win_w;
+        int win_h;
+        float scale;
         Eina_Bool focused : 1;
     } window;
 
