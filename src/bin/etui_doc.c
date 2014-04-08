@@ -45,11 +45,11 @@ _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNU
 
     if ((!alt) && (!ctrl) && (!shift))
     {
-        if (!strcmp(ev->key, "Right") || !strcmp(ev->key, "Down") || !strcmp(ev->key, "Space"))
+        if (!strcmp(ev->key, "Right") || !strcmp(ev->key, "Down") || !strcmp(ev->key, "space"))
         {
             etui_object_page_set(etui->window.doc, etui_object_page_get(etui->window.doc) + 1);
         }
-        else if (!strcmp(ev->key, "Left") || !strcmp(ev->key, "Up") || !strcmp(ev->key, "Backspace"))
+        else if (!strcmp(ev->key, "Left") || !strcmp(ev->key, "Up") || !strcmp(ev->key, "BackSpace"))
         {
             etui_object_page_set(etui->window.doc, etui_object_page_get(etui->window.doc) - 1);
         }
