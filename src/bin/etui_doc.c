@@ -47,19 +47,19 @@ _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNU
     {
         if (!strcmp(ev->key, "Right") || !strcmp(ev->key, "Down") || !strcmp(ev->key, "space"))
         {
-            etui_object_page_set(etui->window.doc, etui_object_page_get(etui->window.doc) + 1);
+            etui_object_page_set(etui->doc.doc, etui_object_page_get(etui->doc.doc) + 1);
         }
         else if (!strcmp(ev->key, "Left") || !strcmp(ev->key, "Up") || !strcmp(ev->key, "BackSpace"))
         {
-            etui_object_page_set(etui->window.doc, etui_object_page_get(etui->window.doc) - 1);
+            etui_object_page_set(etui->doc.doc, etui_object_page_get(etui->doc.doc) - 1);
         }
         else if (!strcmp(ev->key, "Next"))
         {
-            etui_object_page_set(etui->window.doc, etui_object_page_get(etui->window.doc) + 10);
+            etui_object_page_set(etui->doc.doc, etui_object_page_get(etui->doc.doc) + 10);
         }
         else if (!strcmp(ev->key, "Prior"))
         {
-            etui_object_page_set(etui->window.doc, etui_object_page_get(etui->window.doc) - 10);
+            etui_object_page_set(etui->doc.doc, etui_object_page_get(etui->doc.doc) - 10);
         }
         else if (!strcmp(ev->key, "F1"))
         {
@@ -86,27 +86,25 @@ _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNU
 
                 elm_win_screen_size_get(etui->window.win, NULL, NULL,
                                         &screen_w, &screen_h);
-                etui_object_page_size_get(etui->window.doc, &w, &h);
+                etui_object_page_size_get(etui->doc.doc, &w, &h);
 
                 if (screen_w > screen_h)
                 {
                     if (w < h)
                     {
                         scale = (float)(screen_h) / (float)h;
-                        printf(" ** scale : %f\n", (double)scale);
-                        etui_object_page_scale_set(etui->window.doc, scale, scale);
-                        evas_object_geometry_get(etui->window.doc, NULL, NULL, &w, &h);
-                        printf(" *** %d %d\n", w, h);
-                        evas_object_size_hint_min_set(etui->window.doc, w, h);
-                        evas_object_size_hint_max_set(etui->window.doc, w, h);
+                        etui_object_page_scale_set(etui->doc.doc, scale, scale);
+                        evas_object_geometry_get(etui->doc.doc, NULL, NULL, &w, &h);
+                        evas_object_size_hint_min_set(etui->doc.doc, w, h);
+                        evas_object_size_hint_max_set(etui->doc.doc, w, h);
                     }
                     else
                     {
                         scale = (float)(screen_w) / (float)w;
-                        etui_object_page_scale_set(etui->window.doc, scale, scale);
-                        evas_object_geometry_get(etui->window.doc, NULL, NULL, &w, &h);
-                        evas_object_size_hint_min_set(etui->window.doc, w, h);
-                        evas_object_size_hint_max_set(etui->window.doc, w, h);
+                        etui_object_page_scale_set(etui->doc.doc, scale, scale);
+                        evas_object_geometry_get(etui->doc.doc, NULL, NULL, &w, &h);
+                        evas_object_size_hint_min_set(etui->doc.doc, w, h);
+                        evas_object_size_hint_max_set(etui->doc.doc, w, h);
                     }
                 }
                 else
@@ -118,19 +116,18 @@ _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNU
 
                 evas_object_size_hint_min_set(etui->window.bg, screen_w, screen_h);
                 evas_object_resize(etui->window.win, screen_w, screen_h);
-                elm_scroller_policy_set(etui->window.sc, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_OFF);
+                elm_scroller_policy_set(etui->doc.sc, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_OFF);
             }
             else
             {
-
                 elm_win_fullscreen_set(etui->window.win, EINA_FALSE);
                 evas_object_size_hint_min_set(etui->window.bg, etui->window.win_w, etui->window.win_h);
                 evas_object_resize(etui->window.win, etui->window.win_w, etui->window.win_h);
-                elm_scroller_policy_set(etui->window.sc, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_AUTO);
-                etui_object_page_scale_set(etui->window.doc, etui->window.scale, etui->window.scale);
-                evas_object_geometry_get(etui->window.doc, NULL, NULL, &w, &h);
-                evas_object_size_hint_min_set(etui->window.doc, w, h);
-                evas_object_size_hint_max_set(etui->window.doc, w, h);
+                elm_scroller_policy_set(etui->doc.sc, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_AUTO);
+                etui_object_page_scale_set(etui->doc.doc, etui->doc.scale, etui->doc.scale);
+                evas_object_geometry_get(etui->doc.doc, NULL, NULL, &w, &h);
+                evas_object_size_hint_min_set(etui->doc.doc, w, h);
+                evas_object_size_hint_max_set(etui->doc.doc, w, h);
             }
         }
         else if (!strcmp(ev->key, "Escape"))
@@ -150,34 +147,37 @@ _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNU
             int w;
             int h;
 
-            etui->window.scale *= M_SQRT2;
-            etui_object_page_scale_set(etui->window.doc, etui->window.scale, etui->window.scale);
-            evas_object_geometry_get(etui->window.doc, NULL, NULL, &w, &h);
-            evas_object_size_hint_min_set(etui->window.doc, w, h);
-            evas_object_size_hint_max_set(etui->window.doc, w, h);
+            etui->doc.scale *= M_SQRT2;
+            etui_object_page_scale_set(etui->doc.doc, etui->doc.scale, etui->doc.scale);
+            evas_object_geometry_get(etui->doc.doc, NULL, NULL, &w, &h);
+            evas_object_size_hint_min_set(etui->doc.doc, w, h);
+            evas_object_size_hint_max_set(etui->doc.doc, w, h);
         }
         else if (!strcmp(ev->key, "KP_Subtract"))
         {
             int w;
             int h;
 
-            etui->window.scale *= M_SQRT1_2;
-            etui_object_page_scale_set(etui->window.doc, etui->window.scale, etui->window.scale);
-            evas_object_geometry_get(etui->window.doc, NULL, NULL, &w, &h);
-            evas_object_size_hint_min_set(etui->window.doc, w, h);
-            evas_object_size_hint_max_set(etui->window.doc, w, h);
+            etui->doc.scale *= M_SQRT1_2;
+            etui_object_page_scale_set(etui->doc.doc, etui->doc.scale, etui->doc.scale);
+            evas_object_geometry_get(etui->doc.doc, NULL, NULL, &w, &h);
+            evas_object_size_hint_min_set(etui->doc.doc, w, h);
+            evas_object_size_hint_max_set(etui->doc.doc, w, h);
         }
         else if (!strcmp(ev->key, "KP_0"))
         {
+            Evas_Coord win_h;
             int w;
             int h;
 
-            /* zoom to fit page */
-            etui->window.scale *= M_SQRT2;
-            etui_object_page_scale_set(etui->window.doc, etui->window.scale, etui->window.scale);
-            evas_object_geometry_get(etui->window.doc, NULL, NULL, &w, &h);
-            evas_object_size_hint_min_set(etui->window.doc, w, h);
-            evas_object_size_hint_max_set(etui->window.doc, w, h);
+            /* zoom to fit height */
+            evas_object_geometry_get(etui->window.win, NULL, NULL, NULL, &win_h);
+            etui_object_page_size_get(etui->doc.doc, NULL, &h);
+            etui->doc.scale = (float)win_h / (float)h;
+            etui_object_page_scale_set(etui->doc.doc, etui->doc.scale, etui->doc.scale);
+            evas_object_geometry_get(etui->doc.doc, NULL, NULL, &w, &h);
+            evas_object_size_hint_min_set(etui->doc.doc, w, h);
+            evas_object_size_hint_max_set(etui->doc.doc, w, h);
         }
         else if (!strcmp(ev->key, "KP_1"))
         {
@@ -185,11 +185,11 @@ _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNU
             int h;
 
             /* zoom to 100% */
-            etui->window.scale = 1.0f;
-            etui_object_page_scale_set(etui->window.doc, etui->window.scale, etui->window.scale);
-            evas_object_geometry_get(etui->window.doc, NULL, NULL, &w, &h);
-            evas_object_size_hint_min_set(etui->window.doc, w, h);
-            evas_object_size_hint_max_set(etui->window.doc, w, h);
+            etui->doc.scale = 1.0f;
+            etui_object_page_scale_set(etui->doc.doc, etui->doc.scale, etui->doc.scale);
+            evas_object_geometry_get(etui->doc.doc, NULL, NULL, &w, &h);
+            evas_object_size_hint_min_set(etui->doc.doc, w, h);
+            evas_object_size_hint_max_set(etui->doc.doc, w, h);
         }
         else if (!strcmp(ev->key, "KP_2"))
         {
@@ -199,35 +199,20 @@ _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNU
 
             /* zoom to fit width */
             evas_object_geometry_get(etui->window.win, NULL, NULL, &win_w, NULL);
-            etui_object_page_size_get(etui->window.doc, &w, NULL);
-            etui->window.scale = (float)win_w / (float)w;
-            etui_object_page_scale_set(etui->window.doc, etui->window.scale, etui->window.scale);
-            evas_object_geometry_get(etui->window.doc, NULL, NULL, &w, &h);
-            evas_object_size_hint_min_set(etui->window.doc, w, h);
-            evas_object_size_hint_max_set(etui->window.doc, w, h);
-        }
-        else if (!strcmp(ev->key, "KP_3"))
-        {
-            Evas_Coord win_h;
-            int w;
-            int h;
-
-            /* zoom to fit height */
-            evas_object_geometry_get(etui->window.win, NULL, NULL, NULL, &win_h);
-            etui_object_page_size_get(etui->window.doc, NULL, &h);
-            etui->window.scale = (float)win_h / (float)h;
-            etui_object_page_scale_set(etui->window.doc, etui->window.scale, etui->window.scale);
-            evas_object_geometry_get(etui->window.doc, NULL, NULL, &w, &h);
-            evas_object_size_hint_min_set(etui->window.doc, w, h);
-            evas_object_size_hint_max_set(etui->window.doc, w, h);
+            etui_object_page_size_get(etui->doc.doc, &w, NULL);
+            etui->doc.scale = (float)win_w / (float)w;
+            etui_object_page_scale_set(etui->doc.doc, etui->doc.scale, etui->doc.scale);
+            evas_object_geometry_get(etui->doc.doc, NULL, NULL, &w, &h);
+            evas_object_size_hint_min_set(etui->doc.doc, w, h);
+            evas_object_size_hint_max_set(etui->doc.doc, w, h);
         }
         else if (!strcmp(ev->key, "Home"))
         {
-            etui_object_page_set(etui->window.doc, 0);
+            etui_object_page_set(etui->doc.doc, 0);
         }
         else if (!strcmp(ev->key, "End"))
         {
-            etui_object_page_set(etui->window.doc, etui_object_document_pages_count(etui->window.doc) - 1);
+            etui_object_page_set(etui->doc.doc, etui_object_document_pages_count(etui->doc.doc) - 1);
         }
         else if (!strcmp(ev->key, "o"))
         {
@@ -257,79 +242,86 @@ _etui_doc_key_up_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNUSE
 }
 
 static Eina_Bool
-_etui_doc_input_cb(void *data, Evas_Object *obj EINA_UNUSED, Evas_Object *src EINA_UNUSED, Evas_Callback_Type type, void *event_info EINA_UNUSED)
+_etui_doc_input_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, Evas_Object *src EINA_UNUSED, Evas_Callback_Type type, void *event_info EINA_UNUSED)
 {
    return ((type == EVAS_CALLBACK_KEY_UP) ||
            (type == EVAS_CALLBACK_KEY_DOWN));
 }
 
 static void
-etui_splash_icon_set(Etui *etui)
+_etui_doc_splash_set(Etui *etui)
 {
-    Evas_Object *o;
+    if (!etui->doc.splash)
+    {
+        Evas_Object *o;
 
-    o = elm_layout_add(etui->window.win);
-    if (!etui_theme_apply(o, etui, "etui/splash"))
-        return;
+        o = elm_layout_add(etui->window.win);
+        if (!etui_theme_apply(o, etui, "etui/splash"))
+            return;
 
-    elm_layout_content_set(etui->window.base, "base.content", o);
-    evas_object_show(o);
+        evas_object_show(o);
+        etui->doc.splash = o;
+    }
+
+    if (elm_layout_content_get(etui->window.base, "base.content"))
+        elm_layout_content_unset(etui->window.base, "base.content");
+    elm_layout_content_set(etui->window.base, "base.content", etui->doc.splash);
 }
 
 void etui_doc_set(Etui *etui)
 {
-    Evas_Object *sc;
+    Evas_Object *o;
     Evas_Object *box;
-    Evas_Object *doc;
     int w;
     int h;
 
     if (!etui->filename)
         goto splash;
 
-    sc = elm_scroller_add(etui->window.win);
-    elm_scroller_policy_set(sc, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_AUTO);
-    elm_scroller_bounce_set(sc, EINA_TRUE, EINA_TRUE);
-    evas_object_size_hint_weight_set(sc, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    evas_object_size_hint_align_set(sc, EVAS_HINT_FILL, EVAS_HINT_FILL);
-    evas_object_show(sc);
-
-    etui->window.sc = sc;
+    o = elm_scroller_add(etui->window.win);
+    elm_scroller_policy_set(o, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_AUTO);
+    elm_scroller_bounce_set(o, EINA_TRUE, EINA_TRUE);
+    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    evas_object_show(o);
+    etui->doc.sc = o;
 
     box = elm_box_add(etui->window.win);
     evas_object_size_hint_weight_set(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(box, EVAS_HINT_FILL, EVAS_HINT_FILL);
-    elm_object_content_set(sc, box);
+    elm_object_content_set(etui->doc.sc, box);
     evas_object_show(box);
 
-    doc = etui_object_add(evas_object_evas_get(etui->window.win));
-    if (!doc)
+    o = etui_object_add(evas_object_evas_get(etui->window.win));
+    if (!o)
         goto splash;
 
-    if (!etui_object_file_set(doc, etui->filename))
+    if (!etui_object_file_set(o, etui->filename))
         goto splash;
 
-    etui_object_page_set(doc, 0);
-    evas_object_geometry_get(doc, NULL, NULL, &w, &h);
-    evas_object_size_hint_min_set(doc, w, h);
-    evas_object_size_hint_max_set(doc, w, h);
-    /* evas_object_size_hint_weight_set(doc, 0.5, 0.5); */
-    /* evas_object_size_hint_fill_set(doc, 0.5, 0.5); */
-    evas_object_focus_set(doc, EINA_TRUE);
-    etui_object_page_use_display_list_set(doc, EINA_FALSE);
-    elm_box_pack_end(box, doc);
-    evas_object_show(doc);
+    etui_object_page_set(o, 0);
+    evas_object_geometry_get(o, NULL, NULL, &w, &h);
+    evas_object_size_hint_min_set(o, w, h);
+    evas_object_size_hint_max_set(o, w, h);
+    /* evas_object_size_hint_weight_set(o, 0.5, 0.5); */
+    /* evas_object_size_hint_fill_set(o, 0.5, 0.5); */
+    evas_object_focus_set(o, EINA_TRUE);
+    etui_object_page_use_display_list_set(o, EINA_FALSE);
+    elm_box_pack_end(box, o);
+    evas_object_show(o);
+    etui->doc.doc = o;
 
-    etui->window.doc = doc;
-    etui->window.scale = 1.0f;
+    etui->doc.scale = 1.0f;
 
-    elm_layout_content_set(etui->window.base, "base.content", sc);
+    if (elm_layout_content_get(etui->window.base, "base.content"))
+        elm_layout_content_unset(etui->window.base, "base.content");
+    elm_layout_content_set(etui->window.base, "base.content", etui->doc.sc);
 
-    elm_object_event_callback_add(sc, _etui_doc_input_cb, NULL);
-    evas_object_event_callback_add(sc, EVAS_CALLBACK_KEY_DOWN,
+    elm_object_event_callback_add(etui->doc.sc, _etui_doc_input_cb, NULL);
+    evas_object_event_callback_add(etui->doc.sc, EVAS_CALLBACK_KEY_DOWN,
                                    _etui_doc_key_down_cb, etui);
     return;
 
   splash:
-    etui_splash_icon_set(etui);
+    _etui_doc_splash_set(etui);
 }
