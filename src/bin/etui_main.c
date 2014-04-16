@@ -197,7 +197,9 @@ elm_main(int argc, char **argv)
     elm_app_compile_bin_dir_set(PACKAGE_BIN_DIR);
     elm_app_compile_data_dir_set(PACKAGE_DATA_DIR);
     elm_app_info_set(elm_main, "etui", "themes/default.edj");
+#if (ELM_VERSION_MAJOR > 1) || (ELM_VERSION_MINOR >= 8)
     elm_app_name_set("etui");
+#endif
 
     if (!etui_init())
         goto shutdown_elm;
