@@ -208,12 +208,15 @@ elm_main(int argc, char **argv)
 
     theme = etui_theme_default_get(etui);
     if (!theme)
-        goto shutdown_etui;
+        goto free_etui;
 
     elm_theme_overlay_add(NULL, theme);
 
     if (!etui_win_new(etui))
-        goto free_etui;
+        goto del_theme;
+
+    if (!etui_doc_init(etui))
+        goto free_win;
 
     if (!size_set)
     {
@@ -249,6 +252,7 @@ elm_main(int argc, char **argv)
 
     elm_run();
 
+    etui_doc_shutdown(etui);
     etui_win_free(etui);
     elm_theme_overlay_del(NULL, etui_theme_default_get(etui));
     _etui_free(etui);
@@ -259,8 +263,11 @@ elm_main(int argc, char **argv)
 
     return EXIT_SUCCESS;
 
-  free_etui:
+  free_win:
+    etui_win_free(etui);
+  del_theme:
     elm_theme_overlay_del(NULL, etui_theme_default_get(etui));
+  free_etui:
     _etui_free(etui);
     etui = NULL;
   shutdown_etui:

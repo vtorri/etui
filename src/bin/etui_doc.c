@@ -39,32 +39,52 @@ _etui_doc_zoom(const Etui *etui)
     evas_object_size_hint_max_set(etui->doc.doc, w, h);
 }
 
-static void
-_etui_doc_splash_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event)
+static Eina_Bool
+_etui_doc_key_down_global_cb(void *data, int type EINA_UNUSED, void *event)
 {
-    Evas_Event_Key_Down *ev = (Evas_Event_Key_Down *)event;
-    Etui *etui = (Etui *)data;
-    int alt;
-    int shift;
-    int ctrl;
+    Ecore_Event_Key *ev;
+    Etui *etui;
+    unsigned int alt;
+    unsigned int shift;
+    unsigned int ctrl;
 
-    alt = evas_key_modifier_is_set(ev->modifiers, "Alt");
-    shift = evas_key_modifier_is_set(ev->modifiers, "Shift");
-    ctrl = evas_key_modifier_is_set(ev->modifiers, "Control");
+    ev = (Ecore_Event_Key *)event;
+    etui = (Etui *)data;
 
-    printf("quit !!!!!\n");
-    if ((!alt) && (ctrl) && (!shift) && (!strcmp(ev->key, "q")))
-        etui_win_free(etui);
+    alt = ev->modifiers & ECORE_EVENT_MODIFIER_ALT;
+    shift = ev->modifiers & ECORE_EVENT_MODIFIER_SHIFT;
+    ctrl = ev->modifiers & ECORE_EVENT_MODIFIER_CTRL;
+
+    if ((!alt) && (ctrl) && (!shift))
+    {
+        if (!strcmp(ev->key, "q"))
+        {
+            etui_win_free(etui);
+        }
+        else if (!strcmp(ev->key, "o"))
+        {
+            /* FIXME: open file shortcut */
+        }
+        else if (!strcmp(ev->key, "F1"))
+        {
+            /* FIXME: help shortcut */
+        }
+    }
+
+    return ECORE_CALLBACK_PASS_ON;
 }
 
 static void
 _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event)
 {
-    Evas_Event_Key_Down *ev = (Evas_Event_Key_Down *)event;
-    Etui *etui = (Etui *)data;
+    Evas_Event_Key_Down *ev;
+    Etui *etui;
     int alt;
     int shift;
     int ctrl;
+
+    ev = (Evas_Event_Key_Down *)event;
+    etui = (Etui *)data;
 
     alt = evas_key_modifier_is_set(ev->modifiers, "Alt");
     shift = evas_key_modifier_is_set(ev->modifiers, "Shift");
@@ -90,10 +110,6 @@ _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNU
         else if (!strcmp(ev->key, "Prior"))
         {
             etui_object_page_set(etui->doc.doc, etui_object_page_get(etui->doc.doc) - 10);
-        }
-        else if (!strcmp(ev->key, "F1"))
-        {
-            /* TODO: help */
         }
         else if (!strcmp(ev->key, "F11"))
         {
@@ -168,11 +184,7 @@ _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNU
 
     if ((!alt) && (ctrl) && (!shift))
     {
-        if (!strcmp(ev->key, "q"))
-        {
-            etui_win_free(etui);
-        }
-        else if (!strcmp(ev->key, "KP_Add"))
+        if (!strcmp(ev->key, "KP_Add"))
         {
             etui->doc.scale *= M_SQRT2;
             _etui_doc_zoom(etui);
@@ -218,30 +230,6 @@ _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNU
         {
             etui_object_page_set(etui->doc.doc, etui_object_document_pages_count(etui->doc.doc) - 1);
         }
-        else if (!strcmp(ev->key, "o"))
-        {
-            /* TODO: open document */
-        }
-    }
-}
-
-static void
-_etui_doc_key_up_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event)
-{
-    Evas_Event_Key_Up *ev = (Evas_Event_Key_Up *)event;
-    Etui *etui = (Etui *)data;
-    int alt;
-    int shift;
-    int ctrl;
-
-    alt = evas_key_modifier_is_set(ev->modifiers, "Alt");
-    shift = evas_key_modifier_is_set(ev->modifiers, "Shift");
-    ctrl = evas_key_modifier_is_set(ev->modifiers, "Control");
-
-    if ((!alt) && (ctrl) && (!shift))
-    {
-        if (!strcmp(ev->key, "q"))
-            etui_win_free(etui);
     }
 }
 
@@ -277,6 +265,28 @@ _etui_doc_splash_display(Etui *etui)
     }
 }
 
+Eina_Bool
+etui_doc_init(Etui *etui)
+{
+    Ecore_Event_Handler *h;
+
+    h = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN,
+                                _etui_doc_key_down_global_cb,
+                                etui);
+    if (!h)
+        return EINA_FALSE;
+
+    h = etui->doc.handle_key_down;
+
+    return EINA_TRUE;
+}
+
+void
+etui_doc_shutdown(Etui *etui)
+{
+    ecore_event_handler_del(etui->doc.handle_key_down);
+}
+
 void etui_doc_set(Etui *etui)
 {
     Evas_Object *o;
@@ -291,9 +301,6 @@ void etui_doc_set(Etui *etui)
             return;
 
         etui->doc.splash = o;
-        /* FIXME: does not work */
-        evas_object_event_callback_add(etui->doc.splash, EVAS_CALLBACK_KEY_DOWN,
-                                       _etui_doc_splash_key_down_cb, etui);
     }
 
     if (!etui->doc.sc)
