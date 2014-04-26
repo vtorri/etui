@@ -233,6 +233,32 @@ _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNU
     }
 }
 
+static void
+_etui_doc_mouse_wheel_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event)
+{
+    Evas_Event_Mouse_Wheel *ev;
+    Etui *etui;
+    int alt;
+    int shift;
+    int ctrl;
+
+    ev = (Evas_Event_Mouse_Wheel *)event;
+    etui = (Etui *)data;
+
+    alt = evas_key_modifier_is_set(ev->modifiers, "Alt");
+    shift = evas_key_modifier_is_set(ev->modifiers, "Shift");
+    ctrl = evas_key_modifier_is_set(ev->modifiers, "Control");
+
+    if ((!alt) && (ctrl) && (!shift))
+    {
+        if (ev->z == 1)
+            etui->doc.scale *= M_SQRT2;
+        else
+            etui->doc.scale /= M_SQRT2;
+        _etui_doc_zoom(etui);
+    }
+}
+
 static Eina_Bool
 _etui_doc_input_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, Evas_Object *src EINA_UNUSED, Evas_Callback_Type type, void *event_info EINA_UNUSED)
 {
@@ -315,6 +341,8 @@ etui_doc_init(Etui *etui)
     elm_object_event_callback_add(etui->doc.sc, _etui_doc_input_cb, NULL);
     evas_object_event_callback_add(etui->doc.sc, EVAS_CALLBACK_KEY_DOWN,
                                    _etui_doc_key_down_cb, etui);
+    evas_object_event_callback_add(etui->doc.sc, EVAS_CALLBACK_MOUSE_WHEEL,
+                                   _etui_doc_mouse_wheel_cb, etui);
 
     return EINA_TRUE;
 
