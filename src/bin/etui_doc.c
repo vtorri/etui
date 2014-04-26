@@ -263,7 +263,7 @@ _etui_doc_mouse_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_U
 
     if ((!alt) && (!ctrl) && (!shift))
     {
-        if (ev->flags & (EVAS_BUTTON_DOUBLE_CLICK | EVAS_BUTTON_TRIPLE_CLICK))
+        if ((ev->button == 1) && (ev->flags & EVAS_BUTTON_DOUBLE_CLICK))
         {
             _etui_doc_fullscreen_set(etui,
                                      !elm_win_fullscreen_get(etui->window.win));
