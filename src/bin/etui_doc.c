@@ -292,7 +292,7 @@ _etui_doc_mouse_wheel_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_
         if (ev->z == 1)
             etui->doc.scale *= M_SQRT2;
         else
-            etui->doc.scale /= M_SQRT2;
+            etui->doc.scale *= M_SQRT1_2;
         _etui_doc_zoom(etui);
     }
 }
