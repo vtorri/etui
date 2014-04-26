@@ -246,7 +246,7 @@ elm_main(int argc, char **argv)
         evas_object_move(etui->window.win, pos_x, pos_y);
      }
 
-    etui_doc_set(etui);
+    etui_doc_show(etui);
 
     evas_object_show(etui->window.win);
 

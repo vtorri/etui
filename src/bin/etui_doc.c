@@ -241,7 +241,7 @@ _etui_doc_input_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, Evas_Ob
 }
 
 static void
-_etui_doc_splash_display(Etui *etui)
+_etui_doc_splash_show(Etui *etui)
 {
     Evas_Object *o;
 
@@ -259,6 +259,7 @@ _etui_doc_splash_display(Etui *etui)
     }
     else
     {
+        /* etui is launched without file or unsupported file */
         elm_layout_content_set(etui->window.base, "base.content",
                                etui->doc.splash);
         evas_object_show(etui->doc.splash);
@@ -269,6 +270,7 @@ Eina_Bool
 etui_doc_init(Etui *etui)
 {
     Ecore_Event_Handler *h;
+    Evas_Object *o;
 
     h = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN,
                                 _etui_doc_key_down_global_cb,
@@ -278,62 +280,76 @@ etui_doc_init(Etui *etui)
 
     h = etui->doc.handle_key_down;
 
+    /* splash object */
+    o = elm_layout_add(etui->window.win);
+    if (!etui_theme_apply(o, etui, "etui/splash"))
+      goto del_handler;
+
+    etui->doc.splash = o;
+
+    /* scroller object */
+    o = elm_scroller_add(etui->window.win);
+    elm_scroller_policy_set(o,
+                            ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_AUTO);
+    elm_scroller_bounce_set(o, EINA_TRUE, EINA_TRUE);
+    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    etui->doc.sc = o;
+
+    /* box object */
+    o = elm_box_add(etui->window.win);
+    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    elm_object_content_set(etui->doc.sc, o);
+    evas_object_show(o);
+    etui->doc.box = o;
+
+    /* doc object */
+    o = etui_object_add(evas_object_evas_get(etui->window.win));
+    if (!o)
+        goto del_objects;
+
+    etui->doc.doc = o;
+    etui->doc.scale = 1.0f;
+
+    elm_object_event_callback_add(etui->doc.sc, _etui_doc_input_cb, NULL);
+    evas_object_event_callback_add(etui->doc.sc, EVAS_CALLBACK_KEY_DOWN,
+                                   _etui_doc_key_down_cb, etui);
+
     return EINA_TRUE;
+
+  del_objects:
+    evas_object_del(etui->doc.box);
+    evas_object_del(etui->doc.sc);
+    evas_object_del(etui->doc.splash);
+  del_handler:
+    ecore_event_handler_del(etui->doc.handle_key_down);
+
+    return EINA_FALSE;
 }
 
 void
 etui_doc_shutdown(Etui *etui)
 {
+    evas_object_del(etui->doc.doc);
+    evas_object_del(etui->doc.box);
+    evas_object_del(etui->doc.sc);
+    evas_object_del(etui->doc.splash);
     ecore_event_handler_del(etui->doc.handle_key_down);
 }
 
-void etui_doc_set(Etui *etui)
+void etui_doc_show(Etui *etui)
 {
     Evas_Object *o;
-    Evas_Object *box;
     int w;
     int h;
 
-    if (!etui->doc.splash)
-    {
-        o = elm_layout_add(etui->window.win);
-        if (!etui_theme_apply(o, etui, "etui/splash"))
-            return;
-
-        etui->doc.splash = o;
-    }
-
-    if (!etui->doc.sc)
-    {
-
-        o = elm_scroller_add(etui->window.win);
-        elm_scroller_policy_set(o, ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_AUTO);
-        elm_scroller_bounce_set(o, EINA_TRUE, EINA_TRUE);
-        evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-        evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-        etui->doc.sc = o;
-
-        box = elm_box_add(etui->window.win);
-        evas_object_size_hint_weight_set(box, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-        evas_object_size_hint_align_set(box, EVAS_HINT_FILL, EVAS_HINT_FILL);
-        elm_object_content_set(etui->doc.sc, box);
-        evas_object_show(box);
-
-        o = etui_object_add(evas_object_evas_get(etui->window.win));
-        if (!o)
-            goto splash;
-
-        etui->doc.doc = o;
-
-        etui->doc.scale = 1.0f;
-
-        elm_object_event_callback_add(etui->doc.sc, _etui_doc_input_cb, NULL);
-        evas_object_event_callback_add(etui->doc.sc, EVAS_CALLBACK_KEY_DOWN,
-                                       _etui_doc_key_down_cb, etui);
-    }
-
     if (!etui_object_file_set(etui->doc.doc, etui->filename))
-        goto splash;
+    {
+        /* unsupported file, we show splash */
+        _etui_doc_splash_show(etui);
+        return;
+    }
 
     etui_object_page_set(etui->doc.doc, 0);
     evas_object_geometry_get(etui->doc.doc, NULL, NULL, &w, &h);
@@ -341,31 +357,27 @@ void etui_doc_set(Etui *etui)
     evas_object_size_hint_max_set(etui->doc.doc, w, h);
     evas_object_focus_set(etui->doc.doc, EINA_TRUE);
     etui_object_page_use_display_list_set(etui->doc.doc, EINA_FALSE);
-    elm_box_pack_end(box, etui->doc.doc);
+    elm_box_pack_end(etui->doc.box, etui->doc.doc);
 
     if ((o = elm_layout_content_get(etui->window.base, "base.content")))
     {
         if (o == etui->doc.splash)
         {
             evas_object_hide(etui->doc.splash);
-            evas_object_show(etui->doc.doc);
             elm_layout_content_unset(etui->window.base, "base.content");
             elm_layout_content_set(etui->window.base, "base.content",
                                    etui->doc.sc);
+            evas_object_show(etui->doc.doc);
             evas_object_show(etui->doc.sc);
         }
         /* else : sc is already shown */
     }
     else
     {
-        evas_object_show(etui->doc.doc);
+        /* etui is launched with a supported file */
         elm_layout_content_set(etui->window.base, "base.content",
                                etui->doc.sc);
+        evas_object_show(etui->doc.doc);
         evas_object_show(etui->doc.sc);
     }
-
-    return;
-
-  splash:
-    _etui_doc_splash_display(etui);
 }

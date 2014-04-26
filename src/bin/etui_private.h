@@ -72,6 +72,7 @@ struct Etui_
         Ecore_Event_Handler *handle_key_down;
         Evas_Object *splash;
         Evas_Object *sc;
+        Evas_Object *box;
         Evas_Object *doc;
         float scale;
     } doc;

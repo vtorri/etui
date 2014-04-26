@@ -20,6 +20,6 @@
 
 Eina_Bool etui_doc_init(Etui *etui);
 void etui_doc_shutdown(Etui *etui);
-void etui_doc_set(Etui *etui);
+void etui_doc_show(Etui *etui);
 
 #endif
