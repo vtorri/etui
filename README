@@ -31,6 +31,7 @@ Binary:
   Ecore
   Ecore_Evas
   Ecore_Input
+  Elementary
 
 Supported backends:
 -------------------
