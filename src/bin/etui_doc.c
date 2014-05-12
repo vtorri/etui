@@ -88,15 +88,12 @@ _etui_doc_fullscreen_set(Etui *etui, Eina_Bool on)
 
         elm_win_fullscreen_set(etui->window.win, EINA_TRUE);
 
-        evas_object_size_hint_min_set(etui->window.bg, screen_w, screen_h);
         evas_object_resize(etui->window.win, screen_w, screen_h);
         elm_scroller_policy_set(etui->doc.sc, ELM_SCROLLER_POLICY_OFF, ELM_SCROLLER_POLICY_OFF);
     }
     else
     {
         elm_win_fullscreen_set(etui->window.win, EINA_FALSE);
-        evas_object_size_hint_min_set(etui->window.bg,
-                                      etui->window.win_w, etui->window.win_h);
         evas_object_resize(etui->window.win,
                            etui->window.win_w, etui->window.win_h);
         elm_scroller_policy_set(etui->doc.sc,

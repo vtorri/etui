@@ -234,7 +234,6 @@ elm_main(int argc, char **argv)
         }
     }
 
-    evas_object_size_hint_min_set(etui->window.bg, size_w, size_h);
     evas_object_resize(etui->window.win, size_w, size_h);
 
     if (pos_set)

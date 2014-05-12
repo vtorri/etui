@@ -45,7 +45,6 @@ _etui_win_focus_in_cb(void *data, Evas_Object *obj EINA_UNUSED, void *event EINA
     if (!etui->window.focused)
         elm_win_urgent_set(etui->window.win, EINA_FALSE);
     etui->window.focused = EINA_TRUE;
-    edje_object_signal_emit(etui->window.bg, "focus,in", "etui");
     edje_object_signal_emit(etui->window.base, "focus,in", "etui");
     /* elm_object_focus_set(term->term, EINA_TRUE); */
 }
@@ -56,7 +55,6 @@ _etui_win_focus_out_cb(void *data, Evas_Object *obj EINA_UNUSED, void *event EIN
     Etui *etui = (Etui *)data;
 
     etui->window.focused = EINA_FALSE;
-    edje_object_signal_emit(etui->window.bg, "focus,out", "etui");
     edje_object_signal_emit(etui->window.base, "focus,out", "etui");
     /* elm_object_focus_set(term->term, EINA_FALSE); */
     /* elm_cache_all_flush(); */
@@ -104,15 +102,6 @@ Eina_Bool etui_win_new(Etui *etui)
         INF("Can not find icon: %s", buf);
     elm_win_icon_object_set(etui->window.win, o);
 
-    /* background */
-    o = evas_object_rectangle_add(evas_object_evas_get(etui->window.win));
-    evas_object_color_set(o, 0, 0, 0, 255);
-    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-    elm_win_resize_object_add(etui->window.win, o);
-    evas_object_show(o);
-    etui->window.bg = o;
-
     /* conformant */
     o = elm_conformant_add(etui->window.win);
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -156,12 +145,6 @@ etui_win_free(Etui *etui)
     {
         evas_object_del(etui->window.conform);
         etui->window.conform = NULL;
-    }
-
-    if (etui->window.bg)
-    {
-        evas_object_del(etui->window.bg);
-        etui->window.bg = NULL;
     }
 
     if (etui->window.win)

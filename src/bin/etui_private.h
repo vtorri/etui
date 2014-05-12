@@ -59,7 +59,6 @@ struct Etui_
     struct
     {
         Evas_Object *win;
-        Evas_Object *bg;
         Evas_Object *conform;
         Evas_Object *base;
         int win_w;
