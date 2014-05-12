@@ -45,7 +45,7 @@ _etui_win_focus_in_cb(void *data, Evas_Object *obj EINA_UNUSED, void *event EINA
     if (!etui->window.focused)
         elm_win_urgent_set(etui->window.win, EINA_FALSE);
     etui->window.focused = EINA_TRUE;
-    edje_object_signal_emit(etui->window.base, "focus,in", "etui");
+    elm_layout_signal_emit(etui->window.base, "focus,in", "etui");
     /* elm_object_focus_set(term->term, EINA_TRUE); */
 }
 
@@ -55,7 +55,7 @@ _etui_win_focus_out_cb(void *data, Evas_Object *obj EINA_UNUSED, void *event EIN
     Etui *etui = (Etui *)data;
 
     etui->window.focused = EINA_FALSE;
-    edje_object_signal_emit(etui->window.base, "focus,out", "etui");
+    elm_layout_signal_emit(etui->window.base, "focus,out", "etui");
     /* elm_object_focus_set(term->term, EINA_FALSE); */
     /* elm_cache_all_flush(); */
 }
