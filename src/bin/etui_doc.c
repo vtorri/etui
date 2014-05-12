@@ -234,6 +234,12 @@ _etui_doc_key_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNU
             etui->doc.scale = (float)win_w / (float)w;
             _etui_doc_zoom(etui);
         }
+        else if (!strcmp(ev->key, "l"))
+        {
+            _etui_doc_fullscreen_set(etui,
+                                     !elm_win_fullscreen_get(etui->window.win));
+
+        }
         else if (!strcmp(ev->key, "Home"))
         {
             etui_object_page_set(etui->doc.doc, 0);
