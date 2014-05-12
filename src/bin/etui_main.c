@@ -229,8 +229,8 @@ elm_main(int argc, char **argv)
         /* } */
         /* else */
         {
-            size_w = 600;
-            size_h = 800;
+            size_w = 480;
+            size_h = 600;
         }
     }
 
