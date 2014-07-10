@@ -19,7 +19,7 @@ have_[]m4_defn([DOWN])="yes"
 dnl configure option
 
 AC_ARG_ENABLE([$1],
-   [AC_HELP_STRING([--disable-$1], [disable building of ]DOWN)],
+   [AS_HELP_STRING([--disable-$1], [disable building of ]DOWN)],
    [
     if test "x${enableval}" = "xyes" ; then
        have_[]m4_defn([DOWN])="yes"
@@ -57,7 +57,7 @@ m4_pushdef([DOWN], m4_translit([[$2]], [-A-Z], [_a-z]))dnl
 dnl configure option
 
 AC_ARG_WITH([$2],
-   [AC_HELP_STRING([--with-$2=PATH], [specify a specific path to ]DOWN[ @<:@default=$3@:>@])],
+   [AS_HELP_STRING([--with-$2=PATH], [specify a specific path to ]DOWN[ @<:@default=$3@:>@])],
    [_efl_with_binary=${withval}],
    [_efl_with_binary=$(pkg-config --variable=prefix $1)/bin/$3])
 
