@@ -402,10 +402,6 @@ etui_doc_init(Etui *etui)
 void
 etui_doc_shutdown(Etui *etui)
 {
-    evas_object_del(etui->doc.doc);
-    evas_object_del(etui->doc.box);
-    evas_object_del(etui->doc.sc);
-    evas_object_del(etui->doc.splash);
     ecore_event_handler_del(etui->doc.handle_key_down);
 }
 
