@@ -25,7 +25,7 @@
  */
 
 /*
- * Adapted from http://codexpert.ro/forum/viewtopic.php?f=47&t=2232
+ * Vaguely adapted from http://codexpert.ro/forum/viewtopic.php?f=47&t=2232
  * Creative Common license (CC BY-SA 3.0)
  */
 
@@ -281,7 +281,7 @@ _etui_img_cbt_entry_next_get(Etui_Img_Cbt *tar)
     {
         if((tar->size - tar->header_size) < CHUNK_SIZE)
         {
-            // TODO: read checksum
+            /* TODO: read checksum */
         }
 
         return NULL;
@@ -338,6 +338,8 @@ etui_img_cbt_entries_get(Etui_Img_Cbt *tar)
         return NULL;
 
     e = _etui_img_cbt_entry_first_get(tar);
+    if (!e)
+        return NULL;
     do
     {
         list = eina_list_append(list, e);
