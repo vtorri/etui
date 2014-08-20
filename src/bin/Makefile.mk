@@ -27,8 +27,8 @@ src/bin/etui_res.rc
 
 windres_verbose = $(windres_verbose_@AM_V@)
 windres_verbose_ = $(windres_verbose_@AM_DEFAULT_V@)
-windres_verbose_0 = $(AM_V_at)echo "  RC      " $@;
+windres_verbose_0 = $(AM_V_at)echo "  RES     " $@;
 
 .rc.o:
-	$(wc_verbose)windres -o $@ $<
+	$(windres_verbose)windres -o $@ $<
 endif
