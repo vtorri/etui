@@ -757,6 +757,7 @@ _etui_img_file_close(void *d)
     {
         case ETUI_IMG_CB_CBZ:
         {
+#ifdef HAVE_ZLIB
             Etui_Img_Cbz_Data *data;
             Eina_Array_Iterator iterator;
             unsigned int i;
@@ -768,11 +769,12 @@ _etui_img_file_close(void *d)
             }
             eina_array_flush(&pd->doc.toc);
             eina_file_close(pd->doc.zip.file);
+#endif
             break;
         }
         case ETUI_IMG_CB_CBR:
         {
-            Etui_Img_Cbz_Data *data;
+            Etui_Img_Cbr_Data *data;
             Eina_Array_Iterator iterator;
             unsigned int i;
 
