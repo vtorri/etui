@@ -51,7 +51,7 @@ AC_SUBST([MODULE_ARCH])
 requirements_etui_libs=""
 AC_SUBST([requirements_etui_libs])
 
-efl_version="1.7.0"
+efl_version="1.11.0"
 
 requirements_etui_pc="efreet-mime >= ${efl_version} eio >= ${efl_version} ecore >= ${efl_version} evas >= ${efl_version} eina >= ${efl_version}"
 AC_SUBST([requirements_etui_pc])
