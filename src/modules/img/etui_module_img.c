@@ -69,11 +69,6 @@
 #endif
 #define CRIT(...) EINA_LOG_DOM_CRIT(_etui_module_img_log_domain, __VA_ARGS__)
 
-#ifdef min
-# undef min
-#endif
-#define min(a, b) ((a) < (b)) ? (a) : (b)
-
 typedef enum
 {
     ETUI_IMG_CB_NONE,
