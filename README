@@ -42,9 +42,9 @@ PDF and XPS
   freetype
   openjpeg
 
-Image / Comic Book (cbz, cbr, cbt)
+Image / Comic Book (cbz, cbr, cb7, cbt, cba)
  Requirements:
-  zlib (cbz)
+  libarchive
 
 Postscript
  Requirements:
@@ -55,6 +55,12 @@ Postscript
 DjVu:
  Requirements:
   libdjvu (DjVuLibre)
+
+EPUB:
+ Requirements:
+  Ecore_File
+  libarchive
+  ewebkit2
 
 Key bindings:
 -------------
