@@ -49,6 +49,39 @@ AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
 
 ])
 
+dnl use: ETUI_CHECK_DEP_EPUB(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+
+AC_DEFUN([ETUI_CHECK_DEP_EPUB],
+[
+
+requirements_libs=""
+requirement_pc=""
+have_dep="yes"
+
+dnl libarchive
+PKG_CHECK_EXISTS([libarchive >= 3 ewebkit2 >= ${efl_version} ecore-file >= ${efl_version}],
+   [
+    have_dep="yes"
+    requirements_pc="libarchive >= 3 ewebkit2 >= ${efl_version} ecore-file >= ${efl_version} ${requirements_pc}"
+   ],
+   [have_dep="no"])
+
+dnl check libraries
+if ! test "x${requirements_pc}" = "x" ; then
+   PKG_CHECK_MODULES([EPUB],
+      [${requirements_pc}],
+      [],
+      [])
+fi
+
+if test "x$1" = "xstatic" ; then
+   requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
+fi
+
+AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
+
+])
+
 dnl use: ETUI_CHECK_DEP_IMG(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
 
 AC_DEFUN([ETUI_CHECK_DEP_IMG],

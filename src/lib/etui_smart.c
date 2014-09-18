@@ -442,6 +442,8 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
         else if ((strcmp(mime, "image/vnd.djvu") == 0) ||
                  (strcmp(mime, "image/x-djvu") == 0))
             module_name = "djvu";
+        else if (strcmp(mime, "application/epub+zip") == 0)
+            module_name = "epub";
     }
     INF("module name: %s", module_name);
 

@@ -243,6 +243,11 @@ Eina_Bool etui_module_djvu_init(void);
 void etui_module_djvu_shutdown(void);
 #endif
 
+#ifdef ETUI_BUILD_STATIC_EPUB
+Eina_Bool etui_module_epub_init(void);
+void etui_module_epub_shutdown(void);
+#endif
+
 Eina_Bool
 etui_modules_init(void)
 {
@@ -270,6 +275,10 @@ etui_modules_init(void)
     etui_module_djvu_init();
 #endif
 
+#ifdef ETUI_BUILD_STATIC_EPUB
+    etui_module_epub_init();
+#endif
+
     return EINA_TRUE;
 }
 
@@ -279,6 +288,10 @@ etui_modules_shutdown(void)
     Etui_Provider_Registry_Entry *re;
 
     /* TODO : STATIC modules */
+#ifdef ETUI_BUILD_STATIC_EPUB
+    etui_module_epub_shutdown();
+#endif
+
 #ifdef ETUI_BUILD_STATIC_DJVU
     etui_module_djvu_shutdown();
 #endif
