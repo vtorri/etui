@@ -22,8 +22,8 @@
 #include <Eina.h>
 #include <Evas.h>
 
-#include <fitz.h>
-#include <mupdf.h>
+#include "mupdf/fitz.h"
+#include "mupdf/pdf.h"
 
 #include "Etui.h"
 #include "etui_module.h"
@@ -118,43 +118,12 @@ _etui_pdf_to_lowercase(char c)
 }
 
 /* code borrowed from doc_search.c */
-static fz_text_char
-_etui_pdf_page_text_text_charat(fz_text_page *page, int idx)
-{
-    static fz_text_char emptychar = { {0,0,0,0}, ' ' };
-    fz_text_block *block;
-    fz_text_line *line;
-    fz_text_span *span;
-    int ofs = 0;
-
-    for (block = page->blocks; block < page->blocks + page->len; block++)
-    {
-        for (line = block->lines; line < block->lines + block->len; line++)
-        {
-            for (span = line->spans; span < line->spans + line->len; span++)
-            {
-                if (idx < ofs + span->len)
-                    return span->text[idx - ofs];
-                /* pseudo-newline */
-                if (span + 1 == line->spans + line->len)
-                {
-                    if (idx == ofs + span->len)
-                        return emptychar;
-                    ofs++;
-                }
-                ofs += span->len;
-            }
-        }
-    }
-
-    return emptychar;
-}
-
-/* code borrowed from doc_search.c */
 static int
 _etui_pdf_page_text_charat(fz_text_page *page, int idx)
 {
-    return _etui_pdf_page_text_text_charat(page, idx).c;
+    fz_char_and_box cab;
+    fz_text_char_at(&cab, page, idx);
+    return cab.c;
 }
 
 /* code borrowed from doc_search.c */
@@ -655,7 +624,7 @@ _etui_pdf_file_close(void *d)
     if (pd->page.use_display_list)
     {
         if (pd->page.list)
-            fz_free_display_list(pd->doc.ctx, pd->page.list);
+            fz_free(pd->doc.ctx, pd->page.list);
     }
     pd->page.list = NULL;
 
@@ -1273,7 +1242,7 @@ _etui_pdf_page_render(void *d)
     if (pd->page.use_display_list)
     {
         if (pd->page.list)
-            fz_free_display_list(pd->doc.ctx, pd->page.list);
+            fz_free(pd->doc.ctx, pd->page.list);
         pd->page.list = fz_new_display_list(pd->doc.ctx);
 
         dev = fz_new_list_device(pd->doc.ctx, pd->page.list);
@@ -1285,7 +1254,7 @@ _etui_pdf_page_render(void *d)
     fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
     width = ibounds.x1 - ibounds.x0;
     height = ibounds.y1 - ibounds.y0;
-    image = fz_new_pixmap_with_data(pd->doc.ctx, fz_device_bgr,
+    image = fz_new_pixmap_with_data(pd->doc.ctx, NULL,
                                     width, height,
                                     (unsigned char *)pd->efl.m);
 
@@ -1359,18 +1328,21 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
     bounds.x1 = rect->x + rect->w;
     bounds.y1 = rect->y + rect->h;
 
-    text = fz_new_text_page(pd->doc.ctx, &bounds);
+    text = fz_new_text_page(pd->doc.ctx);
     if (!text)
         return NULL;
 
     sheet = fz_new_text_sheet(pd->doc.ctx);
     if (!sheet)
-        goto free_text_page;
+    {
+        fz_free_text_page(pd->doc.ctx, text);
+        return NULL;
+    }
 
     if (pd->page.use_display_list)
     {
         if (pd->page.list)
-            fz_free_display_list(pd->doc.ctx, pd->page.list);
+            fz_free(pd->doc.ctx, pd->page.list);
         pd->page.list = fz_new_display_list(pd->doc.ctx);
 
         dev = fz_new_list_device(pd->doc.ctx, pd->page.list);
@@ -1384,88 +1356,34 @@ _etui_pdf_page_text_extract(void *d, const Eina_Rectangle *rect)
     }
     fz_free_device(dev);
 
-    /* first run : we compute the size of the string */
-    len = 0;
-    seen = 0;
-    for (block = text->blocks; block < text->blocks + text->len; block++)
-    {
-        for (line = block->lines; line < block->lines + block->len; line++)
+    return fz_copy_selection(pd->doc.ctx, text, bounds);
+}
+
+/* stext-search.c */
+static int textlen(fz_text_page *page)
+{
+        int len = 0;
+        int block_num;
+
+        for (block_num = 0; block_num < page->len; block_num++)
         {
-            for (span = line->spans; span < line->spans + line->len; span++)
-            {
-                if (seen)
-                    len++;
-                seen = 0;
-                for (i = 0; i < span->len; i++)
+                fz_text_block *block;
+                fz_text_line *line;
+                fz_text_span *span;
+
+                if (page->blocks[block_num].type != FZ_PAGE_BLOCK_TEXT)
+                        continue;
+                block = page->blocks[block_num].u.text;
+                for (line = block->lines; line < block->lines + block->len; line++)
                 {
-                    hitbox = span->text[i].bbox;
-                    c = span->text[i].c;
-                    if (c < 32)
-                        c = '?';
-                    if ((hitbox.x1 >= bounds.x0) &&
-                        (hitbox.x0 <= bounds.x1) &&
-                        (hitbox.y1 >= bounds.y0) &&
-                        (hitbox.y0 <= bounds.y1))
-                    {
-                        len++;
-                        seen = 1;
-                    }
+                        for (span = line->first_span; span; span = span->next)
+                        {
+                                len += span->len;
+                        }
+                        len++; /* pseudo-newline */
                 }
-                seen = (seen && span + 1 == line->spans + line->len);
-            }
         }
-    }
-
-    res = (char *)malloc((len + 1) * sizeof(char));
-    if (!res)
-        return NULL;
-
-    /* second run, we fill the string */
-    iter = res;
-    seen = 0;
-    for (block = text->blocks; block < text->blocks + text->len; block++)
-    {
-        for (line = block->lines; line < block->lines + block->len; line++)
-        {
-            for (span = line->spans; span < line->spans + line->len; span++)
-            {
-                if (seen)
-                {
-                    *iter = '\n';
-                    iter++;
-                }
-                seen = 0;
-                for (i = 0; i < span->len; i++)
-                {
-                    hitbox = span->text[i].bbox;
-                    c = span->text[i].c;
-                    if (c < 32)
-                        c = '?';
-                    if ((hitbox.x1 >= bounds.x0) &&
-                        (hitbox.x0 <= bounds.x1) &&
-                        (hitbox.y1 >= bounds.y0) &&
-                        (hitbox.y0 <= bounds.y1))
-                    {
-                        *iter = c;
-                        iter++;
-                        seen = 1;
-                    }
-                }
-                seen = (seen && span + 1 == line->spans + line->len);
-            }
-        }
-    }
-    *iter = '\0';
-
-    fz_free_text_sheet(pd->doc.ctx, sheet);
-    fz_free_text_page(pd->doc.ctx, text);
-
-    return res;
-
-  free_text_page:
-    fz_free_text_page(pd->doc.ctx, text);
-
-    return NULL;
+        return len;
 }
 
 /* code borrowed from doc_search.c */
@@ -1501,7 +1419,7 @@ _etui_pdf_page_text_find(void *d, const char *needle)
         goto free_rects;
     }
 
-    text = fz_new_text_page(pd->doc.ctx, &fz_infinite_rect);
+    text = fz_new_text_page(pd->doc.ctx);
     if (!text)
         goto free_rects;
 
@@ -1512,7 +1430,7 @@ _etui_pdf_page_text_find(void *d, const char *needle)
     if (pd->page.use_display_list)
     {
         if (pd->page.list)
-            fz_free_display_list(pd->doc.ctx, pd->page.list);
+            fz_free(pd->doc.ctx, pd->page.list);
         pd->page.list = fz_new_display_list(pd->doc.ctx);
 
         dev = fz_new_list_device(pd->doc.ctx, pd->page.list);
@@ -1526,16 +1444,7 @@ _etui_pdf_page_text_find(void *d, const char *needle)
     }
     fz_free_device(dev);
 
-    text_len = 0;
-    for (block = text->blocks; block < text->blocks + text->len; block++)
-    {
-        for (line = block->lines; line < block->lines + block->len; line++)
-        {
-            for (span = line->spans; span < line->spans + line->len; span++)
-                text_len += span->len;
-            text_len++; /* pseudo-newline */
-        }
-    }
+    text_len = textlen(text);
 
     for (pos = 0; pos < text_len; pos++)
     {
@@ -1547,8 +1456,9 @@ _etui_pdf_page_text_find(void *d, const char *needle)
             for (i = 0; i < n; i++)
             {
                 fz_rect charbox;
+                fz_char_and_box cab;
 
-                charbox = _etui_pdf_page_text_text_charat(text, pos + i).bbox;
+                charbox = fz_text_char_at(&cab, text, pos + i)->bbox;
                 if (!fz_is_empty_rect(&charbox))
                 {
                     if (charbox.y0 != linebox.y0 || fz_abs(charbox.x0 - linebox.x1) > 5)
