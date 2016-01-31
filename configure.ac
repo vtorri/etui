@@ -115,6 +115,11 @@ EFL_CHECK_C_COMPILER_FLAGS([ETUI_BIN], [-Wall -Wextra -Wshadow -Wdeclaration-aft
 
 ### Checks for library functions
 
+
+### Checks for system services
+
+AC_SYS_LARGEFILE
+
 AC_CONFIG_FILES([
 Makefile
 ])
