@@ -69,6 +69,12 @@
 #endif
 #define CRIT(...) EINA_LOG_DOM_CRIT(_etui_module_ps_log_domain, __VA_ARGS__)
 
+#ifdef HAVE_GS918
+# define ETUI_ERROR_NEEDINPUT gs_error_NeedInput
+#else
+# define ETUI_ERROR_NEEDINPUT e_NeedInput
+#endif
+
 typedef struct _Etui_Provider_Data Etui_Provider_Data;
 
 struct _Etui_Provider_Data
@@ -276,8 +282,8 @@ _etui_ps_gs_process(Etui_Provider_Data *pd, int x, int y, long begin, long end)
         snprintf (set, sizeof(set), "%d %d translate\n", -x, -y);
         err = gsapi_run_string_continue(pd->gs.instance, set, strlen (set),
                                         0, &exit_code);
-        err = (err == e_NeedInput) ? 0 : err;
-        if ((err != e_NeedInput) && err < 0)
+        err = (err == ETUI_ERROR_NEEDINPUT) ? 0 : err;
+        if ((err != ETUI_ERROR_NEEDINPUT) && err < 0)
                 return EINA_FALSE;
     }
 
@@ -292,7 +298,7 @@ _etui_ps_gs_process(Etui_Provider_Data *pd, int x, int y, long begin, long end)
 
         r = fread(buf, sizeof(char), to_read, pd->doc.f);
         err = gsapi_run_string_continue(pd->gs.instance, buf, r, 0, &exit_code);
-        err = (err == e_NeedInput) ? 0 : err;
+        err = (err == ETUI_ERROR_NEEDINPUT) ? 0 : err;
         left -= r;
     }
 
