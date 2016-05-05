@@ -277,7 +277,7 @@ gsapi_new_instance(&inst, NULL);
 
    AC_MSG_RESULT([${have_dep}])
 
-   if test "x${have_gs918}" = "xyes" ; then
+   if test "x${have_dep}" = "xyes" ; then
       AC_MSG_CHECKING([for libgs library >= 9.18])
       AC_COMPILE_IFELSE(
          [AC_LANG_PROGRAM(
@@ -290,7 +290,7 @@ int i = gs_error_NeedInput;
              ]])],
          [have_gs918="yes"],
          [have_gs918="no"])
-      AC_MSG_RESULT([${have_have_gs918}])
+      AC_MSG_RESULT([${have_gs918}])
 
       if test "x${have_gs918}" = "xyes" ; then
          AC_DEFINE([HAVE_GS918], [1], [Set to 1 if libgs >= 9.18 is found])
