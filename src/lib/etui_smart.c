@@ -377,7 +377,10 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
 
     ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
 
-    res = realpath(filename, file);
+    if (eina_str_has_prefix(filename, "file://"))
+        res = realpath(filename + 7, file);
+    else
+        res = realpath(filename, file);
     if (!res)
         return EINA_FALSE;
     if (sd->filename && (!strcmp(file, sd->filename)))
