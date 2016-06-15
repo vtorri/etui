@@ -164,10 +164,10 @@ fi
 
 dnl openjpeg
 if test "x${have_dep}" = "xyes" ; then
-   PKG_CHECK_EXISTS([libopenjpeg1 >= 1.5],
+   PKG_CHECK_EXISTS([libopenjp2 >= 2.1],
       [
        have_pkg_jp2k="yes"
-       requirements_pc="libopenjpeg1 ${requirements_pc}"
+       requirements_pc="libopenjp2 ${requirements_pc}"
       ],
       [have_pkg_jp2k="no"])
 
