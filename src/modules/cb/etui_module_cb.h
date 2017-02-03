@@ -16,10 +16,10 @@
  * if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ETUI_MODULE_IMG_H
-#define ETUI_MODULE_IMG_H
+#ifndef ETUI_MODULE_CB_H
+#define ETUI_MODULE_CB_H
 
-Eina_Bool etui_module_img_init(void);
-void etui_module_img_shutdown(void);
+Eina_Bool etui_module_cb_init(void);
+void etui_module_cb_shutdown(void);
 
 #endif
