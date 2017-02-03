@@ -91,14 +91,14 @@ _etui_key_down(void *data, int type EINA_UNUSED, void *event)
             evas_object_geometry_get(data, NULL, NULL, &w, &h);
             printf(" bin ** %dx%d\n", w, h);
         }
-        else if (!strcmp(ev->key, "<"))
+        else if (!strcmp(ev->key, "less"))
         {
             rotation += 90;
             if (rotation > ETUI_ROTATION_270)
                 rotation = ETUI_ROTATION_0;
             etui_object_page_rotation_set(data, rotation);
         }
-        else if (!strcmp(ev->key, ">"))
+        else if (!strcmp(ev->key, "greater"))
         {
             rotation -= 90;
             if (rotation < ETUI_ROTATION_0)
@@ -123,18 +123,19 @@ static void _etui_toc_display(const Eina_Array *items, int indent)
     Eina_Array_Iterator iter;
     unsigned int i;
 
-    if (!items)
-        return;
-
-    if (eina_array_count(items) == 0)
+    if (!items || (eina_array_count(items) == 0))
         return;
 
     EINA_ARRAY_ITER_NEXT(items, i, item, iter)
     {
         int j;
 
+        printf("$");
         for (j = 0; j < indent; j++) printf (" ");
-        printf ("%s: %d\n", item->title, item->kind);
+        printf ("%s (%d): %d\n",
+                item->title,
+                (item->kind == ETUI_LINK_KIND_GOTO) ? item->dest.goto_.page : -1,
+                item->kind);
         _etui_toc_display(item->child, indent + 2);
     }
 }
@@ -160,13 +161,10 @@ int main(int argc, char *argv[])
     Ecore_Event_Handler *handler;
     Evas *evas;
     Evas_Object *o;
-    char *prop;
+    const char *prop;
     int args;
     int w;
     int h;
-
-    int maj;
-    int min;
 
     if (!ecore_evas_init())
     {
@@ -214,10 +212,10 @@ int main(int argc, char *argv[])
         goto shutdown_ecore_evas;
 
     o = etui_object_add(evas);
-    if (!etui_object_file_set(o, argv[args]))
+    if (!etui_object_file_open(o, argv[args]))
     {
         printf("can not open file %s\n", argv[args]);
-        goto shutdown_ecore_evas;
+        goto shutdown_etui;
     }
 
     etui_object_page_set(o, 0);
@@ -225,51 +223,106 @@ int main(int argc, char *argv[])
     printf(" $$$$ size : %dx%d\n", w, h);
     evas_object_move(o, 0, 0);
     evas_object_focus_set(o, EINA_TRUE);
-    etui_object_page_use_display_list_set(o, EINA_FALSE);
     evas_object_show(o);
     ecore_evas_object_associate(ee, o, ECORE_EVAS_OBJECT_ASSOCIATE_BASE);
 
     handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN, _etui_key_down, o);
 
-    etui_object_version_get(o, &maj, &min);
     printf("module : %s\n", etui_object_module_name_get(o));
-    printf("version : %d.%d\n", maj, min);
     prop = etui_object_title_get(o);
     printf("title : %s\n", prop);
-    free(prop);
-    prop = etui_object_author_get(o);
-    printf("author : %s\n", prop);
-    free(prop);
-    prop = etui_object_subject_get(o);
-    printf("subject : %s\n", prop);
-    free(prop);
-    prop = etui_object_keywords_get(o);
-    printf("keywords : %s\n", prop);
-    free(prop);
-    prop = etui_object_creator_get(o);
-    printf("creator : %s\n", prop);
-    free(prop);
-    prop = etui_object_producer_get(o);
-    printf("producer : %s\n", prop);
-    free(prop);
-    prop = etui_object_creation_date_get(o);
-    printf("creation date : %s\n", prop);
-    free(prop);
-    prop = etui_object_modification_date_get(o);
-    printf("modification date : %s\n", prop);
-    free(prop);
-    printf("printable : %s\n", etui_object_is_printable(o) ? "yes" : "no");
-    printf("changeable : %s\n", etui_object_is_changeable(o) ? "yes" : "no");
-    printf("copyable : %s\n", etui_object_is_copyable(o) ? "yes" : "no");
-    printf("notable : %s\n", etui_object_is_notable(o) ? "yes" : "no");
     printf("pages : %d\n", etui_object_document_pages_count(o));
     printf("size : %dx%d\n", w, h);
 
+    if (strcmp("pdf", etui_object_module_name_get(o)) == 0)
+    {
+        const Etui_Module_Pdf_Info *info;
+
+        info = etui_object_info_get(o);
+        if (info)
+        {
+            printf("Author           : %s\n", info->author);
+            printf("Subject          : %s\n", info->subject);
+            printf("Keywords         : %s\n", info->keywords);
+            printf("Creator          : %s\n", info->creator);
+            printf("Producer         : %s\n", info->producer);
+            printf("Creation date    : %s\n", info->creation_date);
+            printf("Modification date: %s\n", info->modification_date);
+            printf("Encryption       : %s\n", info->encryption);
+        }
+    }
+
+    if (strcmp("cb", etui_object_module_name_get(o)) == 0)
+    {
+        const Etui_Module_Cb_Info *info;
+
+        info = etui_object_info_get(o);
+        if (info)
+        {
+            char *type;
+
+            switch (info->type)
+            {
+                case ETUI_CB_CBZ:
+                    type = "ebook CBZ";
+                    break;
+                case ETUI_CB_CBR:
+                    type = "ebook CBR";
+                    break;
+                case ETUI_CB_CBA:
+                    type = "ebook CBA";
+                    break;
+                case ETUI_CB_CB7:
+                    type = "ebook CB7";
+                    break;
+                case ETUI_CB_CBT:
+                    type = "ebook CBT";
+                    break;
+            }
+
+            printf("type : %s\n", type);
+        }
+    }
+
+    if (strcmp("djvu", etui_object_module_name_get(o)) == 0)
+    {
+        const Etui_Module_Djvu_Info *info;
+
+        info = etui_object_info_get(o);
+        if (info)
+        {
+            char *type;
+
+            switch (info->page_type)
+            {
+                case ETUI_DJVU_PAGE_TYPE_UNKNOWN:
+                    type = "Unknown";
+                    break;
+                case ETUI_DJVU_PAGE_TYPE_BITONAL:
+                    type = "Bitonal";
+                    break;
+                case ETUI_DJVU_PAGE_TYPE_PHOTO:
+                    type = "Photo";
+                    break;
+                case ETUI_DJVU_PAGE_TYPE_COMPOUND:
+                    type = "Compound";
+                    break;
+                default:
+                    type = "Unknown";
+                    break;
+            }
+
+            printf("DPI : %d\n", info->page_dpi);
+            printf("Gamma : %f\n", info->page_gamma);
+            printf("type : %s\n", type);
+        }
+    }
+
     /* printf("\n"); */
 
-#if 0
     _etui_toc_display(etui_object_toc_get(o), 0);
 
+#if 0
     {
         char *str;
         Eina_Rectangle rect = { 209, 680, 116, 24 };
@@ -319,6 +372,8 @@ int main(int argc, char *argv[])
 
     return 0;
 
+  shutdown_etui:
+    etui_shutdown();
   shutdown_ecore_evas:
     ecore_evas_shutdown();
 
