@@ -19,8 +19,12 @@
 # include <config.h>
 #endif
 
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include <Eina.h>
-#include <Evas.h>
+#include <Ecore.h> /* for Ecore_Thread in Etui_Module */
 
 #include "Etui.h"
 #include "etui_private.h"
@@ -34,185 +38,178 @@
  * @cond LOCAL
  */
 
-#define ETUI_PROVIDER_INSTANCE_CHECK(inst, meth, ...) \
-do                                                    \
-{                                                     \
-    if (!inst)                                        \
-    {                                                 \
-        DBG("no instance to call "#meth);             \
-            return __VA_ARGS__;                       \
-    }                                                 \
-    if (!inst->provider->meth)                        \
-    {                                                 \
-        DBG("no "#meth" in instance=%p", inst);       \
-        return __VA_ARGS__;                           \
-    }                                                 \
-} while (0)
+#ifdef _WIN32
+# define ETUI_MODULE_NAME "module.dll"
+#else
+# define ETUI_MODULE_NAME "module.so"
+#endif
 
-#define ETUI_PROVIDER_INSTANCE_CALL(inst, meth, ...)  \
-do                                                    \
-{                                                     \
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, meth);         \
-    inst->provider->meth(inst->data, ## __VA_ARGS__); \
-} while (0)
+#define ETUI_EINA_STATIC_MODULE_DEFINE(name) \
+    Eina_Bool etui_##name##_init(void); \
+    void etui_##name##_shutdown(void)
 
-#define ETUI_PROVIDER_INSTANCE_CALL_RET(inst, meth, retval, ...) \
-do                                                               \
-{                                                                \
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, meth, retval);            \
-    return inst->provider->meth(inst->data, ## __VA_ARGS__);     \
-} while (0)
+#define ETUI_EINA_STATIC_MODULE_USE(name) \
+    { etui_##name##_init, etui_##name##_shutdown }
 
-typedef struct _Etui_Provider_Registry_Entry Etui_Provider_Registry_Entry;
+static Eina_Hash *_etui_modules = NULL;
+static Eina_List *_etui_module_paths = NULL;
+static Eina_Prefix *_etui_prefix = NULL;
 
-struct _Etui_Provider_Registry_Entry
+
+#ifdef ETUI_BUILD_STATIC_CB
+ETUI_EINA_STATIC_MODULE_DEFINE(cb);
+#endif
+
+#ifdef ETUI_BUILD_STATIC_DJVU
+ETUI_EINA_STATIC_MODULE_DEFINE(djvu);
+#endif
+
+#ifdef ETUI_BUILD_STATIC_PDF
+ETUI_EINA_STATIC_MODULE_DEFINE(pdf);
+#endif
+
+#ifdef ETUI_BUILD_STATIC_PS
+ETUI_EINA_STATIC_MODULE_DEFINE(ps);
+#endif
+
+#ifdef ETUI_BUILD_STATIC_TIFF
+ETUI_EINA_STATIC_MODULE_DEFINE(tiff);
+#endif
+
+static const struct
 {
-    const Etui_Provider_Descriptor *provider;
-    int priority;
+    Eina_Bool (*init)(void);
+    void (*shutdown)(void);
+} _etui_static_module[] =
+{
+#ifdef ETUI_BUILD_STATIC_CB
+    ETUI_EINA_STATIC_MODULE_USE(cb),
+#endif
+#ifdef ETUI_BUILD_STATIC_DJVU
+    ETUI_EINA_STATIC_MODULE_USE(djvu),
+#endif
+#ifdef ETUI_BUILD_STATIC_PDF
+    ETUI_EINA_STATIC_MODULE_USE(pdf),
+#endif
+#ifdef ETUI_BUILD_STATIC_PS
+    ETUI_EINA_STATIC_MODULE_USE(ps),
+#endif
+#ifdef ETUI_BUILD_STATIC_TIFF
+    ETUI_EINA_STATIC_MODULE_USE(tiff),
+#endif
+    { NULL, NULL}
 };
-
-struct _Etui_Provider_Instance
-{
-    EINA_REFCOUNT;
-
-    const Etui_Provider_Descriptor *provider;
-    Evas *evas;
-    void *data;
-};
-
-static Eina_Array *_etui_modules = NULL;
-static Eina_Hash *_etui_providers = NULL;
-static Eina_List *_etui_provider_registries = NULL;
-static Eina_Bool _etui_modules_loaded = EINA_FALSE;
-
-/* Registry functions */
-
-static void
-_etui_provider_registry_entry_free(Etui_Provider_Registry_Entry *re)
-{
-    free(re);
-}
-
-static int
-_etui_provider_registry_entry_cmp(const void *pa, const void *pb)
-{
-    const Etui_Provider_Registry_Entry *a, *b;
-    int r;
-
-    a = (Etui_Provider_Registry_Entry *)pa;
-    b = (Etui_Provider_Registry_Entry *)pb;
-    r = b->priority - a->priority;
-
-    if (r == 0)
-        r = b->provider->priority - a->provider->priority;
-
-    if (r == 0)
-        /* guarantee some order to ease debug */
-        r = strcmp(b->provider->name, a->provider->name);
-
-    return r;
-}
-static const Etui_Provider_Descriptor *
-_etui_provider_registry_find(const char *name)
-{
-    const Eina_List *n;
-    const Etui_Provider_Registry_Entry *re;
-
-    EINA_LIST_FOREACH(_etui_provider_registries, n, re)
-    {
-        if (strcmp(re->provider->name, name) == 0)
-            return re->provider;
-    }
-
-    return NULL;
-}
-
-static Etui_Provider_Instance *
-_etui_provider_instance_new(const Etui_Provider_Descriptor *provider,
-                            Evas                           *evas,
-                            void                           *data)
-{
-    Etui_Provider_Instance *inst;
-
-    inst = calloc(1, sizeof(Etui_Provider_Instance));
-    EINA_SAFETY_ON_NULL_GOTO(inst, del_data);
-    inst->provider = provider;
-    inst->evas = evas;
-    inst->data = data;
-
-    EINA_REFCOUNT_INIT(inst);
-
-    return inst;
-
-  del_data:
-    provider->shutdown(data);
-    return NULL;
-}
-
-/* modules functions */
 
 static Eina_Bool
-_etui_modules_load(void)
+_etui_path_is_file(const char *path)
 {
-    char buf[PATH_MAX];
-    char *path;
-    Eina_Prefix *prefix;
+    struct stat st;
 
-    if (_etui_modules_loaded)
-        return EINA_TRUE;
+    if (!path || !*path)
+        return EINA_FALSE;
 
-    _etui_modules_loaded = EINA_TRUE;
-
-    path = eina_module_environment_path_get("HOME", "/.etui/modules");
-    if (path)
+    if (stat(path, &st) == -1)
     {
-        _etui_modules = eina_module_arch_list_get(_etui_modules, path, MODULE_ARCH);
-        free(path);
-    }
-
-    path = eina_module_environment_path_get("ETUI_MODULES_DIR", "/etui/modules");
-    if (path)
-    {
-        _etui_modules = eina_module_arch_list_get(_etui_modules, path, MODULE_ARCH);
-        free(path);
-    }
-
-    prefix = eina_prefix_new(NULL, etui_init,
-                             "ETUI", "etui", "checkme",
-                             PACKAGE_BIN_DIR, PACKAGE_LIB_DIR,
-                             PACKAGE_DATA_DIR, PACKAGE_DATA_DIR);
-    if (prefix)
-    {
-        snprintf(buf, sizeof(buf),
-                 "%s/etui/modules", eina_prefix_lib_get(prefix));
-        _etui_modules = eina_module_arch_list_get(_etui_modules, buf, MODULE_ARCH);
-        eina_prefix_free(prefix);
-    }
-    else
-    {
-        INF("Could not create prefix, use library path directly.");
-        _etui_modules = eina_module_arch_list_get(_etui_modules, PACKAGE_LIB_DIR"/etui/modules", MODULE_ARCH);
-    }
-
-    path = eina_module_symbol_path_get(etui_object_add, "/etui/modules");
-    if (path)
-    {
-        _etui_modules = eina_module_list_get(_etui_modules, path, 0, NULL, NULL);
-        free(path);
-    }
-
-    if (!_etui_modules)
-    {
-        ERR("Could not find modules.");
+        ERR("stat failed on %s : %s", path, strerror(errno));
         return EINA_FALSE;
     }
 
-    eina_module_list_load(_etui_modules);
+    if (S_ISREG(st.st_mode))
+        return EINA_TRUE;
 
-    /* TODO: registry */
+    ERR("path %s is not a regular file", path);
+    return EINA_FALSE;
+}
+
+static Eina_Bool
+_etui_module_close_cb(const Eina_Hash *hash EINA_UNUSED,
+                      const void *key EINA_UNUSED,
+                      void *data,
+                      void *fdata EINA_UNUSED)
+{
+    Etui_Module *em;
+
+    if (!data)
+        return EINA_FALSE;
+
+    em = (Etui_Module *)data;
+
+    em->definition->func.close(em);
+    em->loaded = 0;
 
     return EINA_TRUE;
 }
+
+static Eina_List *
+_etui_module_append(Eina_List *list, char *path)
+{
+    struct stat st;
+
+    if (!path || !*path)
+        return list;
+
+    if (stat(path, &st) == 0)
+        list = eina_list_append(list, path);
+    else
+        free(path);
+
+    return list;
+}
+
+static void
+_etui_module_paths_init(void)
+{
+    char *path = NULL;
+
+    if (!_etui_prefix)
+        _etui_prefix = eina_prefix_new(NULL,
+                                       _etui_module_paths_init,
+                                       "ETUI", "etui", "checkme",
+                                       PACKAGE_BIN_DIR,
+                                       PACKAGE_LIB_DIR,
+                                       PACKAGE_DATA_DIR,
+                                       PACKAGE_DATA_DIR);
+
+    if (_etui_prefix)
+    {
+        const char *libdir;
+
+        libdir = eina_prefix_lib_get(_etui_prefix);
+        if (libdir)
+        {
+            size_t l;
+
+            l = strlen(libdir);
+            path = malloc(l + sizeof("/etui/modules"));
+            if (path)
+            {
+                memcpy(path, libdir, l);
+                memcpy(path + l, "/etui/modules", sizeof("/etui/modules"));
+            }
+        }
+    }
+    else
+        path = eina_module_symbol_path_get(_etui_module_paths_init, "/etui/modules");
+
+    if (path)
+    {
+        if (eina_list_search_unsorted(_etui_module_paths,
+                                      (Eina_Compare_Cb)strcmp, path))
+            free(path);
+        else
+            _etui_module_paths = _etui_module_append(_etui_module_paths, path);
+    }
+
+    path = PACKAGE_LIB_DIR "/etui/modules";
+    if (!eina_list_search_unsorted(_etui_module_paths,
+                                   (Eina_Compare_Cb)strcmp, path))
+    {
+        path = strdup(path);
+        if (path)
+            _etui_module_paths = _etui_module_append(_etui_module_paths, path);
+    }
+}
+
 
 /**
  * @endcond
@@ -223,541 +220,217 @@ _etui_modules_load(void)
  *                                 Global                                     *
  *============================================================================*/
 
-#ifdef ETUI_BUILD_STATIC_PDF
-Eina_Bool etui_module_pdf_init(void);
-void etui_module_pdf_shutdown(void);
-#endif
-
-#ifdef ETUI_BUILD_STATIC_PS
-Eina_Bool etui_module_ps_init(void);
-void etui_module_ps_shutdown(void);
-#endif
-
-#ifdef ETUI_BUILD_STATIC_IMG
-Eina_Bool etui_module_img_init(void);
-void etui_module_img_shutdown(void);
-#endif
-
-#ifdef ETUI_BUILD_STATIC_DJVU
-Eina_Bool etui_module_djvu_init(void);
-void etui_module_djvu_shutdown(void);
-#endif
-
-#ifdef ETUI_BUILD_STATIC_EPUB
-Eina_Bool etui_module_epub_init(void);
-void etui_module_epub_shutdown(void);
-#endif
 
 Eina_Bool
-etui_modules_init(void)
+etui_module_init(void)
 {
-    _etui_providers = eina_hash_string_superfast_new(NULL);
-    if (!_etui_providers)
+    int i;
+
+    _etui_module_paths_init();
+
+    _etui_modules = eina_hash_string_small_new(NULL);
+    if (!_etui_modules)
     {
-        ERR("Could not allocate providers hash table.");
+        ERR("can not create hash\n");
         return EINA_FALSE;
     }
 
-    /* TODO : STATIC modules */
-#ifdef ETUI_BUILD_STATIC_PDF
-    etui_module_pdf_init();
-#endif
-
-#ifdef ETUI_BUILD_STATIC_PS
-    etui_module_ps_init();
-#endif
-
-#ifdef ETUI_BUILD_STATIC_IMG
-    etui_module_img_init();
-#endif
-
-#ifdef ETUI_BUILD_STATIC_DJVU
-    etui_module_djvu_init();
-#endif
-
-#ifdef ETUI_BUILD_STATIC_EPUB
-    etui_module_epub_init();
-#endif
+    for (i = 0; _etui_static_module[i].init; ++i)
+        _etui_static_module[i].init();
 
     return EINA_TRUE;
 }
 
 void
-etui_modules_shutdown(void)
+etui_module_shutdown(void)
 {
-    Etui_Provider_Registry_Entry *re;
+    char *path;
+    int i;
 
-    /* TODO : STATIC modules */
-#ifdef ETUI_BUILD_STATIC_EPUB
-    etui_module_epub_shutdown();
-#endif
+    for (i = 0; _etui_static_module[i].shutdown; ++i)
+        _etui_static_module[i].shutdown();
 
-#ifdef ETUI_BUILD_STATIC_DJVU
-    etui_module_djvu_shutdown();
-#endif
+    eina_hash_foreach(_etui_modules, _etui_module_close_cb, NULL);
+    eina_hash_free(_etui_modules);
+    _etui_modules = NULL;
 
-#ifdef ETUI_BUILD_STATIC_IMG
-    etui_module_img_shutdown();
-#endif
+    EINA_LIST_FREE(_etui_module_paths, path)
+        free(path);
 
-#ifdef ETUI_BUILD_STATIC_PS
-    etui_module_ps_shutdown();
-#endif
-
-#ifdef ETUI_BUILD_STATIC_PDF
-    etui_module_pdf_shutdown();
-#endif
-
-    if (_etui_modules)
+    if (_etui_prefix)
     {
-        eina_module_list_free(_etui_modules);
-        eina_array_free(_etui_modules);
-        _etui_modules = NULL;
+        eina_prefix_free(_etui_prefix);
+        _etui_prefix = NULL;
     }
-
-	eina_hash_free(_etui_providers);
-
-    EINA_LIST_FREE(_etui_provider_registries, re)
-    {
-        WRN("Engine was not unregistered: %p", re->provider);
-        _etui_provider_registry_entry_free(re);
-    }
-
-    _etui_modules_loaded = EINA_FALSE;
 }
 
-EAPI Eina_Bool
-etui_module_register(const Etui_Provider_Descriptor *provider)
+Eina_Bool
+etui_module_register(const Etui_Module_Api *module)
 {
-    Etui_Provider_Registry_Entry *re;
+    Etui_Module *em;
 
-    EINA_SAFETY_ON_NULL_RETURN_VAL(provider, EINA_FALSE);
-
-    if (provider->version != ETUI_PROVIDER_DESCRIPTOR_VERSION)
-    {
-        ERR("Module '%p' uses api version=%u while %u was expected",
-            provider, provider->version, ETUI_PROVIDER_DESCRIPTOR_VERSION);
+    if (!module)
         return EINA_FALSE;
-    }
 
-    EINA_SAFETY_ON_NULL_RETURN_VAL(provider->name, EINA_FALSE);
+    em = eina_hash_find(_etui_modules, module->name);
+    if (em)
+        return EINA_FALSE;
 
-    INF("register name=%s, version=%u, priority=%d, provider=%p",
-        provider->name, provider->version, provider->priority, provider);
+    em = calloc(1, sizeof (Etui_Module));
+    if (!em)
+        return EINA_FALSE;
 
-    re = (Etui_Provider_Registry_Entry *)calloc(1, sizeof(Etui_Provider_Registry_Entry));
-    EINA_SAFETY_ON_NULL_RETURN_VAL(re, EINA_FALSE);
+    em->definition = module;
 
-    re->provider = provider;
-    re->priority = provider->priority; // TODO: use user-priority from file as well.
-
-    _etui_provider_registries = eina_list_sorted_insert(_etui_provider_registries,
-                                                        _etui_provider_registry_entry_cmp,
-                                                        re);
+    eina_hash_direct_add(_etui_modules, module->name, em);
 
     return EINA_TRUE;
 }
 
-EAPI Eina_Bool
-etui_module_unregister(const Etui_Provider_Descriptor *provider)
+Eina_Bool
+etui_module_unregister(const Etui_Module_Api *module)
 {
-    Eina_List *n;
-    Etui_Provider_Registry_Entry *re;
+    Etui_Module *em;
 
-    EINA_SAFETY_ON_NULL_RETURN_VAL(provider, EINA_FALSE);
-    if (provider->version != ETUI_PROVIDER_DESCRIPTOR_VERSION)
-    {
-        ERR("Module '%p' uses provider version=%u while %u was expected",
-            provider, provider->version, ETUI_PROVIDER_DESCRIPTOR_VERSION);
+    if (!module)
         return EINA_FALSE;
-    }
 
-    INF("unregister name=%s, provider=%p", provider->name, provider);
+    em = eina_hash_find(_etui_modules, module->name);
+    if (!em || em->definition != module)
+        return EINA_FALSE;
 
-    EINA_LIST_FOREACH(_etui_provider_registries, n, re)
+    eina_hash_del(_etui_modules, module->name, em);
+
+    if (em->loaded)
     {
-        if (re->provider == provider)
-        {
-            _etui_provider_registry_entry_free(re);
-            _etui_provider_registries = eina_list_remove_list(_etui_provider_registries, n);
-            return EINA_TRUE;
-        }
+        em->definition->func.close(em);
+        em->loaded = 0;
     }
 
-    ERR("module not registered name=%s, provider=%p", provider->name, provider);
-    return EINA_FALSE;
+    free(em);
+
+    return EINA_TRUE;
 }
 
-
-Etui_Provider_Instance *
-etui_provider_instance_new(const char *name,
-                           Evas       *evas)
+Eina_Bool
+etui_module_load(Etui_Module *em)
 {
-    const Eina_List *n;
-    const Etui_Provider_Registry_Entry *re;
-    const Etui_Provider_Descriptor *provider;
-    void *data;
+    if (!em)
+        return EINA_FALSE;
 
-    if (!_etui_modules_load())
+    if (em->loaded)
+        return EINA_TRUE;
+
+    if (!em->definition)
+        return EINA_FALSE;
+
+    if (!em->definition->func.open(em))
+        return EINA_FALSE;
+
+    em->loaded = 1;
+
+    return EINA_TRUE;
+}
+
+void
+etui_module_unload(Etui_Module *em)
+{
+    if (!em || !em->loaded || !em->definition)
+        return;
+
+    em->definition->func.close(em);
+    em->loaded = 0;
+}
+
+Etui_Module *
+etui_module_find(const char *name)
+{
+    Etui_Module *em;
+    Eina_List *l;
+    const char *path;
+
+    if (!name || !*name)
         return NULL;
 
-    if ((!name) && getenv("ETUI_PROVIDER"))
+    em = eina_hash_find(_etui_modules, name);
+    if (em)
     {
-        name = getenv("ETUI_PROVIDER");
-        DBG("using ETUI_PROVIDER=%s", name);
+        if (etui_module_load(em))
+            return em;
+
+        return NULL;
     }
 
-    if (name)
+    EINA_LIST_FOREACH(_etui_module_paths, l, path)
     {
-        provider = _etui_provider_registry_find(name);
-        if (!provider)
-            ERR("Couldn't find requested provider: %s. Try fallback", name);
-        else
+        char buffer[PATH_MAX];
+        Eina_Module *mod;
+
+        snprintf(buffer, sizeof(buffer), "%s/%s/%s/%s",
+                 path, name, MODULE_ARCH, ETUI_MODULE_NAME);
+
+        if (!_etui_path_is_file(buffer))
+            continue;
+
+        mod = eina_module_new(buffer);
+        if (!mod)
+            continue;
+
+        if (!eina_module_load(mod))
         {
-            data = provider->init(evas);
-            if (data)
-            {
-                INF("Using requested provider %s, data=%p", name, data);
-                return _etui_provider_instance_new(provider, evas, data);
-            }
-
-            ERR("Requested provider '%s' could not be used. Try fallback", name);
+            eina_module_free(mod);
+            continue;
         }
+
+        em = eina_hash_find(_etui_modules, name);
+        if (em && etui_module_load(em))
+            return em;
+
+        eina_module_free(mod);
     }
 
-    EINA_LIST_FOREACH(_etui_provider_registries, n, re)
-    {
-        provider = re->provider;
-        DBG("Trying provider %s, priority=%d (%d)",
-            provider->name, re->priority, provider->priority);
-
-        data = provider->init(evas);
-        if (data)
-        {
-            INF("Using fallback provider %s, data=%p", provider->name, data);
-            return _etui_provider_instance_new(provider, evas, data);
-        }
-    }
-
-    ERR("No provider worked");
     return NULL;
 }
 
-void
-etui_provider_instance_del(Etui_Provider_Instance *inst)
+Eina_List *
+etui_module_list(void)
 {
-    EINA_SAFETY_ON_NULL_RETURN(inst);
+    Eina_List *r = NULL, *l, *ll;
+    Eina_Iterator *it, *it2;
+    const char *s, *s2;
+    char buf[PATH_MAX];
 
-    EINA_REFCOUNT_UNREF(inst)
+    EINA_LIST_FOREACH(_etui_module_paths, l, s)
     {
-        inst->provider->shutdown(inst->data);
-        free(inst);
+        it = eina_file_direct_ls(s);
+        if (it)
+        {
+            Eina_File_Direct_Info *fi;
+
+            EINA_ITERATOR_FOREACH(it, fi)
+            {
+                const char *fname = fi->path + fi->name_start;
+
+                snprintf(buf, sizeof(buf), "%s/%s/%s",
+                         s, fname, MODULE_ARCH);
+
+                it2 = eina_file_ls(buf);
+                if (it2)
+                {
+                    EINA_LIST_FOREACH(r, ll, s2)
+                    {
+                        if (!strcmp(fname, s2)) break;
+                    }
+                    if (!ll)
+                        r = eina_list_append(r, eina_stringshare_add(fname));
+                    eina_iterator_free(it2);
+                }
+            }
+            eina_iterator_free(it);
+        }
     }
-}
 
-Eina_Bool
-etui_provider_instance_name_equal(const Etui_Provider_Instance *inst, const char *name)
-{
-    /* these are valid, no safety macros here */
-    if (!name) return EINA_FALSE;
-    if (!inst) return EINA_FALSE;
-
-    return strcmp(name, inst->provider->name) == 0;
-}
-
-void *
-etui_provider_instance_data_get(const Etui_Provider_Instance *inst)
-{
-    EINA_SAFETY_ON_NULL_RETURN_VAL(inst, NULL);
-
-    return inst->data;
-}
-
-/* private calls */
-
-const char *
-etui_provider_instance_module_name_get(Etui_Provider_Instance *inst)
-{
-    if (!inst)
-        return NULL;
-
-    return inst->provider->name;
-}
-
-Evas_Object *
-etui_provider_instance_evas_object_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, evas_object_get, NULL);
-}
-
-Eina_Bool
-etui_provider_instance_file_open(Etui_Provider_Instance *inst,
-                                 const char *filename)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, file_open, EINA_FALSE, filename);
-}
-
-void
-etui_provider_instance_file_close(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL(inst, file_close);
-}
-
-void
-etui_provider_instance_version_get(Etui_Provider_Instance *inst, int *maj, int *min)
-{
-    /* FIXME: if error, set the version to -1 */
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, version_get);
-
-    inst->provider->version_get(inst->data, maj, min);
-}
-
-char *
-etui_provider_instance_title_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, title_get, NULL);
-}
-
-char *
-etui_provider_instance_author_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, author_get, NULL);
-}
-
-char *
-etui_provider_instance_subject_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, subject_get, NULL);
-}
-
-char *
-etui_provider_instance_keywords_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, keywords_get, NULL);
-}
-
-char *
-etui_provider_instance_creator_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, creator_get, NULL);
-}
-
-char *
-etui_provider_instance_producer_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, producer_get, NULL);
-}
-
-char *
-etui_provider_instance_creation_date_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, creation_date_get, NULL);
-}
-
-char *
-etui_provider_instance_modification_date_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, modification_date_get, NULL);
-}
-
-Eina_Bool
-etui_provider_instance_is_printable(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, is_printable, EINA_FALSE);
-}
-
-Eina_Bool
-etui_provider_instance_is_changeable(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, is_changeable, EINA_FALSE);
-}
-
-Eina_Bool
-etui_provider_instance_is_copyable(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, is_copyable, EINA_FALSE);
-}
-
-Eina_Bool
-etui_provider_instance_is_notable(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, is_notable, EINA_FALSE);
-}
-
-Eina_Bool
-etui_provider_instance_password_needed(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, password_needed, EINA_FALSE);
-}
-
-Eina_Bool
-etui_provider_instance_password_set(Etui_Provider_Instance *inst,
-                                    const char *password)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, password_set, EINA_FALSE, password);
-}
-
-int
-etui_provider_instance_pages_count(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, pages_count, -1);
-}
-
-const Eina_Array *
-etui_provider_instance_toc_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, toc_get, NULL);
-}
-
-void
-etui_provider_instance_page_use_display_list_set(Etui_Provider_Instance *inst,
-                                                 Eina_Bool on)
-{
-    ETUI_PROVIDER_INSTANCE_CALL(inst, page_use_display_list_set, on);
-}
-
-Eina_Bool
-etui_provider_instance_page_use_display_list_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_use_display_list_get, EINA_FALSE);
-}
-
-Eina_Bool
-etui_provider_instance_page_set(Etui_Provider_Instance *inst, int page_num)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_set, EINA_FALSE, page_num);
-}
-
-int
-etui_provider_instance_page_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_get, -1);
-}
-
-void
-etui_provider_instance_page_size_get(Etui_Provider_Instance *inst, int *width, int *height)
-{
-    /* FIXME: if error, set the size to 0 */
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, page_size_get);
-
-    inst->provider->page_size_get(inst->data, width, height);
-}
-
-Eina_Bool
-etui_provider_instance_page_rotation_set(Etui_Provider_Instance *inst,
-                                    Etui_Rotation rotation)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_rotation_set, EINA_FALSE, rotation);
-}
-
-Etui_Rotation
-etui_provider_instance_page_rotation_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_rotation_get, ETUI_ROTATION_0);
-}
-
-Eina_Bool
-etui_provider_instance_page_scale_set(Etui_Provider_Instance *inst,
-                                      float hscale,
-                                      float vscale)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_scale_set, EINA_FALSE, hscale, vscale);
-}
-
-void
-etui_provider_instance_page_scale_get(Etui_Provider_Instance *inst,
-                                      float *hscale,
-                                      float *vscale)
-{
-    /* FIXME: if error, set the scales to 1.0f */
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, page_scale_get);
-
-    inst->provider->page_scale_get(inst->data, hscale, vscale);
-}
-
-Eina_Bool
-etui_provider_instance_page_dpi_set(Etui_Provider_Instance *inst,
-                                    float hdpi,
-                                    float vdpi)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_dpi_set, EINA_FALSE, hdpi, vdpi);
-}
-
-void
-etui_provider_instance_page_dpi_get(Etui_Provider_Instance *inst,
-                                    float *hdpi,
-                                    float *vdpi)
-{
-    /* FIXME: if error, set the scales to 72.0f */
-    ETUI_PROVIDER_INSTANCE_CHECK(inst, page_dpi_get);
-
-    inst->provider->page_scale_get(inst->data, hdpi, vdpi);
-}
-
-const Eina_Array *
-etui_provider_instance_page_links_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_links_get, NULL);
-}
-
-void
-etui_provider_instance_page_render_pre(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL(inst, page_render_pre);
-}
-
-void
-etui_provider_instance_page_render(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL(inst, page_render);
-}
-
-void
-etui_provider_instance_page_render_end(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL(inst, page_render_end);
-}
-
-char *
-etui_provider_instance_page_text_extract(Etui_Provider_Instance *inst, const Eina_Rectangle *rect)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_text_extract, NULL, rect);
-}
-
-Eina_Array *
-etui_provider_instance_page_text_find(Etui_Provider_Instance *inst, const char *needle)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_text_find, NULL, needle);
-}
-
-float etui_provider_instance_page_duration_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_duration_get, 0.0);
-}
-
-Etui_Transition etui_provider_instance_page_transition_type_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_transition_type_get, ETUI_TRANSITION_NONE);
-}
-
-float etui_provider_instance_page_transition_duration_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_transition_duration_get, 0.0);
-}
-
-Eina_Bool etui_provider_instance_page_transition_vertical_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_transition_vertical_get, EINA_FALSE);
-}
-
-Eina_Bool etui_provider_instance_page_transition_outwards_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_transition_outwards_get, EINA_FALSE);
-}
-
-int etui_provider_instance_page_transition_direction_get(Etui_Provider_Instance *inst)
-{
-    ETUI_PROVIDER_INSTANCE_CALL_RET(inst, page_transition_direction_get, 0);
+    return r;
 }
 
 

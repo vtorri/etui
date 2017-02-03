@@ -5,9 +5,11 @@ includes_HEADERS = src/lib/Etui.h
 includesdir = $(pkgincludedir)-@VMAJ@
 
 src_lib_libetui_la_SOURCES = \
+src/lib/etui_file.c \
 src/lib/etui_main.c \
 src/lib/etui_module.c \
 src/lib/etui_smart.c \
+src/lib/etui_file.h \
 src/lib/etui_module.h \
 src/lib/etui_private.h
 

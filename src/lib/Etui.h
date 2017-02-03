@@ -56,15 +56,68 @@ typedef enum
     ETUI_ROTATION_270 = 270
 } Etui_Rotation;
 
+
+EAPI int etui_init(void);
+EAPI int etui_shutdown(void);
+
+EAPI Evas_Object *etui_object_add(Evas *evas);
+
+EAPI const char *etui_object_module_name_get(Evas_Object *obj);
+
+EAPI Eina_Bool etui_object_file_open(Evas_Object *obj, const char *filename);
+EAPI const char *etui_object_filename_get(Evas_Object *obj);
+
+EAPI const void *etui_object_info_get(Evas_Object *obj);
+
+EAPI const char *etui_object_title_get(Evas_Object *obj);
+
+EAPI int etui_object_document_pages_count(Evas_Object *obj);
+EAPI const Eina_Array *etui_object_toc_get(Evas_Object *obj);
+
+EAPI void etui_object_page_set(Evas_Object *obj, int page_num);
+EAPI int etui_object_page_get(Evas_Object *obj);
+EAPI void etui_object_page_size_get(Evas_Object *obj, int *width, int *height);
+EAPI void etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation);
+EAPI Etui_Rotation etui_object_page_rotation_get(Evas_Object *obj);
+EAPI void etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale);
+EAPI void etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale);
+
+/*** specific module features ***/
+
+/* cb */
+
 typedef enum
 {
-    ETUI_LINK_KIND_NONE,
-    ETUI_LINK_KIND_GOTO,
-    ETUI_LINK_KIND_GOTO_REMOTE,
-    ETUI_LINK_KIND_URI,
-    ETUI_LINK_KIND_LAUNCH,
-    ETUI_LINK_KIND_NAMED,
-} Etui_Link_Kind;
+    ETUI_CB_CBZ,
+    ETUI_CB_CBR,
+    ETUI_CB_CBA,
+    ETUI_CB_CB7,
+    ETUI_CB_CBT,
+} Etui_Cb_Type;
+
+typedef struct
+{
+    Etui_Cb_Type type;
+} Etui_Module_Cb_Info;
+
+/* djvu */
+
+typedef enum
+{
+    ETUI_DJVU_PAGE_TYPE_UNKNOWN,
+    ETUI_DJVU_PAGE_TYPE_BITONAL,
+    ETUI_DJVU_PAGE_TYPE_PHOTO,
+    ETUI_DJVU_PAGE_TYPE_COMPOUND
+} Etui_Djvu_Page_Type;
+
+typedef struct
+{
+    double page_gamma;
+    int page_dpi;
+    Etui_Djvu_Page_Type page_type;
+} Etui_Module_Djvu_Info;
+
+/* pdf */
 
 typedef enum
 {
@@ -82,55 +135,34 @@ typedef enum
     ETUI_TRANSITION_FADE
 } Etui_Transition;
 
+typedef enum
+{
+    ETUI_LINK_KIND_GOTO,
+    ETUI_LINK_KIND_URI
+} Etui_Link_Kind;
+
 typedef struct
 {
     int page;
-    /* int flags; */
-    /* fz_point lt; */
-    /* fz_point rb; */
-    unsigned int new_window : 1;
+    float page_x;
+    float page_y;
 } Etui_Link_Goto;
 
 typedef struct
 {
-    int page;
-    /* int flags; */
-    /* fz_point lt; */
-    /* fz_point rb; */
-    char *filename;
-    unsigned int new_window : 1;
-} Etui_Link_Goto_Remote;
-
-typedef struct
-{
     char *uri;
-    unsigned int is_map : 1;
+    unsigned int is_open : 1;
 } Etui_Link_Uri;
-
-typedef struct
-{
-    char *filename;
-    unsigned int new_window : 1;
-} Etui_Link_Launch;
-
-typedef struct
-{
-    char *named;
-} Etui_Link_Named;
 
 typedef union
 {
     Etui_Link_Goto goto_;
-    Etui_Link_Goto_Remote goto_remote;
     Etui_Link_Uri uri;
-    Etui_Link_Launch launch;
-    Etui_Link_Named named;
 } Etui_Link_Dest;
 
 typedef struct
 {
     Etui_Link_Kind kind;
-    Eina_Rectangle rect;
     Etui_Link_Dest dest;
 } Etui_Link_Item;
 
@@ -142,55 +174,43 @@ typedef struct
     Eina_Array *child;
 } Etui_Toc_Item;
 
+typedef struct
+{
+    char *author;
+    char *subject;
+    char *keywords;
+    char *creator;
+    char *producer;
+    char *creation_date;
+    char *modification_date;
+    char *encryption;
+} Etui_Module_Pdf_Info;
 
-EAPI int etui_init(void);
-EAPI int etui_shutdown(void);
+/* tiff */
 
-EAPI Evas_Object *etui_object_add(Evas *evas);
+typedef struct
+{
+    char *artist;
+    char *copyright;
+    char *date_time;
+    char *document_name;
+    char *image_description;
+    char *make;
+    char *model;
+    char *software;
+    float resolution_x;
+    float resolution_y;
+    unsigned int rows_per_strip;
+    unsigned short bits_per_sample;
+    unsigned short compression;
+    unsigned short orientation;
+    unsigned short photometric;
+    unsigned short planar_configuration;
+    unsigned short resolution_unit;
+    unsigned short sample_format;
+    unsigned short samples_per_pixel;
+    unsigned short ycbcr_subssampling[2];
+} Etui_Module_Tiff_Info;
 
-EAPI const char *etui_object_module_name_get(Evas_Object *obj);
-
-EAPI Eina_Bool etui_object_file_set(Evas_Object *obj, const char *filename);
-EAPI const char *etui_object_filename_get(Evas_Object *obj);
-
-EAPI void etui_object_version_get(Evas_Object *obj, int *maj, int *min);
-EAPI char *etui_object_title_get(Evas_Object *obj);
-EAPI char *etui_object_author_get(Evas_Object *obj);
-EAPI char *etui_object_subject_get(Evas_Object *obj);
-EAPI char *etui_object_keywords_get(Evas_Object *obj);
-EAPI char *etui_object_creator_get(Evas_Object *obj);
-EAPI char *etui_object_producer_get(Evas_Object *obj);
-EAPI char *etui_object_creation_date_get(Evas_Object *obj);
-EAPI char *etui_object_modification_date_get(Evas_Object *obj);
-Eina_Bool etui_object_is_printable(Evas_Object *obj);
-Eina_Bool etui_object_is_changeable(Evas_Object *obj);
-Eina_Bool etui_object_is_copyable(Evas_Object *obj);
-Eina_Bool etui_object_is_notable(Evas_Object *obj);
-
-EAPI Eina_Bool etui_object_document_password_needed(Evas_Object *obj);
-EAPI Eina_Bool etui_object_document_password_set(Evas_Object *obj, const char *password);
-EAPI int etui_object_document_pages_count(Evas_Object *obj);
-EAPI const Eina_Array *etui_object_toc_get(Evas_Object *obj);
-
-EAPI void etui_object_page_use_display_list_set(Evas_Object *obj, Eina_Bool on);
-EAPI Eina_Bool etui_object_page_use_display_list_get(Evas_Object *obj);
-EAPI void etui_object_page_set(Evas_Object *obj, int page_num);
-EAPI int etui_object_page_get(Evas_Object *obj);
-EAPI void etui_object_page_size_get(Evas_Object *obj, int *width, int *height);
-EAPI void etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation);
-EAPI Etui_Rotation etui_object_page_rotation_get(Evas_Object *obj);
-EAPI void etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale);
-EAPI void etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale);
-EAPI void etui_object_page_dpi_set(Evas_Object *obj, float hdpi, float vdpi);
-EAPI void etui_object_page_dpi_get(Evas_Object *obj, float *hdpi, float *vdpi);
-EAPI const Eina_Array *etui_object_page_links_get(Evas_Object *obj);
-EAPI char *etui_object_page_text_extract(Evas_Object *obj, const Eina_Rectangle *rect);
-EAPI Eina_Array *etui_object_page_text_find(Evas_Object *obj, const char *needle);
-EAPI float etui_object_page_duration_get(Evas_Object *obj);
-EAPI Etui_Transition etui_object_page_transition_type_get(Evas_Object *obj);
-EAPI float etui_object_page_transition_duration_get(Evas_Object *obj);
-EAPI Eina_Bool etui_object_page_transition_vertical_get(Evas_Object *obj);
-EAPI Eina_Bool etui_object_page_transition_outwards_get(Evas_Object *obj);
-EAPI int etui_object_page_transition_direction_get(Evas_Object *obj);
 
 #endif /* ETUI_H */

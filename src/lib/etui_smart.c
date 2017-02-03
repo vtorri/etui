@@ -25,8 +25,9 @@
 #include <Efreet_Mime.h>
 
 #include "Etui.h"
-#include "etui_private.h"
 #include "etui_module.h"
+#include "etui_file.h"
+#include "etui_private.h"
 
 /*============================================================================*
  *                                  Local                                     *
@@ -43,12 +44,11 @@ struct Etui_Smart_Data_
     EINA_REFCOUNT;
 
     /* properties */
-    Etui_Provider_Instance *provider_instance;
+    Etui_Module *module;
     char *filename;
 
     /* private */
     Evas_Object *obj;
-    Ecore_Thread *render;
 };
 
 static Evas_Smart *_etui_smart = NULL;
@@ -81,6 +81,18 @@ static void _etui_smart_page_render_cancel(void *data, Ecore_Thread *thread);
     _etui_smart_str = (char *)evas_object_type_get(o); \
     if (!_etui_smart_str) return ret;                  \
     if (strcmp(_etui_smart_str, type)) return ret;     \
+}
+
+#define ETUI_SMART_OBJ_GET_ERROR(smart, o, type)       \
+{                                                      \
+    char *_etui_smart_str;                             \
+                                                       \
+    if (!o) goto _err;                                 \
+    smart = evas_object_smart_data_get(o);             \
+    if (!smart) goto _err;                             \
+    _etui_smart_str = (char *)evas_object_type_get(o); \
+    if (!_etui_smart_str) goto _err;                   \
+    if (strcmp(_etui_smart_str, type)) goto _err;      \
 }
 
 #define ETUI_OBJ_NAME "etui_object"
@@ -131,8 +143,6 @@ _etui_smart_add(Evas_Object *obj)
 
     EINA_REFCOUNT_INIT(sd);
 
-/*     evas_object_event_callback_add(sd->obj, EVAS_CALLBACK_MOUSE_MOVE, _etui_mouse_move, sd); */
-/*     evas_object_event_callback_add(sd->obj, EVAS_CALLBACK_MOUSE_DOWN, _etui_mouse_down, sd); */
     evas_object_smart_data_set(obj, sd);
 }
 
@@ -146,13 +156,8 @@ _etui_smart_del(Evas_Object *obj)
 
     EINA_REFCOUNT_UNREF(sd)
     {
-        if (sd->provider_instance)
-        {
-            etui_provider_instance_file_close(sd->provider_instance);
-            etui_provider_instance_del(sd->provider_instance);
-            sd->provider_instance = NULL;
-        }
-
+        if (sd->module)
+            etui_module_unload(sd->module);
         if (sd->obj)
             evas_object_del(sd->obj);
         if (sd->filename)
@@ -182,8 +187,7 @@ _etui_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
 
     /* FIXME: not always image object */
 
-    printf(" %s : %dx%d\n", __FUNCTION__, w, h);
-    printf(" 도도 _etui_smart_resize : %p\n", obj);
+    fprintf(stderr, " %s : %dx%d\n", __FUNCTION__, w, h);
     evas_object_image_fill_set(sd->obj, 0, 0, w, h);
     evas_object_resize(sd->obj, w, h);
 }
@@ -253,11 +257,11 @@ _etui_smart_calculate(Evas_Object *obj)
     sd = evas_object_smart_data_get(obj);
     if (!sd) return;
 
-    if (sd->render) ecore_thread_cancel(sd->render);
-    sd->render = ecore_thread_run(_etui_smart_page_render,
-                                    _etui_smart_page_render_end,
-                                    _etui_smart_page_render_cancel,
-                                    obj);
+    if (sd->module->render) ecore_thread_cancel(sd->module->render);
+    sd->module->render = ecore_thread_run(_etui_smart_page_render,
+                                          _etui_smart_page_render_end,
+                                          _etui_smart_page_render_cancel,
+                                          sd->module);
 }
 
 static void
@@ -289,26 +293,26 @@ _etui_smart_init(void)
 static void
 _etui_smart_page_render(void *data, Ecore_Thread *thread EINA_UNUSED)
 {
-    Etui_Smart_Data *sd;
+    Etui_Module *mod;
 
-    sd = evas_object_smart_data_get(data);
-    if (!sd)
+    mod = data;
+    if (!mod)
         return;
 
-    etui_provider_instance_page_render(sd->provider_instance);
+    mod->functions->page_render(mod->data);
 }
 
 static void
 _etui_smart_page_render_end(void *data, Ecore_Thread *thread EINA_UNUSED)
 {
-    Etui_Smart_Data *sd;
+    Etui_Module *mod;
 
-    sd = evas_object_smart_data_get(data);
-    if (!sd)
+    mod = data;
+    if (!mod)
         return;
 
-    etui_provider_instance_page_render_end(sd->provider_instance);
-    sd->render = NULL;
+    mod->functions->page_render_end(mod->data);
+    mod->render = NULL;
 }
 
 static void
@@ -325,8 +329,8 @@ _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *e
 
     evas_object_geometry_get(obj, NULL, NULL, &w, &h);
     evas_object_resize((Evas_Object *)data, w, h);
-    printf(" 도도 _etui_smart_resize_cb : data : %p   obj : %p\n", data, obj);
-    printf(" %s : %dx%d\n", __FUNCTION__, w, h);
+    fprintf(stderr, " $$$$ _etui_smart_resize_cb : data : %p   obj : %p\n", data, obj);
+    fprintf(stderr, " %s : %dx%d\n", __FUNCTION__, w, h);
 }
 
 /**
@@ -347,8 +351,8 @@ etui_object_add(Evas *evas)
 {
   Evas_Object *o;
     _etui_smart_init();
-    o= evas_object_smart_add(evas, _etui_smart);
-    printf(" 도도 smart object : %p\n", o);
+    o = evas_object_smart_add(evas, _etui_smart);
+    fprintf(stderr, " $$$$ smart object : %p\n", o);
     return o;
 }
 
@@ -359,18 +363,20 @@ etui_object_module_name_get(Evas_Object *obj)
 
     ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
 
-    return etui_provider_instance_module_name_get(sd->provider_instance);
+    return sd->module->definition->name;
 }
 
 EAPI Eina_Bool
-etui_object_file_set(Evas_Object *obj, const char *filename)
+etui_object_file_open(Evas_Object *obj, const char *filename)
 {
     char file[PATH_MAX];
+    Eina_File *f;
     char *res;
-    const char *mime;
     const char *module_name = NULL;
     Etui_Smart_Data *sd;
-    printf(" 도도 etui_object_file_set : %p\n", obj);
+    Etui_Module *module;
+
+    fprintf(stderr, " $$$$_object_file_set : %p\n", obj);
 
     if (!filename || !*filename)
         return EINA_FALSE;
@@ -386,100 +392,83 @@ etui_object_file_set(Evas_Object *obj, const char *filename)
     if (sd->filename && (!strcmp(file, sd->filename)))
         return EINA_TRUE;
 
-    mime = efreet_mime_type_get(file);
-    INF("mime type: %s", mime);
-    if (mime)
-    {
-        if ((strcmp(mime, "application/pdf") == 0) ||
-            (strcmp(mime, "application/vnd.ms-xpsdocument") == 0))
-            module_name = "pdf";
-        else if (strcmp(mime, "application/postscript") == 0)
-            module_name = "ps";
-        else if (strcmp(mime, "text/plain") == 0)
-            module_name = "txt";
-        else if ((strcmp(mime, "application/x-cba") == 0) ||
-                 (strcmp(mime, "application/x-cbr") == 0) ||
-                 (strcmp(mime, "application/x-cbt") == 0) ||
-                 (strcmp(mime, "application/x-cbz") == 0) ||
-                 (strcmp(mime, "application/x-cb7") == 0) ||
-                 (strcmp(mime, "image/bmp") == 0) ||
-                 (strcmp(mime, "image/gif") == 0) ||
-                 (strcmp(mime, "image/vnd.microsoft.icon") == 0) ||
-                 (strcmp(mime, "image/x-icon") == 0) ||
-                 (strcmp(mime, "image/ico") == 0) ||
-                 (strcmp(mime, "image/icon") == 0) ||
-                 (strcmp(mime, "txt/ico") == 0) ||
-                 (strcmp(mime, "application/ico") == 0) ||
-                 (strcmp(mime, "image/jpeg") == 0) ||
-                 (strcmp(mime, "image/pjpeg") == 0) ||
-                 (strcmp(mime, "image/x-portable-pixmap") == 0) ||
-                 (strcmp(mime, "image/x-p") == 0) ||
-                 (strcmp(mime, "image/x-ppm") == 0) ||
-                 (strcmp(mime, "application/ppm") == 0) ||
-                 (strcmp(mime, "application/x-ppm") == 0) ||
-                 (strcmp(mime, "image/x-portable-greymap") == 0) ||
-                 (strcmp(mime, "image/x-pgm") == 0) ||
-                 (strcmp(mime, "image/x-portable-bitmap") == 0) ||
-                 (strcmp(mime, "image/portable-bitmap") == 0) ||
-                 (strcmp(mime, "image/pbm") == 0) ||
-                 (strcmp(mime, "image/x-pbm") == 0) ||
-                 (strcmp(mime, "image/x-portable-anymap") == 0) ||
-                 (strcmp(mime, "image/x-portable/anymap") == 0) ||
-                 (strcmp(mime, "image/pbm") == 0) ||
-                 (strcmp(mime, "image/png") == 0) ||
-                 (strcmp(mime, "image/x-png") == 0) ||
-                 (strcmp(mime, "image/x-photoshop") == 0) ||
-                 (strcmp(mime, "image/photoshop") == 0) ||
-                 (strcmp(mime, "image/psd") == 0) ||
-                 (strcmp(mime, "application/photoshop") == 0) ||
-                 (strcmp(mime, "application/psd") == 0) ||
-                 (strcmp(mime, "zz-application/zz-winassoc-psd") == 0) ||
-                 (strcmp(mime, "image/svg+xml") == 0) ||
-                 (strcmp(mime, "image/x-tga") == 0) ||
-                 (strcmp(mime, "image/tiff") == 0) ||
-                 (strcmp(mime, "image/vnd.wap.wbmp") == 0) ||
-                 (strcmp(mime, "image/webp") == 0) ||
-                 (strcmp(mime, "image/xcf") == 0) ||
-                 (strcmp(mime, "image/x-xpixmap") == 0)) /* xpm */
-            module_name = "img";
-        else if ((strcmp(mime, "image/vnd.djvu") == 0) ||
-                 (strcmp(mime, "image/x-djvu") == 0))
-            module_name = "djvu";
-        else if (strcmp(mime, "application/epub+zip") == 0)
-            module_name = "epub";
-    }
+    f = eina_file_open(file, EINA_FALSE);
+    if (!f)
+        return EINA_FALSE;
+
+    if (etui_file_is_pdf(file, f))
+        module_name = "pdf";
+    else if (etui_file_is_ps(file, f))
+        module_name = "ps";
+    else if (etui_file_is_tiff(file, f))
+        module_name = "tiff";
+    else if (etui_file_is_djvu(file, f))
+        module_name = "djvu";
+    else if (etui_file_is_cb(file, f))
+        module_name = "cb";
+
+    /* FIXME: XPS, txt, EPUB, DVI */
+
+    eina_file_close(f);
+
     INF("module name: %s", module_name);
 
-    /* TODO : iterate over all modules if failure */
+    module = etui_module_find(module_name);
+    if (!module)
+    {
+        Eina_List *l;
+        Eina_List *ll;
 
-    if (etui_provider_instance_name_equal(sd->provider_instance, module_name))
-    {
-        DBG("no need to reset module, already set: %s", module_name);
+        l = etui_module_list();
+        EINA_LIST_FOREACH(l, ll, module_name)
+        {
+            module = etui_module_find(module_name);
+            if (module)
+                break;
+        }
     }
-    else
+
+    if (!module)
     {
-        if (sd->provider_instance)
-            etui_provider_instance_del(sd->provider_instance);
-        sd->provider_instance = etui_provider_instance_new(module_name, evas_object_evas_get(obj));
+        ERR("Can not find an appropriate module for file %s", filename);
+        return EINA_FALSE;
+    }
+
+    if (sd->module != module)
+    {
+        etui_module_unload(sd->module);
+        sd->module = module;
+    }
+
+    if (sd->module->data)
+        sd->module->functions->shutdown(sd->module->data);
+
+    sd->module->data = sd->module->functions->init(evas_object_evas_get(obj));
+    if (!sd->module->data)
+    {
+        ERR("can not initialize smart object");
+        if (sd->obj)
+            evas_object_del(sd->obj);
+        return EINA_FALSE;
     }
 
     if (sd->obj)
         evas_object_del(sd->obj);
-    sd->obj = etui_provider_instance_evas_object_get(sd->provider_instance);
+    sd->obj = sd->module->functions->evas_object_get(sd->module->data);
     evas_object_smart_member_add(sd->obj, obj);
     evas_object_event_callback_add(sd->obj, EVAS_CALLBACK_RESIZE, _etui_smart_resize_cb, obj);
 
-    if (!sd->provider_instance)
+    /* TODO: use stringshare ?? */
+    sd->filename = strdup(file);
+    if (!sd->filename)
     {
-        ERR("can not find a suitable instace (requested: %s)", module_name);
+        WRN("Couldn't own filename");
         return EINA_FALSE;
     }
 
-    /* TODO: use stringshare ?? */
-    sd->filename = strdup(file);
-    if (!etui_provider_instance_file_open(sd->provider_instance, sd->filename))
+    if (!sd->module->functions->file_open(sd->module->data, sd->filename))
     {
-        WRN("Couldn't open file=%s", sd->filename);
+        WRN("Couldn't open file %s", sd->filename);
         return EINA_FALSE;
     }
 
@@ -496,170 +485,24 @@ etui_object_filename_get(Evas_Object *obj)
     return sd->filename;
 }
 
-EAPI void
-etui_object_version_get(Evas_Object *obj, int *maj, int *min)
+EAPI const void *
+etui_object_info_get(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
-    char *_etui_smart_str;
 
-    if (!obj)
-        goto _err;
-    sd = evas_object_smart_data_get(obj);
-    if (!sd)
-        goto _err;
-    _etui_smart_str = (char *)evas_object_type_get(obj);
-    if (!_etui_smart_str)
-        goto _err;
-    if (strcmp(_etui_smart_str, ETUI_OBJ_NAME))
-        goto _err;
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
 
-    etui_provider_instance_version_get(sd->provider_instance, maj, min);
-
-    return;
-
-  _err:
-    if (maj) *maj = -1;
-    if (min) *min = -1;
+    return sd->module->functions->info_get(sd->module->data);
 }
 
-EAPI char *
+EAPI const char *
 etui_object_title_get(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
     ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
 
-    return etui_provider_instance_title_get(sd->provider_instance);
-}
-
-EAPI char *
-etui_object_author_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
-
-    return etui_provider_instance_author_get(sd->provider_instance);
-}
-
-EAPI char *
-etui_object_subject_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
-
-    return etui_provider_instance_subject_get(sd->provider_instance);
-}
-
-EAPI char *
-etui_object_keywords_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
-
-    return etui_provider_instance_keywords_get(sd->provider_instance);
-}
-
-EAPI char *
-etui_object_creator_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
-
-    return etui_provider_instance_creator_get(sd->provider_instance);
-}
-
-EAPI char *
-etui_object_producer_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
-
-    return etui_provider_instance_producer_get(sd->provider_instance);
-}
-
-EAPI char *
-etui_object_creation_date_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
-
-    return etui_provider_instance_creation_date_get(sd->provider_instance);
-}
-
-EAPI char *
-etui_object_modification_date_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
-
-    return etui_provider_instance_modification_date_get(sd->provider_instance);
-}
-
-EAPI Eina_Bool
-etui_object_is_printable(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
-
-    return etui_provider_instance_is_printable(sd->provider_instance);
-}
-
-EAPI Eina_Bool
-etui_object_is_changeable(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
-
-    return etui_provider_instance_is_changeable(sd->provider_instance);
-}
-
-EAPI Eina_Bool
-etui_object_is_copyable(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
-
-    return etui_provider_instance_is_copyable(sd->provider_instance);
-}
-
-EAPI Eina_Bool
-etui_object_is_notable(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
-
-    return etui_provider_instance_is_notable(sd->provider_instance);
-}
-
-EAPI Eina_Bool
-etui_object_document_password_needed(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
-
-    return etui_provider_instance_password_needed(sd->provider_instance);
-}
-
-EAPI Eina_Bool
-etui_object_document_password_set(Evas_Object *obj, const char *password)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
-
-    return etui_provider_instance_password_set(sd->provider_instance, password);
+    return sd->module->functions->title_get(sd->module->data);
 }
 
 EAPI int
@@ -669,7 +512,7 @@ etui_object_document_pages_count(Evas_Object *obj)
 
     ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, -1);
 
-    return etui_provider_instance_pages_count(sd->provider_instance);
+    return sd->module->functions->pages_count(sd->module->data);
 }
 
 EAPI const Eina_Array *
@@ -679,27 +522,7 @@ etui_object_toc_get(Evas_Object *obj)
 
     ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
 
-    return etui_provider_instance_toc_get(sd->provider_instance);
-}
-
-EAPI void
-etui_object_page_use_display_list_set(Evas_Object *obj, Eina_Bool on)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
-
-    etui_provider_instance_page_use_display_list_set(sd->provider_instance, on);
-}
-
-EAPI Eina_Bool
-etui_object_page_use_display_list_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
-
-    return etui_provider_instance_page_use_display_list_get(sd->provider_instance);
+    return sd->module->functions->toc_get(sd->module->data);
 }
 
 EAPI void
@@ -710,9 +533,9 @@ etui_object_page_set(Evas_Object *obj, int page_num)
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
     INF("page set %d", page_num);
-    if (etui_provider_instance_page_set(sd->provider_instance, page_num))
+    if (sd->module->functions->page_set(sd->module->data, page_num))
     {
-        etui_provider_instance_page_render_pre(sd->provider_instance);
+        sd->module->functions->page_render_pre(sd->module->data);
         evas_object_smart_changed(obj);
     }
 }
@@ -725,27 +548,18 @@ etui_object_page_get(Evas_Object *obj)
     ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, -1);
     INF("page get");
 
-    return etui_provider_instance_page_get(sd->provider_instance);
+    return sd->module->functions->page_get(sd->module->data);
 }
 
 EAPI void
 etui_object_page_size_get(Evas_Object *obj, int *width, int *height)
 {
     Etui_Smart_Data *sd;
-    char *_etui_smart_str;
 
-    if (!obj)
-        goto _err;
-    sd = evas_object_smart_data_get(obj);
-    if (!sd)
-        goto _err;
-    _etui_smart_str = (char *)evas_object_type_get(obj);
-    if (!_etui_smart_str)
-        goto _err;
-    if (strcmp(_etui_smart_str, ETUI_OBJ_NAME))
-        goto _err;
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
+    INF("page size get");
 
-    etui_provider_instance_page_size_get(sd->provider_instance, width, height);
+    sd->module->functions->page_size_get(sd->module->data, width, height);
 
     return;
 
@@ -761,8 +575,11 @@ etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation)
 
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
-    if (etui_provider_instance_page_rotation_set(sd->provider_instance, rotation))
+    if (sd->module->functions->page_rotation_set(sd->module->data, rotation))
+    {
+        sd->module->functions->page_render_pre(sd->module->data);
         evas_object_smart_changed(obj);
+    }
 }
 
 EAPI Etui_Rotation
@@ -772,7 +589,7 @@ etui_object_page_rotation_get(Evas_Object *obj)
 
     ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, ETUI_ROTATION_0);
 
-    return etui_provider_instance_page_rotation_get(sd->provider_instance);
+    return sd->module->functions->page_rotation_get(sd->module->data);
 }
 
 EAPI void
@@ -782,164 +599,27 @@ etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale)
 
     ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
-    printf(" %s 2\n", __FUNCTION__);
-    if (etui_provider_instance_page_scale_set(sd->provider_instance, hscale, vscale))
+    fprintf(stderr, " %s 1\n", __FUNCTION__);
+    if (sd->module->functions->page_scale_set(sd->module->data, hscale, vscale))
     {
-        etui_provider_instance_page_render_pre(sd->provider_instance);
+        sd->module->functions->page_render_pre(sd->module->data);
         evas_object_smart_changed(obj);
     }
-    printf(" %s 1\n", __FUNCTION__);
+    fprintf(stderr, " %s 2\n", __FUNCTION__);
 }
 
 EAPI void
 etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale)
 {
     Etui_Smart_Data *sd;
-    char *_etui_smart_str;
 
-    if (!obj)
-        goto _err;
-    sd = evas_object_smart_data_get(obj);
-    if (!sd)
-        goto _err;
-    _etui_smart_str = (char *)evas_object_type_get(obj);
-    if (!_etui_smart_str)
-        goto _err;
-    if (strcmp(_etui_smart_str, ETUI_OBJ_NAME))
-        goto _err;
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
-    etui_provider_instance_page_scale_get(sd->provider_instance, hscale, vscale);
+    sd->module->functions->page_scale_get(sd->module->data, hscale, vscale);
 
     return;
 
   _err:
     if (hscale) *hscale = 1.0;
     if (vscale) *vscale = 1.0;
-}
-
-EAPI void
-etui_object_page_dpi_set(Evas_Object *obj, float hdpi, float vdpi)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
-
-    if (etui_provider_instance_page_dpi_set(sd->provider_instance, hdpi, vdpi))
-        evas_object_smart_need_recalculate_set(obj, 1);
-}
-
-EAPI void
-etui_object_page_dpi_get(Evas_Object *obj, float *hdpi, float *vdpi)
-{
-    Etui_Smart_Data *sd;
-    char *_etui_smart_str;
-
-    if (!obj)
-        goto _err;
-    sd = evas_object_smart_data_get(obj);
-    if (!sd)
-        goto _err;
-    _etui_smart_str = (char *)evas_object_type_get(obj);
-    if (!_etui_smart_str)
-        goto _err;
-    if (strcmp(_etui_smart_str, ETUI_OBJ_NAME))
-        goto _err;
-
-    etui_provider_instance_page_dpi_get(sd->provider_instance, hdpi, vdpi);
-
-    return;
-
-  _err:
-    if (hdpi) *hdpi = 72.0;
-    if (vdpi) *vdpi = 72.0;
-}
-
-EAPI const Eina_Array *
-etui_object_page_links_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
-
-    return etui_provider_instance_page_links_get(sd->provider_instance);
-}
-
-EAPI char *
-etui_object_page_text_extract(Evas_Object *obj, const Eina_Rectangle *rect)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
-
-    return etui_provider_instance_page_text_extract(sd->provider_instance, rect);
-}
-
-EAPI Eina_Array *
-etui_object_page_text_find(Evas_Object *obj, const char *needle)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
-
-    return etui_provider_instance_page_text_find(sd->provider_instance, needle);
-}
-
-EAPI float
-etui_object_page_duration_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, 0.0);
-
-    return etui_provider_instance_page_duration_get(sd->provider_instance);
-}
-
-EAPI Etui_Transition
-etui_object_page_transition_type_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, ETUI_TRANSITION_NONE);
-
-    return etui_provider_instance_page_transition_type_get(sd->provider_instance);
-}
-
-EAPI float
-etui_object_page_transition_duration_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, 0.0);
-
-    return etui_provider_instance_page_transition_duration_get(sd->provider_instance);
-}
-
-EAPI Eina_Bool
-etui_object_page_transition_vertical_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, 0.0);
-
-    return etui_provider_instance_page_transition_vertical_get(sd->provider_instance);
-}
-
-EAPI Eina_Bool
-etui_object_page_transition_outwards_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, 0.0);
-
-    return etui_provider_instance_page_transition_outwards_get(sd->provider_instance);
-}
-
-EAPI int
-etui_object_page_transition_direction_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, 0.0);
-
-    return etui_provider_instance_page_transition_direction_get(sd->provider_instance);
 }
