@@ -40,10 +40,10 @@ typedef u_int8_t uint8_t;
 typedef u_int16_t uint16_t;
 typedef u_int32_t uint32_t;
 #endif
-#elif defined(HAVE_CONFIG_H)
-# include "config_types.h"
-#elif defined(_WIN32) || defined(__WIN32__)
-# include "config_win32.h"
+/* #elif defined(HAVE_CONFIG_H) */
+/* # include "config_types.h" */
+/* #elif defined(_WIN32) || defined(__WIN32__) */
+/* # include "config_win32.h" */
 #elif defined (STD_INT_USE_SYS_TYPES_H)
 # include <sys/types.h>
 #elif defined (STD_INT_USE_INTTYPES_H)
