@@ -8,6 +8,12 @@ src/modules/pdf/mupdf-1.10a/generated:
 ETUI_CLEANFILES += \
 src/modules/pdf/mupdf-1.10a/generated/
 
+src/modules/pdf/src_modules_pdf_module_la-etui_module_pdf.$(OBJEXT): src/modules/pdf/mupdf-1.10a/include/mupdf/pdf/name-table.h
+
+src/modules/pdf/mupdf-1.10a/source/pdf/.libs/src_modules_pdf_module_la-pdf-cmap-table.o: src/modules/pdf/mupdf-1.10a/generated/gen_cmap_cns.h src/modules/pdf/mupdf-1.10a/generated/gen_cmap_gb.h src/modules/pdf/mupdf-1.10a/generated/gen_cmap_japan.h src/modules/pdf/mupdf-1.10a/generated/gen_cmap_korea.h
+
+src/modules/pdf/mupdf-1.10a/source/pdf/.libs/src_modules_pdf_module_la-pdf-js.o: src/modules/pdf/mupdf-1.10a/generated/gen_js_util.h
+
 ## namedump
 
 noinst_PROGRAMS = \
@@ -15,7 +21,11 @@ src/modules/pdf/mupdf-1.10a/scripts/namedump$(EXEEXT)
 
 src_modules_pdf_mupdf_1_10a_scripts_namedump_SOURCES = src/modules/pdf/mupdf-1.10a/scripts/namedump.c
 
-src/modules/pdf/mupdf-1.10a/include/mupdf/pdf/name-table.h: src/modules/pdf/mupdf-1.10a/generated src/modules/pdf/mupdf-1.10a/scripts/namedump$(EXEEXT)
+nodist_src_modules_pdf_module_la_SOURCES = \
+src/modules/pdf/mupdf-1.10a/include/mupdf/pdf/name-table.h \
+src/modules/pdf/mupdf-1.10a/source/pdf/pdf-name-table.h
+
+src/modules/pdf/mupdf-1.10a/include/mupdf/pdf/name-table.h: src/modules/pdf/mupdf-1.10a/scripts/namedump$(EXEEXT)
 	@echo "  GEN      $@"
 	@src/modules/pdf/mupdf-1.10a/scripts/namedump$(EXEEXT) src/modules/pdf/mupdf-1.10a/resources/pdf/names.txt src/modules/pdf/mupdf-1.10a/include/mupdf/pdf/name-table.h src/modules/pdf/mupdf-1.10a/source/pdf/pdf-name-table.h
 
@@ -232,6 +242,13 @@ src/modules/pdf/mupdf-1.10a/generated/gen_cmap_japan.h: src/modules/pdf/mupdf-1.
 src/modules/pdf/mupdf-1.10a/generated/gen_cmap_korea.h: src/modules/pdf/mupdf-1.10a/generated src/modules/pdf/mupdf-1.10a/scripts/cmapdump$(EXEEXT)
 	@echo "  GEN      $@"
 	@src/modules/pdf/mupdf-1.10a/scripts/cmapdump$(EXEEXT) $@ $(CMAP_KOREA_SRC)
+
+nodist_src_modules_pdf_module_la_SOURCES += \
+src/modules/pdf/mupdf-1.10a/generated/gen_cmap_cns.h \
+src/modules/pdf/mupdf-1.10a/generated/gen_cmap_gb.h \
+src/modules/pdf/mupdf-1.10a/generated/gen_cmap_japan.h \
+src/modules/pdf/mupdf-1.10a/generated/gen_cmap_korea.h
+
 ETUI_CLEANFILES += \
 src/modules/pdf/mupdf-1.10a/scripts/cmapdump$(EXEEXT)
 
@@ -286,7 +303,7 @@ src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansHanunoo-Regular.ttf \
 src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansHebrew-Regular.ttf \
 src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansImperialAramaic-Regular.ttf \
 src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansInscriptionalPahlavi-Regular.ttf \
-src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansInscriptionalParthian-Regular.ttf \
+src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansInscriptionalParthia-Regular.ttf \
 src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansJavanese-Regular.ttf \
 src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansKaithi-Regular.ttf \
 src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansKannada-Regular.ttf \
@@ -542,7 +559,7 @@ src/modules/pdf/mupdf-1.10a/generated/NotoSansInscriptionalPahlavi-Regular.c: sr
 	@echo "  GEN      $@"
 	@src/modules/pdf/mupdf-1.10a/scripts/fontdump$(EXEEXT) $@ $<
 
-src/modules/pdf/mupdf-1.10a/generated/NotoSansInscriptionalParthian-Regular.c: src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansInscriptionalParthian-Regular.ttf src/modules/pdf/mupdf-1.10a/generated src/modules/pdf/mupdf-1.10a/scripts/fontdump$(EXEEXT)
+src/modules/pdf/mupdf-1.10a/generated/NotoSansInscriptionalParthian-Regular.c: src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansInscriptionalParthia-Regular.ttf src/modules/pdf/mupdf-1.10a/generated src/modules/pdf/mupdf-1.10a/scripts/fontdump$(EXEEXT)
 	@echo "  GEN      $@"
 	@src/modules/pdf/mupdf-1.10a/scripts/fontdump$(EXEEXT) $@ $<
 
@@ -1187,16 +1204,16 @@ src/modules/pdf/mupdf-1.10a/generated/gen_js_util.h
 
 # name table
 
-MUPDF_SOURCES += \
-src/modules/pdf/mupdf-1.10a/source/pdf/pdf-name-table.h
+#MUPDF_SOURCES += \
+#src/modules/pdf/mupdf-1.10a/source/pdf/pdf-name-table.h
 
 # cmaps
 
-MUPDF_SOURCES += \
-src/modules/pdf/mupdf-1.10a/generated/gen_cmap_cns.h \
-src/modules/pdf/mupdf-1.10a/generated/gen_cmap_gb.h \
-src/modules/pdf/mupdf-1.10a/generated/gen_cmap_japan.h \
-src/modules/pdf/mupdf-1.10a/generated/gen_cmap_korea.h
+#MUPDF_SOURCES += \
+#src/modules/pdf/mupdf-1.10a/generated/gen_cmap_cns.h \
+#src/modules/pdf/mupdf-1.10a/generated/gen_cmap_gb.h \
+#src/modules/pdf/mupdf-1.10a/generated/gen_cmap_japan.h \
+#src/modules/pdf/mupdf-1.10a/generated/gen_cmap_korea.h
 
 #fonts
 
@@ -1400,3 +1417,14 @@ src_modules_pdf_module_la_LDFLAGS = -no-undefined -module -avoid-version
 src_modules_pdf_module_la_LIBTOOLFLAGS = --tag=disable-static
 
 endif
+
+EXTRA_DIST += \
+$(CMAP_CNS_SRC) \
+$(CMAP_GB_SRC) \
+$(CMAP_JAPAN_SRC) \
+$(CMAP_KOREA_SRC) \
+$(font_droid_files) \
+$(font_han_files) \
+$(font_noto_files) \
+$(font_sil_files) \
+$(font_urw_files)
