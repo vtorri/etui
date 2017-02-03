@@ -2,12 +2,14 @@
 *.o
 *.lo
 *.la
+*.exe
 .deps
 .dirstamp
 .libs
 Makefile
 Makefile.in
 aclocal.m4
+ar-lib
 autom4te.cache/
 compile
 config.guess
@@ -32,6 +34,4 @@ m4/lt~obsolete.m4
 src/bin/etui
 src/bin/etui_elm
 stamp-h1
-etui.exe
-cmapdump.exe
-fontdump.exe
+
