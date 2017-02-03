@@ -18,77 +18,16 @@ dnl This code is licensed as WTFPL
 
 dnl Macros that check if Etui dependencies are available
 
-dnl use: ETUI_CHECK_DEP_DJVU(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
 
-AC_DEFUN([ETUI_CHECK_DEP_DJVU],
+dnl use: ETUI_CHECK_DEP_CB(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+
+AC_DEFUN([ETUI_CHECK_DEP_CB],
 [
 
-requirement_pc=""
+CB_CFLAGS=""
+CB_LIBS=""
 
-dnl libdjvu
-PKG_CHECK_EXISTS([ddjvuapi],
-   [
-    have_dep="yes"
-    requirements_pc="ddjvuapi ${requirements_pc}"
-   ],
-   [have_dep="no"])
-
-dnl check libraries
-if ! test "x${requirements_pc}" = "x" ; then
-   PKG_CHECK_MODULES([DJVU],
-      [${requirements_pc}],
-      [],
-      [])
-fi
-
-if test "x$1" = "xstatic" ; then
-   requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
-fi
-
-AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
-
-])
-
-dnl use: ETUI_CHECK_DEP_EPUB(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
-
-AC_DEFUN([ETUI_CHECK_DEP_EPUB],
-[
-
-requirements_libs=""
-requirement_pc=""
-have_dep="yes"
-
-dnl libarchive
-PKG_CHECK_EXISTS([libarchive >= 3 ewebkit2 >= ${efl_version} ecore-file >= ${efl_version}],
-   [
-    have_dep="yes"
-    requirements_pc="libarchive >= 3 ewebkit2 >= ${efl_version} ecore-file >= ${efl_version} ${requirements_pc}"
-   ],
-   [have_dep="no"])
-
-dnl check libraries
-if ! test "x${requirements_pc}" = "x" ; then
-   PKG_CHECK_MODULES([EPUB],
-      [${requirements_pc}],
-      [],
-      [])
-fi
-
-if test "x$1" = "xstatic" ; then
-   requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
-fi
-
-AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
-
-])
-
-dnl use: ETUI_CHECK_DEP_IMG(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
-
-AC_DEFUN([ETUI_CHECK_DEP_IMG],
-[
-
-requirements_libs=""
-requirement_pc=""
+requirements_pc=""
 have_dep="yes"
 
 dnl libarchive
@@ -105,17 +44,79 @@ fi
 
 dnl check libraries
 if ! test "x${requirements_pc}" = "x" ; then
-   PKG_CHECK_MODULES([IMG],
-      [${requirements_pc}],
-      [],
-      [])
+   PKG_CHECK_MODULES([CB], [${requirements_pc}], [], [])
 fi
 
 if test "x$1" = "xstatic" ; then
    requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
 fi
 
-AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
+AS_IF([test "x${have_dep}" = "xyes"], [$2], [$3])
+
+])
+
+dnl use: ETUI_CHECK_DEP_DJVU(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+
+AC_DEFUN([ETUI_CHECK_DEP_DJVU],
+[
+
+requirements_pc=""
+
+dnl libdjvu
+PKG_CHECK_EXISTS([ddjvuapi],
+   [
+    if test "x${enable_gpl}" = "xyes" ; then
+       have_dep="yes"
+       requirements_pc="ddjvuapi ${requirements_pc}"
+    else
+       have_no_gpl="yes"
+       AC_MSG_WARN([pass --enable-gpl to enable Djvu module])
+       have_dep="no"
+    fi
+   ],
+   [have_dep="no"])
+
+dnl check libraries
+if test "x${have_dep}" = "xyes" ; then
+   PKG_CHECK_MODULES([DJVU], [${requirements_pc}], [], [])
+fi
+
+if test "x$1" = "xstatic" ; then
+   requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
+fi
+
+AS_IF([test "x${have_dep}" = "xyes"], [$2], [$3])
+
+])
+
+dnl use: ETUI_CHECK_DEP_EPUB(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+
+AC_DEFUN([ETUI_CHECK_DEP_EPUB],
+[
+
+EPUB_CFLAGS=""
+EPUB_LIBS=""
+
+requirements_pc=""
+
+dnl libarchive, ewebkit2, ecore_file
+PKG_CHECK_EXISTS([libarchive >= 3 ewebkit2 >= ${efl_version} ecore-file >= ${efl_version}],
+   [
+    have_dep="yes"
+    requirements_pc="libarchive >= 3 ewebkit2 >= ${efl_version} ecore-file >= ${efl_version} ${requirements_pc}"
+   ],
+   [have_dep="no"])
+
+dnl check libraries
+if ! test "x${requirements_pc}" = "x" ; then
+   PKG_CHECK_MODULES([EPUB], [${requirements_pc}], [], [])
+fi
+
+if test "x$1" = "xstatic" ; then
+   requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
+fi
+
+AS_IF([test "x${have_dep}" = "xyes"], [$2], [$3])
 
 ])
 
@@ -124,34 +125,27 @@ dnl use: ETUI_CHECK_DEP_PDF(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]
 AC_DEFUN([ETUI_CHECK_DEP_PDF],
 [
 
-requirements_pc=""
-requirements_libs=""
-
 MUPDF_CFLAGS=""
 MUPDF_LIBS=""
+
+requirements_pc=""
+requirements_libs=""
 
 have_dep="yes"
 
 dnl zlib
 if test "x${have_dep}" = "xyes" ; then
    PKG_CHECK_EXISTS([zlib >= 1.2.5],
-      [
-       have_pkg_zlib="yes"
-       requirements_pc="zlib ${requirements_pc}"
-      ],
-      [have_pkg_zlib="no"])
+      [requirements_pc="zlib ${requirements_pc}"], [have_dep="no"])
+fi
 
-   if test "x${have_pkg_zlib}" = "xno" ; then
-      AC_MSG_NOTICE([no pkg-config file for zlib, checking files individually])
-      AC_CHECK_HEADER([zlib.h], [have_dep="yes"], [have_dep="no"])
-      if test "x${have_dep}" = "xyes" ; then
-         AC_CHECK_LIB([z], [zlibVersion],
-            [
-             have_dep="yes"
-             requirements_libs="${requirements_libs} -lz"
-            ],
-            [have_dep="no"])
-      fi
+dnl jpeglib
+if test "x${have_dep}" = "xyes" ; then
+   AC_CHECK_HEADER([jpeglib.h], [have_dep="yes"], [have_dep="no"])
+   if test "x${have_dep}" = "xyes" ; then
+      AC_CHECK_LIB([jpeg], [jpeg_std_error],
+         [requirements_libs="${requirements_libs} -ljpeg"],
+         [have_dep="no"])
    fi
 fi
 
@@ -162,12 +156,20 @@ if test "x${have_dep}" = "xyes" ; then
       [have_dep="no"])
 fi
 
+dnl harfbuzz
+if test "x${have_dep}" = "xyes" ; then
+   PKG_CHECK_EXISTS([harfbuzz],
+      [requirements_pc="harfbuzz ${requirements_pc}"],
+      [have_dep="no"])
+fi
+
 dnl openjpeg
 if test "x${have_dep}" = "xyes" ; then
    PKG_CHECK_EXISTS([libopenjpeg1 >= 1.5],
       [
        have_pkg_jp2k="yes"
        requirements_pc="libopenjpeg1 ${requirements_pc}"
+       libopenjpegpc="libopenjpeg1"
       ],
       [have_pkg_jp2k="no"])
 
@@ -176,6 +178,7 @@ if test "x${have_dep}" = "xyes" ; then
          [
           have_pkg_jp2k="yes"
           requirements_pc="libopenjpeg ${requirements_pc}"
+          libopenjpegpc="libopenjpeg"
          ],
          [have_pkg_jp2k="no"])
    fi
@@ -184,7 +187,7 @@ if test "x${have_dep}" = "xyes" ; then
       AC_MSG_NOTICE([no pkg-config file for openjpeg, checking files individually])
       AC_MSG_CHECKING([for openjpeg library])
       LIBS_save="${LIBS}"
-      LIBS="${LIBS} -lopenjpeg"
+      LIBS="${LIBS} -lopenjp2"
       AC_LINK_IFELSE(
          [AC_LANG_PROGRAM(
              [[
@@ -198,7 +201,8 @@ params.flags |= OPJ_DPARAMETERS_IGNORE_PCLR_CMAP_CDEF_FLAG;
              ]])],
          [
           have_dep="yes"
-          requirements_libs="-lopenjpeg ${requirements_libs}"
+          requirements_libs="-lopenjp2 ${requirements_libs}"
+          OPENJPEG_LIBS="-lopenjp2"
          ],
          [have_dep="no"])
       LIBS="${LIBS_save}"
@@ -207,7 +211,15 @@ params.flags |= OPJ_DPARAMETERS_IGNORE_PCLR_CMAP_CDEF_FLAG;
    fi
 fi
 
+dnl openssl
+if test "x${have_dep}" = "xyes" ; then
+   PKG_CHECK_EXISTS([openssl],
+      [requirements_pc="openssl ${requirements_pc}"],
+      [have_dep="no"])
+fi
+
 dnl check libraries
+
 if test "x${have_dep}" = "xyes" ; then
    PKG_CHECK_MODULES([MUPDF],
       [${requirements_pc}],
@@ -216,100 +228,84 @@ if test "x${have_dep}" = "xyes" ; then
        MUPDF_LIBS="${requirements_libs} ${MUPDF_LIBS}"
       ],
       [have_dep="no"])
-
-dnl CJK fonts
-   if ! test "x${want_mupdf_cjk}" = "xyes" ; then
-      BUILD_MUPDF_CJK_FONTS="-DNOCJK"
-   fi
 fi
 
 AC_ARG_VAR([MUPDF_CFLAGS], [preprocessor flags for mupdf])
 AC_SUBST([MUPDF_CFLAGS])
 AC_ARG_VAR([MUPDF_LIBS], [linker flags for mupdf])
 AC_SUBST([MUPDF_LIBS])
-AC_SUBST([BUILD_MUPDF_CJK_FONTS])
 
-AM_CONDITIONAL([BUILD_MUPDF_CJK_FONTS], [test "x${want_mupdf_cjk}" = "xyes"])
+AC_SUBST([JPEG_LIBS])
+AC_SUBST([OPENJPEG_LIBS])
 
 if test "x$1" = "xstatic" ; then
    requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
    requirements_etui_libs="${requirements_libs} ${requirements_etui_libs}"
 fi
 
-AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
+AS_IF([test "x${have_dep}" = "xyes"], [$2], [$3])
 
 ])
 
-dnl use: ETUI_CHECK_DEP_POSTSCRIPT(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+dnl use: ETUI_CHECK_DEP_PS(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
 
 AC_DEFUN([ETUI_CHECK_DEP_PS],
 [
 
-requirements_libs=""
-
 PS_CFLAGS=""
 PS_LIBS=""
 
-have_dep="yes"
+requirements_pc=""
 
-AC_CHECK_HEADERS([iapi.h ierrors.h gdevdsp.h], [have_dep="yes"], [have_dep="no"])
-if test "x${have_dep}" = "xyes" ; then
-   AC_MSG_CHECKING([for libgs library])
-   LIBS_save=${LIBS}
-   LIBS="${LIBS} -lgs"
-   AC_LINK_IFELSE(
-      [AC_LANG_PROGRAM(
-          [[
-#include <stdlib.h>
-#include <iapi.h>
-          ]],
-          [[
-void *inst;
+dnl xpost
+PKG_CHECK_EXISTS([xpost],
+   [
+    have_dep="yes"
+    requirements_pc="xpost ${requirements_pc}"
+   ],
+   [have_dep="no"])
 
-gsapi_new_instance(&inst, NULL);
-          ]])],
-      [
-       have_dep="yes"
-       requirements_libs="${requirements_libs} -lgs"
-      ],
-      [have_dep="no"])
-   LIBS=${LIBS_save}
-
-   AC_MSG_RESULT([${have_dep}])
-
-   if test "x${have_dep}" = "xyes" ; then
-      AC_MSG_CHECKING([for libgs library >= 9.18])
-      AC_COMPILE_IFELSE(
-         [AC_LANG_PROGRAM(
-             [[
-#include <iapi.h>
-#include <ierrors.h>
-             ]],
-             [[
-int i = gs_error_NeedInput;
-             ]])],
-         [have_gs918="yes"],
-         [have_gs918="no"])
-      AC_MSG_RESULT([${have_gs918}])
-
-      if test "x${have_gs918}" = "xyes" ; then
-         AC_DEFINE([HAVE_GS918], [1], [Set to 1 if libgs >= 9.18 is found])
-      fi
-   fi
+dnl check libraries
+if ! test "x${requirements_pc}" = "x" ; then
+   PKG_CHECK_MODULES([XPOST], [${requirements_pc}], [], [])
 fi
-
-PS_LIBS="${requirements_libs} ${PS_LIBS}"
 
 if test "x$1" = "xstatic" ; then
-   requirements_etui_libs="${requirements_libs} ${requirements_etui_libs}"
+   requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
 fi
 
-AC_ARG_VAR([PS_CFLAGS], [preprocessor flags for postscript backend])
-AC_SUBST([PS_CFLAGS])
-AC_ARG_VAR([PS_LIBS], [linker flags for postscript backend])
-AC_SUBST([PS_LIBS])
+AS_IF([test "x${have_dep}" = "xyes"], [$2], [$3])
 
-AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
+])
+
+dnl use: ETUI_CHECK_DEP_TIFF(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]])
+
+AC_DEFUN([ETUI_CHECK_DEP_TIFF],
+[
+
+TIFF_CFLAGS=""
+TIFF_LIBS=""
+
+requirements_pc=""
+
+dnl libtiff
+PKG_CHECK_EXISTS([libtiff-4],
+   [
+    have_dep="yes"
+    requirements_pc="libtiff-4 ${requirements_pc}"
+   ],
+   [have_dep="no"])
+
+dnl check libraries
+if ! test "x${requirements_pc}" = "x" ; then
+   PKG_CHECK_MODULES([TIFF], [${requirements_pc}], [], [])
+fi
+
+if test "x$1" = "xstatic" ; then
+   requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
+fi
+
+AS_IF([test "x${have_dep}" = "xyes"], [$2], [$3])
 
 ])
 
@@ -319,7 +315,7 @@ AC_DEFUN([ETUI_CHECK_DEP_TXT],
 [
 have_dep="yes"
 
-AS_IF([test "x$have_dep" = "xyes"], [$2], [$3])
+AS_IF([test "x${have_dep}" = "xyes"], [$2], [$3])
 
 ])
 

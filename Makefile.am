@@ -34,14 +34,17 @@ endif
 if ETUI_BUILD_EPUB
 include src/modules/epub/Makefile.mk
 endif
-if ETUI_BUILD_IMG
-include src/modules/img/Makefile.mk
+if ETUI_BUILD_CB
+include src/modules/cb/Makefile.mk
 endif
 if ETUI_BUILD_PDF
 include src/modules/pdf/Makefile.mk
 endif
 if ETUI_BUILD_PS
 include src/modules/ps/Makefile.mk
+endif
+if ETUI_BUILD_TIFF
+include src/modules/tiff/Makefile.mk
 endif
 include data/themes/Makefile.mk
 include data/Makefile.mk
