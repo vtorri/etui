@@ -188,6 +188,8 @@ if test "x${have_dep}" = "xyes" ; then
       AC_MSG_CHECKING([for openjpeg library])
       LIBS_save="${LIBS}"
       LIBS="${LIBS} -lopenjp2"
+      CFLAGS_save="${CFLAGS}"
+      CFLAGS="${CFLAGS} -I/usr/include/openjpeg-2.1"
       AC_LINK_IFELSE(
          [AC_LANG_PROGRAM(
              [[
@@ -203,9 +205,11 @@ params.flags |= OPJ_DPARAMETERS_IGNORE_PCLR_CMAP_CDEF_FLAG;
           have_dep="yes"
           requirements_libs="-lopenjp2 ${requirements_libs}"
           OPENJPEG_LIBS="-lopenjp2"
+          OPENJPEG_CFLAGS="-I/usr/include/openjpeg-2.1"
          ],
          [have_dep="no"])
       LIBS="${LIBS_save}"
+      CFLAGS="${CFLAGS_save}"
 
       AC_MSG_RESULT([${have_dep}])
    fi
