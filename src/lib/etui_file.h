@@ -19,11 +19,8 @@
 #define ETUI_FILE_H
 
 
-Eina_Bool etui_file_is_cb(const char *filename, Eina_File *f);
-Eina_Bool etui_file_is_djvu(const char *filename, Eina_File *f);
-Eina_Bool etui_file_is_pdf(const char *filename, Eina_File *f);
-Eina_Bool etui_file_is_ps(const char *filename, Eina_File *f);
-Eina_Bool etui_file_is_tiff(const char *filename, Eina_File *f);
+EAPI const void *etui_file_base_get(const Etui_File *ef);
+EAPI size_t etui_file_size_get(const Etui_File *ef);
 
 
 #endif /* ETUI_FILE_H */

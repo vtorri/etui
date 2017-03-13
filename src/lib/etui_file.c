@@ -22,7 +22,10 @@
 #include <stdlib.h>
 
 #include <Eina.h>
+#include <Ecore.h> /* for Ecore_Thread in Etui_Module */
 
+#include "Etui.h"
+#include "etui_module.h"
 #include "etui_file.h"
 #include "etui_private.h"
 
@@ -32,32 +35,21 @@
  *============================================================================*/
 
 
-/****** TIFF ******/
-
-#ifdef ETUI_BUILD_TIFF
-
-typedef struct
+struct Etui_File_s
 {
-    unsigned short magic;
-    unsigned short version;
-} Tiff_Header;
-
-#endif
-
-
-/*============================================================================*
- *                                 Global                                     *
- *============================================================================*/
-
-Eina_Bool
-etui_file_is_cb(const char *filename, Eina_File *f)
-{
-    unsigned char *base;
+    char *filename;
+    Eina_File *file;
+    Etui_Module *module;
+    void *base;
     size_t size;
+};
 
-    size = eina_file_size_get(f);
-    base = eina_file_map_all(f, EINA_FILE_POPULATE);
+/****** Comic Book ******/
 
+static Eina_Bool
+etui_file_is_cb(const char *filename,
+                unsigned char *base, size_t size)
+{
     /* check the file name extension and the signatures */
 
     /* CBR */
@@ -100,16 +92,14 @@ etui_file_is_cb(const char *filename, Eina_File *f)
     return EINA_FALSE;
 }
 
+/****** DJVU ******/
+
 #ifdef ETUI_BUILD_DJVU
 
-Eina_Bool
-etui_file_is_djvu(const char *filename EINA_UNUSED, Eina_File *f)
+static Eina_Bool
+etui_file_is_djvu(const char *filename EINA_UNUSED,
+                  unsigned char *base, size_t size)
 {
-    unsigned char *base;
-    size_t size;
-
-    size = eina_file_size_get(f);
-    base = eina_file_map_all(f, EINA_FILE_POPULATE);
     if ((size >= 4) &&
         (base[0] == 0x41) &&
         (base[1] == 0x54) &&
@@ -122,24 +112,71 @@ etui_file_is_djvu(const char *filename EINA_UNUSED, Eina_File *f)
 
 #else
 
-Eina_Bool
-etui_file_is_djvu(const char *filename EINA_UNUSED, Eina_File *f EINA_UNUSED)
+static Eina_Bool
+etui_file_is_djvu(const char *filename EINA_UNUSED,
+                  unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
 {
     return EINA_FALSE;
 }
 
 #endif /* ETUI_BUILD_DJVU */
 
+/****** EPUB ******/
+
+#ifdef ETUI_BUILD_EPUB
+
+static inline unsigned int
+_uint32_get(unsigned char *ptr)
+{
+  return ptr[0] | (ptr[1] << 8) | (ptr[2] << 16) | (ptr[3] << 24);
+}
+
+static inline unsigned short
+_uint16_get(unsigned char *ptr)
+{
+  return ptr[0] | (ptr[1] << 8);
+}
+
+static Eina_Bool
+etui_file_is_epub(const char *filename EINA_UNUSED,
+                  unsigned char *base, size_t size)
+{
+    if ((sz >= 48) && /* first local file header should be large enough */
+        (_uint32_get(base) == 0x04034b50) && /* ZIP file */
+        ((_uint16_get(base + 4) == 10) || /* version needed to extract */
+         (_uint16_get(base + 4) == 20) || /* version needed to extract */
+         (_uint16_get(base + 4) == 45)) && /* version needed to extract */
+        (!(_uint16_get(base + 6) & 1)) && /* not encrypted */
+        ((_uint16_get(base + 8) == 0) || /* not compressed */
+         (_uint16_get(base + 8) == 8)) && /* or deflated */
+        (_uint16_get(base + 26) == 8) && /* size of file name "mimetype" */
+        (_uint16_get(base + 28) == 0) && /* no extra field */
+        (memcmp(base + 30, "mimetype", 8) == 0) && /* file name */
+        (memcmp(base + 38, "application/epub+zip", 20) == 0)) /* mimetype */
+    return  EINA_TRUE;
+
+    return EINA_FALSE;
+}
+
+#else
+
+static Eina_Bool
+etui_file_is_epub(const char *filename EINA_UNUSED,
+                  unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
+{
+    return EINA_FALSE;
+}
+
+#endif /* ETUI_BUILD_EPUB */
+
+/****** PDF ******/
+
 #ifdef ETUI_BUILD_PDF
 
-Eina_Bool
-etui_file_is_pdf(const char *filename EINA_UNUSED, Eina_File *f)
+static Eina_Bool
+etui_file_is_pdf(const char *filename EINA_UNUSED,
+                 unsigned char *base, size_t size)
 {
-    unsigned char *base;
-    size_t size;
-
-    size = eina_file_size_get(f);
-    base = (unsigned char *)eina_file_map_all(f, EINA_FILE_POPULATE);
     if ((size >= 8) &&
         (base[0] == '%') &&
         (base[1] == 'P') &&
@@ -157,22 +194,23 @@ etui_file_is_pdf(const char *filename EINA_UNUSED, Eina_File *f)
 
 #else
 
-Eina_Bool
-etui_file_is_pdf(const char *filename EINA_UNUSED, Eina_File *f EINA_UNUSED)
+static Eina_Bool
+etui_file_is_pdf(const char *filename EINA_UNUSED,
+                 unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
 {
     return EINA_FALSE;
 }
 
 #endif /* ETUI_BUILD_PDF */
 
+/****** PostScript ******/
+
 #ifdef ETUI_BUILD_PS
 
-Eina_Bool
-etui_file_is_ps(const char *filename EINA_UNUSED, Eina_File *f)
+static Eina_Bool
+etui_file_is_ps(const char *filename EINA_UNUSED,
+                unsigned char *base, size_t size)
 {
-    unsigned char *base;
-    size_t size;
-
     /*
      * Available versions are:
      * 1.0
@@ -185,8 +223,6 @@ etui_file_is_ps(const char *filename EINA_UNUSED, Eina_File *f)
      * and {0, 1, 2} or minor version
      */
 
-    size = eina_file_size_get(f);
-    base = (unsigned char *)eina_file_map_all(f, EINA_FILE_POPULATE);
     if ((size >= 14) &&
         (base[0] == '%') &&
         (base[1] == '!') &&
@@ -211,28 +247,34 @@ etui_file_is_ps(const char *filename EINA_UNUSED, Eina_File *f)
 
 #else
 
-Eina_Bool
-etui_file_is_ps(const char *filename EINA_UNUSED, Eina_File *f EINA_UNUSED)
+static Eina_Bool
+etui_file_is_ps(const char *filename EINA_UNUSED,
+                unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
 {
     return EINA_FALSE;
 }
 
 #endif /* ETUI_BUILD_PS */
 
+/****** TIFF ******/
+
 #ifdef ETUI_BUILD_TIFF
 
-Eina_Bool
-etui_file_is_tiff(const char *filename EINA_UNUSED, Eina_File *f)
+typedef struct
+{
+    unsigned short magic;
+    unsigned short version;
+} Tiff_Header;
+
+static Eina_Bool
+etui_file_is_tiff(const char *filename EINA_UNUSED,
+                  unsigned char *base, size_t size)
 {
     Tiff_Header *hdr;
-    void *base;
-    size_t size;
 
-    size = eina_file_size_get(f);
     if (size < sizeof(Tiff_Header))
         return EINA_FALSE;
 
-    base = eina_file_map_all(f, EINA_FILE_POPULATE);
     hdr = (Tiff_Header *)base;
     if (
         (hdr->magic != 0x4d4d) && /* big endian */
@@ -275,8 +317,9 @@ etui_file_is_tiff(const char *filename EINA_UNUSED, Eina_File *f)
 
 #else
 
-Eina_Bool
-etui_file_is_tiff(const char *filename EINA_UNUSED, Eina_File *f EINA_UNUSED)
+static Eina_Bool
+etui_file_is_tiff(const char *filename EINA_UNUSED,
+                  unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
 {
     return EINA_FALSE;
 }
@@ -285,5 +328,141 @@ etui_file_is_tiff(const char *filename EINA_UNUSED, Eina_File *f EINA_UNUSED)
 
 
 /*============================================================================*
+ *                                 Global                                     *
+ *============================================================================*/
+
+
+/*============================================================================*
  *                                   API                                      *
  *============================================================================*/
+
+
+EAPI Etui_File *
+etui_file_new (const char *filename)
+{
+    char file[PATH_MAX];
+    Etui_File *ef;
+    Etui_Module *module;
+    const char *module_name = NULL;
+    char *res;
+
+    if (!filename || !*filename)
+        return NULL;
+
+    if (eina_str_has_prefix(filename, "file://"))
+        res = realpath(filename + 7, file);
+    else
+        res = realpath(filename, file);
+
+    if (!res)
+        return NULL;
+
+    ef = (Etui_File *)calloc(1, sizeof(Etui_File));
+    if (!ef)
+        return NULL;
+
+    /* TODO: use stringshare ?? */
+    ef->filename = strdup(file);
+    if (!ef->filename)
+        goto free_ef;
+
+    ef->file = eina_file_open(file, EINA_FALSE);
+    if (!ef->file)
+        goto free_filename;
+
+    ef->base = eina_file_map_all(ef->file, EINA_FILE_POPULATE);
+    if (!ef->base)
+        goto close_file;
+
+    ef->size = eina_file_size_get(ef->file);
+
+    if (etui_file_is_pdf(file, ef->base, ef->size))
+        module_name = "pdf";
+    else if (etui_file_is_ps(file, ef->base, ef->size))
+        module_name = "ps";
+    else if (etui_file_is_djvu(file, ef->base, ef->size))
+        module_name = "djvu";
+    else if (etui_file_is_cb(file, ef->base, ef->size))
+        module_name = "cb";
+    else if (etui_file_is_epub(file, ef->base, ef->size))
+        module_name = "epub";
+    else if (etui_file_is_tiff(file, ef->base, ef->size))
+        module_name = "tiff";
+
+    /* FIXME: XPS, txt, DVI */
+
+    INF("module name: %s", module_name);
+
+    module = etui_module_find(module_name);
+    if (!module)
+    {
+        Eina_List *l;
+        Eina_List *ll;
+
+        l = etui_module_list();
+        EINA_LIST_FOREACH(l, ll, module_name)
+        {
+            module = etui_module_find(module_name);
+            if (module)
+                break;
+        }
+    }
+
+    if (!module)
+    {
+        ERR("Can not find an appropriate module for file %s", filename);
+        goto close_file;
+    }
+
+    module->data = module->functions->init(ef);
+    if (!module->data)
+    {
+        ERR("can not initialize file object");
+        goto unload_module;
+    }
+
+    ef->module = module;
+
+    return ef;
+
+  unload_module:
+    etui_module_unload(ef->module);
+  close_file:
+    eina_file_close(ef->file);
+  free_filename:
+    free(ef->filename);
+  free_ef:
+    free(ef);
+
+    return NULL;
+}
+
+EAPI void
+etui_file_del(Etui_File *ef)
+{
+    if (!ef)
+        return;
+
+    ef->module->functions->shutdown(ef->module->data);
+    etui_module_unload(ef->module);
+    free(ef->filename);
+    free(ef);
+}
+
+const char *
+etui_file_filename_get(const Etui_File *ef)
+{
+    return ef ? ef->filename : NULL;
+}
+
+const void *
+etui_file_base_get(const Etui_File *ef)
+{
+    return ef ? ef->base : NULL;
+}
+
+size_t
+etui_file_size_get(const Etui_File *ef)
+{
+    return ef ? ef->size : 0;
+}

@@ -28,6 +28,7 @@
 
 #include "Etui.h"
 #include "etui_module.h"
+#include "etui_file.h"
 #include "etui_module_pdf.h"
 
 /*============================================================================*
@@ -84,12 +85,12 @@ struct _Etui_Module_Data
     /* Document */
     struct
     {
-        char *filename;
-        fz_context *ctx;
-        fz_document *doc;
+        Etui_Module_Pdf_Info *info; /* information specific to the document (creator, ...) */
+        int page_nbr;
         Eina_Array toc;
         char *title;
-        Etui_Module_Pdf_Info *info; /* information specific to the document (creator, ...) */
+        fz_context *ctx;
+        fz_document *doc;
     } doc;
 
     /* Current page */
@@ -366,7 +367,7 @@ _etui_pdf_info_set(Etui_Module_Data *md)
 /* Virtual functions */
 
 static void *
-_etui_pdf_init(Evas *evas)
+_etui_pdf_init(const Etui_File *ef)
 {
     Etui_Module_Data *md;
 
@@ -375,10 +376,6 @@ _etui_pdf_init(Evas *evas)
         return NULL;
 
     DBG("init module");
-
-    md->efl.obj = evas_object_image_add(evas);
-    if (!md->efl.obj)
-        goto free_pd;
 
     fz_var(md->doc.doc);
     /* FIXME:
@@ -389,23 +386,82 @@ _etui_pdf_init(Evas *evas)
     if (!md->doc.ctx)
     {
         ERR("Could not create context");
-        goto del_obj;
+        goto free_md;
+    }
+
+    fz_try(md->doc.ctx)
+    {
+        fz_stream *stream;
+        fz_page *page;
+        fz_outline *outline;
+
+		fz_register_document_handlers(md->doc.ctx);
+        stream = fz_open_memory(md->doc.ctx,
+                                (unsigned char *)etui_file_base_get(ef),
+                                etui_file_size_get(ef));
+        md->doc.doc = fz_open_document_with_stream(md->doc.ctx,
+                                                   "pdf", stream);
+        if (!md->doc.doc)
+        {
+            ERR("could not open document %s", etui_file_filename_get(ef));
+            goto drop_ctx;
+        }
+
+        /* try to open the first page */
+        /* if it's a damaged PDF, no error */
+        /* if not, an error will be thrown */
+        page = fz_load_page(md->doc.ctx, md->doc.doc, 0);
+        if (!page)
+        {
+            ERR("could not open first page from the document");
+            goto close_doc;
+        }
+
+        fz_drop_page(md->doc.ctx, page);
+
+        md->doc.title = _etui_pdf_metadata_get(md, FZ_META_INFO_TITLE);
+
+        while (eina_array_count(&md->doc.toc))
+            free(eina_array_pop(&md->doc.toc));
+        eina_array_step_set(&md->doc.toc, sizeof(Eina_Array), 4);
+
+        outline = fz_load_outline(md->doc.ctx, md->doc.doc);
+        if (outline)
+        {
+            md->doc.toc = *_etui_pdf_toc_fill(md, &md->doc.toc, outline);
+            fz_drop_outline(md->doc.ctx, outline);
+        }
+    }
+    fz_catch(md->doc.ctx)
+    {
+        ERR("Could not open file %s", etui_file_filename_get(ef));
+        goto drop_ctx;
     }
 
     md->doc.info = (Etui_Module_Pdf_Info *)calloc(1, sizeof(Etui_Module_Pdf_Info));
     if (!md->doc.info)
     {
         ERR("Could not allocate memory for information structure");;
-        goto drop_ctx;
+        goto free_title;
     }
+
+    md->doc.page_nbr = fz_count_pages(md->doc.ctx, md->doc.doc);
+    md->page.page_num = -1;
+    md->page.rotation = ETUI_ROTATION_0;
+    md->page.hscale = 1.0f;
+    md->page.vscale = 1.0f;
 
     return md;
 
+  free_title:
+    _etui_pdf_toc_unfill(&md->doc.toc, EINA_FALSE);
+    eina_array_flush(&md->doc.toc);
+    free(md->doc.title);
+  close_doc:
+    fz_drop_document(md->doc.ctx, md->doc.doc);
   drop_ctx:
     fz_drop_context(md->doc.ctx);
-  del_obj:
-    evas_object_del(md->efl.obj);
-  free_pd:
+  free_md:
     free(md);
 
     return NULL;
@@ -423,147 +479,36 @@ _etui_pdf_shutdown(void *d)
 
     md = (Etui_Module_Data *)d;
 
+    /* _etui_pdf_links_unfill(&md->page.links); */
+    /* eina_array_flush(&md->page.links); */
+
     _etui_pdf_info_del(md);
     free(md->doc.info);
-    if (md->doc.doc)
-        fz_drop_document(md->doc.ctx, md->doc.doc);
-    free(md->doc.filename);
-    evas_object_del(md->efl.obj);
+    _etui_pdf_toc_unfill(&md->doc.toc, EINA_FALSE);
+    eina_array_flush(&md->doc.toc);
+    free(md->doc.title);
+    fz_drop_document(md->doc.ctx, md->doc.doc);
     fz_drop_context(md->doc.ctx);
     free(md);
 }
 
 static Evas_Object *
-_etui_pdf_evas_object_get(void *d)
+_etui_pdf_evas_object_add(void *d, Evas *evas)
 {
     if (!d)
         return NULL;
 
+    ((Etui_Module_Data *)d)->efl.obj = evas_object_image_add(evas);
     return ((Etui_Module_Data *)d)->efl.obj;
 }
 
-static Eina_Bool
-_etui_pdf_file_open(void *d, const char *filename)
-{
-    Etui_Module_Data *md;
-    fz_outline *outline;
-
-    if (!d || !filename || !*filename)
-        return EINA_FALSE;
-
-    DBG("open file %s", filename);
-
-    md = (Etui_Module_Data *)d;
-
-    if (md->doc.filename && (strcmp(filename, md->doc.filename) == 0))
-      return EINA_TRUE;
-
-    if (md->doc.filename)
-        free(md->doc.filename);
-
-    md->doc.filename = strdup(filename);
-    if (!md->doc.filename)
-        return EINA_FALSE;
-
-    if (md->doc.doc)
-        fz_drop_document(md->doc.ctx, md->doc.doc);
-
-    fz_try(md->doc.ctx)
-    {
-        fz_page *page;
-
-		fz_register_document_handlers(md->doc.ctx);
-        md->doc.doc = fz_open_document(md->doc.ctx, filename);
-        if (!md->doc.doc)
-        {
-            ERR("could not open document %s", filename);
-            goto free_filename;
-        }
-
-        /* try to open the first page */
-        /* if it's a damaged PDF, no error */
-        /* if not, an error will be thrown */
-        page = fz_load_page(md->doc.ctx, md->doc.doc, 0);
-        if (!page)
-        {
-            ERR("could not open first page from the document");
-            goto close_doc;
-        }
-
-        fz_drop_page(md->doc.ctx, page);
-
-        free(md->doc.title);
-        md->doc.title = _etui_pdf_metadata_get(md, FZ_META_INFO_TITLE);
-
-        while (eina_array_count(&md->doc.toc))
-            free(eina_array_pop(&md->doc.toc));
-        eina_array_step_set(&md->doc.toc, sizeof(Eina_Array), 4);
-
-        outline = fz_load_outline(md->doc.ctx, md->doc.doc);
-        if (outline)
-        {
-            md->doc.toc = *_etui_pdf_toc_fill(md, &md->doc.toc, outline);
-            fz_drop_outline(md->doc.ctx, outline);
-        }
-    }
-    fz_catch(md->doc.ctx)
-    {
-        ERR("Could not open file %s", filename);
-        goto free_filename;
-    }
-
-    md->page.page_num = -1;
-
-    return EINA_TRUE;
-
-  close_doc:
-    fz_drop_document(md->doc.ctx, md->doc.doc);
-    md->doc.doc = NULL;
-  free_filename:
-    free(md->doc.filename);
-    md->doc.filename = NULL;
-
-  return EINA_FALSE;
-}
-
 static void
-_etui_pdf_file_close(void *d)
+_etui_pdf_evas_object_del(void *d)
 {
-    Etui_Module_Data *md;
-
     if (!d)
         return;
 
-    md = (Etui_Module_Data *)d;
-
-    DBG("close file %s", md->doc.filename);
-
-    /* _etui_pdf_links_unfill(&md->page.links); */
-    /* eina_array_flush(&md->page.links); */
-
-    _etui_pdf_toc_unfill(&md->doc.toc, EINA_FALSE);
-    eina_array_flush(&md->doc.toc);
-
-    if (md->page.page)
-        fz_drop_page(md->doc.ctx, md->page.page);
-    md->page.page = NULL;
-
-    if (md->page.use_display_list)
-    {
-        if (md->page.list)
-            fz_drop_display_list(md->doc.ctx, md->page.list);
-    }
-    md->page.list = NULL;
-
-    free(md->doc.title);
-    md->doc.title = NULL;
-
-    if (md->doc.doc)
-        fz_drop_document(md->doc.ctx, md->doc.doc);
-    md->doc.doc = NULL;
-
-    free(md->doc.filename);
-    md->doc.filename = NULL;
+    evas_object_del(((Etui_Module_Data *)d)->efl.obj);
 }
 
 static const void *
@@ -911,9 +856,8 @@ static Etui_Module_Func _etui_module_func_pdf =
 {
     /* .init                          */ _etui_pdf_init,
     /* .shutdown                      */ _etui_pdf_shutdown,
-    /* .evas_object_get               */ _etui_pdf_evas_object_get,
-    /* .file_open                     */ _etui_pdf_file_open,
-    /* .file_close                    */ _etui_pdf_file_close,
+    /* .evas_object_add               */ _etui_pdf_evas_object_add,
+    /* .evas_object_del               */ _etui_pdf_evas_object_del,
     /* .info_get                      */ _etui_pdf_info_get,
     /* .title_get                     */ _etui_pdf_title_get,
     /* .pages_count                   */ _etui_pdf_pages_count,
@@ -986,7 +930,6 @@ module_close(Etui_Module *em)
     DBG("shutdown pdf module");
 
     /* shutdown module here */
-    em->functions->file_close(em->data);
     em->functions->shutdown(em->data);
 
     /* shutdown external libraries here */

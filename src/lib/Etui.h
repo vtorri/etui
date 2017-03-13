@@ -57,15 +57,19 @@ typedef enum
 } Etui_Rotation;
 
 
+typedef struct Etui_File_s Etui_File;
+
+
 EAPI int etui_init(void);
 EAPI int etui_shutdown(void);
+
+EAPI Etui_File *etui_file_new (const char *filename);
+EAPI void etui_file_del(Etui_File *ef);
+EAPI const char *etui_file_filename_get(const Etui_File *ef);
 
 EAPI Evas_Object *etui_object_add(Evas *evas);
 
 EAPI const char *etui_object_module_name_get(Evas_Object *obj);
-
-EAPI Eina_Bool etui_object_file_open(Evas_Object *obj, const char *filename);
-EAPI const char *etui_object_filename_get(Evas_Object *obj);
 
 EAPI const void *etui_object_info_get(Evas_Object *obj);
 

@@ -28,6 +28,7 @@
 
 #include "Etui.h"
 #include "etui_module.h"
+#include "etui_file.h"
 #include "etui_module_tiff.h"
 
 /*============================================================================*
@@ -205,7 +206,7 @@ _etui_tiff_info_set(Etui_Module_Data *md)
 /* Virtual functions */
 
 static void *
-_etui_tiff_init(Evas *evas)
+_etui_tiff_init(Etui_File *ef)
 {
     Etui_Module_Data *md;
 
@@ -215,21 +216,30 @@ _etui_tiff_init(Evas *evas)
 
     DBG("init module");
 
-    md->efl.obj = evas_object_image_add(evas);
-    if (!md->efl.obj)
+    md->doc.tiff = TIFFOpen(etui_file_filename_get(ef), "r");
+    if (!md->doc.tiff)
         goto free_md;
 
     md->doc.info = (Etui_Module_Tiff_Info *)calloc(1, sizeof(Etui_Module_Tiff_Info));
     if (!md->doc.info)
     {
         ERR("Could not allocate memory for information structure");;
-        goto del_obj;
+        goto close_tiff;
     }
+
+    md->doc.page_nbr = TIFFNumberOfDirectories(md->doc.tiff);
+    md->page.page_num = -1;
+    md->page.rotation = ETUI_ROTATION_0;
+    md->page.hscale = 1.0f;
+    md->page.vscale = 1.0f;
 
     return md;
 
-  del_obj:
-    evas_object_del(md->efl.obj);
+  close_tiff:
+    if (md->page.raster)
+        _TIFFfree(md->page.raster);
+    if (md->doc.tiff)
+        TIFFClose(md->doc.tiff);
   free_md:
     free(md);
 
@@ -248,78 +258,30 @@ _etui_tiff_shutdown(void *d)
 
     md = (Etui_Module_Data *)d;
 
+    if (md->page.raster)
+        _TIFFfree(md->page.raster);
     free(md->doc.info);
-    free(md->doc.filename);
-    evas_object_del(md->efl.obj);
+    TIFFClose(md->doc.tiff);
     free(md);
 }
 
 static Evas_Object *
-_etui_tiff_evas_object_get(void *d)
+_etui_tiff_evas_object_add(void *d, Evas *evas)
 {
     if (!d)
         return NULL;
 
+    ((Etui_Module_Data *)d)->efl.obj = evas_object_image_add(evas);
     return ((Etui_Module_Data *)d)->efl.obj;
 }
 
-static Eina_Bool
-_etui_tiff_file_open(void *d, const char *filename)
-{
-    Etui_Module_Data *md;
-
-    if (!d || !filename || !*filename)
-        return EINA_FALSE;
-
-    DBG("open file %s", filename);
-
-    md = (Etui_Module_Data *)d;
-
-    if (md->doc.filename && (strcmp(filename, md->doc.filename) == 0))
-        return EINA_TRUE;
-
-    if (md->doc.filename)
-        free(md->doc.filename);
-    md->doc.filename = strdup(filename);
-    if (!md->doc.filename)
-        return EINA_FALSE;
-
-    md->doc.tiff = TIFFOpen(md->doc.filename, "r");
-    if (!md->doc.tiff)
-        goto free_filename;
-
-    md->doc.page_nbr = TIFFNumberOfDirectories(md->doc.tiff);
-
-    md->page.page_num = -1;
-
-    return EINA_TRUE;
-
-  free_filename:
-    free(md->doc.filename);
-    md->doc.filename = NULL;
-
-    return EINA_FALSE;
-}
-
 static void
-_etui_tiff_file_close(void *d)
+_etui_tiff_evas_object_del(void *d)
 {
-    Etui_Module_Data *md;
-
     if (!d)
         return;
 
-    md = (Etui_Module_Data *)d;
-
-    DBG("close file %s", md->doc.filename);
-
-    if (md->page.raster)
-        _TIFFfree(md->page.raster);
-    if (md->doc.tiff)
-        TIFFClose(md->doc.tiff);
-    if (md->doc.filename)
-        free(md->doc.filename);
-    md->doc.filename = NULL;
+    evas_object_del(((Etui_Module_Data *)d)->efl.obj);
 }
 
 static const void *
@@ -610,9 +572,8 @@ static Etui_Module_Func _etui_module_func_tiff =
 {
     /* .init              */ _etui_tiff_init,
     /* .shutdown          */ _etui_tiff_shutdown,
-    /* .evas_object_get   */ _etui_tiff_evas_object_get,
-    /* .file_open         */ _etui_tiff_file_open,
-    /* .file_close        */ _etui_tiff_file_close,
+    /* .evas_object_add   */ _etui_tiff_evas_object_add,
+    /* .evas_object_del   */ _etui_tiff_evas_object_del,
     /* .info_get          */ _etui_tiff_info_get,
     /* .title_get         */ _etui_tiff_title_get,
     /* .pages_count       */ _etui_tiff_pages_count,
@@ -685,7 +646,6 @@ module_close(Etui_Module *em)
     DBG("shutdown tiff module");
 
     /* shutdown module here */
-    em->functions->file_close(em->data);
     em->functions->shutdown(em->data);
 
     /* shutdown external libraries here */

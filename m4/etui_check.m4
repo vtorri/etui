@@ -163,54 +163,6 @@ if test "x${have_dep}" = "xyes" ; then
       [have_dep="no"])
 fi
 
-dnl openjpeg
-if test "x${have_dep}" = "xyes" ; then
-   PKG_CHECK_EXISTS([libopenjpeg1 >= 1.5],
-      [
-       have_pkg_jp2k="yes"
-       requirements_pc="libopenjpeg1 ${requirements_pc}"
-       libopenjpegpc="libopenjpeg1"
-      ],
-      [have_pkg_jp2k="no"])
-
-   if test "x${have_pkg_jp2k}" = "xno" ; then
-      PKG_CHECK_EXISTS([libopenjpeg >= 1.5],
-         [
-          have_pkg_jp2k="yes"
-          requirements_pc="libopenjpeg ${requirements_pc}"
-          libopenjpegpc="libopenjpeg"
-         ],
-         [have_pkg_jp2k="no"])
-   fi
-
-   if test "x${have_pkg_jp2k}" = "xno" ; then
-      AC_MSG_NOTICE([no pkg-config file for openjpeg, checking files individually])
-      AC_MSG_CHECKING([for openjpeg library])
-      LIBS_save="${LIBS}"
-      LIBS="${LIBS} -lopenjp2"
-      AC_LINK_IFELSE(
-         [AC_LANG_PROGRAM(
-             [[
-#include <openjpeg.h>
-             ]],
-             [[
-opj_dparameters_t params;
-
-opj_set_default_decoder_parameters(&params);
-params.flags |= OPJ_DPARAMETERS_IGNORE_PCLR_CMAP_CDEF_FLAG;
-             ]])],
-         [
-          have_dep="yes"
-          requirements_libs="-lopenjp2 ${requirements_libs}"
-          OPENJPEG_LIBS="-lopenjp2"
-         ],
-         [have_dep="no"])
-      LIBS="${LIBS_save}"
-
-      AC_MSG_RESULT([${have_dep}])
-   fi
-fi
-
 dnl openssl
 if test "x${have_dep}" = "xyes" ; then
    PKG_CHECK_EXISTS([openssl],

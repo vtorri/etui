@@ -42,11 +42,10 @@ typedef struct _Etui_Module Etui_Module;
 
 struct _Etui_Module_Func
 {
-    void             *(*init)(Evas *evas);
+    void             *(*init)(const Etui_File *file);
     void              (*shutdown)(void *d);
-    Evas_Object      *(*evas_object_get)(void *d);
-    Eina_Bool         (*file_open)(void *d, const char *filename);
-    void              (*file_close)(void *d);
+    Evas_Object      *(*evas_object_add)(void *d, Evas *evas);
+    void              (*evas_object_del)(void *d);
     const void       *(*info_get)(void *d);
     const char       *(*title_get)(void *d);
     int               (*pages_count)(void *d);

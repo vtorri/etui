@@ -21,14 +21,10 @@ $(top_builddir)/src/lib/libetui.la \
 @ETUI_BIN_LIBS@
 
 src_bin_etui_SOURCES = \
-src/bin/etui_doc.c \
-src/bin/etui_main.c \
-src/bin/etui_theme.c \
-src/bin/etui_win.c \
-src/bin/etui_doc.h \
-src/bin/etui_private.h \
-src/bin/etui_theme.h \
-src/bin/etui_win.h
+src/bin/config.c \
+src/bin/main.c \
+src/bin/etui_config.h \
+src/bin/private.h
 
 if HAVE_WIN32
 src_bin_etui_SOURCES += \
@@ -38,6 +34,7 @@ endif
 src_bin_etui_CPPFLAGS = \
 -I$(top_srcdir)/src/lib \
 -DPACKAGE_BIN_DIR=\"$(bindir)\" \
+-DPACKAGE_LIB_DIR=\"$(bindir)\" \
 -DPACKAGE_DATA_DIR=\"$(pkgdatadir)\" \
 @ETUI_BIN_CFLAGS@
 

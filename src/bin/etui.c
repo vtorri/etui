@@ -161,6 +161,7 @@ int main(int argc, char *argv[])
     Ecore_Event_Handler *handler;
     Evas *evas;
     Evas_Object *o;
+    Etui_File *ef;
     const char *prop;
     int args;
     int w;
@@ -211,12 +212,14 @@ int main(int argc, char *argv[])
     if (!etui_init())
         goto shutdown_ecore_evas;
 
-    o = etui_object_add(evas);
-    if (!etui_object_file_open(o, argv[args]))
+    ef = etui_file_new(argv[args]);
+    if (!ef)
     {
-        printf("can not open file %s\n", argv[args]);
+        printf("Can not open file %s\n", argv[args]);
         goto shutdown_etui;
     }
+
+    o = etui_object_add(evas);
 
     etui_object_page_set(o, 0);
     evas_object_geometry_get(o, NULL, NULL, &w, &h);
@@ -367,6 +370,7 @@ int main(int argc, char *argv[])
 
     ecore_event_handler_del(handler);
 
+    etui_file_del(ef);
     etui_shutdown();
     ecore_evas_shutdown();
 

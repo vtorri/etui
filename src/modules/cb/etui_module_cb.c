@@ -30,6 +30,7 @@
 
 #include "Etui.h"
 #include "etui_module.h"
+#include "etui_file.h"
 #include "etui_module_cb.h"
 
 /*============================================================================*
@@ -90,7 +91,7 @@ typedef struct
         Eina_Array toc;
         Etui_Cb_Type cb_type;
         Eina_File *file;
-        void *data;
+        const void *data;
         size_t size;
     } doc;
 
@@ -150,7 +151,7 @@ _etui_cb_is_valid(Etui_Module_Data *md)
     if (archive_read_support_format_tar(a) != ARCHIVE_OK)
         goto free_archive;
 
-    r = archive_read_open_memory(a, md->doc.data, md->doc.size);
+    r = archive_read_open_memory(a, (void *)md->doc.data, md->doc.size);
     if (r != ARCHIVE_OK)
         goto free_archive;
 
@@ -186,8 +187,6 @@ _etui_cb_is_valid(Etui_Module_Data *md)
         eina_array_push(&md->doc.toc, file_name);
     eina_list_free(list);
 
-    md->doc.page_nbr = eina_array_count(&md->doc.toc);
-
     return EINA_TRUE;
 
   free_archive:
@@ -204,7 +203,7 @@ _etui_cb_is_valid(Etui_Module_Data *md)
 /* Virtual functions */
 
 static void *
-_etui_cb_init(Evas *evas)
+_etui_cb_init(const Etui_File *ef)
 {
     Etui_Module_Data *md;
 
@@ -214,21 +213,30 @@ _etui_cb_init(Evas *evas)
 
     DBG("init module");
 
-    md->efl.obj = evas_object_image_add(evas);
-    if (!md->efl.obj)
+    md->doc.data = etui_file_base_get(ef);
+    md->doc.size = etui_file_size_get(ef);
+
+    if (!_etui_cb_is_valid(md))
+    {
+        ERR("Can not open Comic Book archive %s", md->doc.filename);
         goto free_md;
+    }
 
     md->doc.info = (Etui_Module_Cb_Info *)calloc(1, sizeof(Etui_Module_Cb_Info));
     if (!md->doc.info)
     {
-        ERR("Could not allocate memory for information structure");;
-        goto del_obj;
+        ERR("Could not allocate memory for information structure");
+        goto free_md;
     }
+
+    md->doc.page_nbr = eina_array_count(&md->doc.toc);
+    md->page.page_num = -1;
+    md->page.rotation = ETUI_ROTATION_0;
+    md->page.hscale = 1.0f;
+    md->page.vscale = 1.0f;
 
     return md;
 
-  del_obj:
-    evas_object_del(md->efl.obj);
   free_md:
     free(md);
 
@@ -246,96 +254,6 @@ _etui_cb_shutdown(void *d)
         return;
 
     md = (Etui_Module_Data *)d;
-
-    free(md->doc.info);
-    free(md->doc.filename);
-    evas_object_del(md->efl.obj);
-    free(md);
-}
-
-static Evas_Object *
-_etui_cb_evas_object_get(void *d)
-{
-    if (!d)
-        return NULL;
-
-    return ((Etui_Module_Data *)d)->efl.obj;
-}
-
-static Eina_Bool
-_etui_cb_file_open(void *d, const char *filename)
-{
-    Etui_Module_Data *md;
-
-    if (!d || !filename || !*filename)
-        return EINA_FALSE;
-
-    DBG("open file %s", filename);
-
-    md = (Etui_Module_Data *)d;
-
-    if (md->doc.filename && (strcmp(filename, md->doc.filename) == 0))
-      return EINA_TRUE;
-
-    if (md->doc.filename)
-        free(md->doc.filename);
-    md->doc.filename = strdup(filename);
-    if (!md->doc.filename)
-        return EINA_FALSE;
-
-    md->doc.file = eina_file_open(md->doc.filename, EINA_FALSE);
-    if (!md->doc.file)
-        goto free_filename;
-
-    md->doc.data = eina_file_map_all(md->doc.file, EINA_FILE_POPULATE);
-    if (!md->doc.data)
-        goto close_file;
-
-    md->doc.size = eina_file_size_get(md->doc.file);
-
-    evas_object_image_memfile_set(md->efl.obj,
-                                  md->doc.data, md->doc.size,
-                                  NULL, NULL);
-    if (evas_object_image_load_error_get(md->efl.obj) == EVAS_LOAD_ERROR_NONE)
-    {
-        md->doc.page_nbr = 1;
-        md->page.page_num = -1;
-        md->page.rotation = ETUI_ROTATION_0;
-        md->page.hscale = 1.0f;
-        md->page.vscale = 1.0f;
-        return EINA_TRUE;
-    }
-
-    if (!_etui_cb_is_valid(md))
-    {
-        ERR("Can not open Comic Book archive %s", md->doc.filename);
-        goto free_filename;
-    }
-
-    md->page.page_num = -1;
-
-    return EINA_TRUE;
-
-  close_file:
-    eina_file_close(md->doc.file);
-  free_filename:
-    free(md->doc.filename);
-    md->doc.filename = NULL;
-
-  return EINA_FALSE;
-}
-
-static void
-_etui_cb_file_close(void *d)
-{
-    Etui_Module_Data *md;
-
-    if (!d)
-        return;
-
-    md = (Etui_Module_Data *)d;
-
-    DBG("close file %s", md->doc.filename);
 
     switch (md->doc.cb_type)
     {
@@ -361,11 +279,27 @@ _etui_cb_file_close(void *d)
             break;
     }
 
-    if (md->doc.file)
-        eina_file_close(md->doc.file);
-    if (md->doc.filename)
-        free(md->doc.filename);
-    md->doc.filename = NULL;
+    free(md->doc.info);
+    free(md);
+}
+
+static Evas_Object *
+_etui_cb_evas_object_add(void *d, Evas *evas)
+{
+    if (!d)
+        return NULL;
+
+    ((Etui_Module_Data *)d)->efl.obj = evas_object_image_add(evas);
+    return ((Etui_Module_Data *)d)->efl.obj;
+}
+
+static void
+_etui_cb_evas_object_del(void *d)
+{
+    if (!d)
+        return;
+
+    evas_object_del(((Etui_Module_Data *)d)->efl.obj);
 }
 
 static const void *
@@ -593,7 +527,7 @@ _etui_cb_page_render_pre(void *d)
             if (archive_read_support_format_tar(a) != ARCHIVE_OK)
                 goto free_archive;
 
-            r = archive_read_open_memory(a, md->doc.data, md->doc.size);
+            r = archive_read_open_memory(a, (void *)md->doc.data, md->doc.size);
             if (r != ARCHIVE_OK)
                 goto free_archive;
 
@@ -689,9 +623,8 @@ static Etui_Module_Func _etui_module_func_cb =
 {
     /* .init              */ _etui_cb_init,
     /* .shutdown          */ _etui_cb_shutdown,
-    /* .evas_object_get   */ _etui_cb_evas_object_get,
-    /* .file_open         */ _etui_cb_file_open,
-    /* .file_close        */ _etui_cb_file_close,
+    /* .evas_object_add   */ _etui_cb_evas_object_add,
+    /* .evas_object_del   */ _etui_cb_evas_object_del,
     /* .info_get          */ _etui_cb_info_get,
     /* .title_get         */ _etui_cb_title_get,
     /* .pages_count       */ _etui_cb_pages_count,
@@ -764,7 +697,6 @@ module_close(Etui_Module *em)
     DBG("shutdown cb module");
 
     /* shutdown module here */
-    em->functions->file_close(em->data);
     em->functions->shutdown(em->data);
 
     /* shutdown external libraries here */

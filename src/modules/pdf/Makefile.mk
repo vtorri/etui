@@ -303,7 +303,7 @@ src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansHanunoo-Regular.ttf \
 src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansHebrew-Regular.ttf \
 src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansImperialAramaic-Regular.ttf \
 src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansInscriptionalPahlavi-Regular.ttf \
-src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansInscriptionalParthia-Regular.ttf \
+src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansInscriptionalParthian-Regular.ttf \
 src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansJavanese-Regular.ttf \
 src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansKaithi-Regular.ttf \
 src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansKannada-Regular.ttf \
@@ -559,7 +559,7 @@ src/modules/pdf/mupdf-1.10a/generated/NotoSansInscriptionalPahlavi-Regular.c: sr
 	@echo "  GEN      $@"
 	@src/modules/pdf/mupdf-1.10a/scripts/fontdump$(EXEEXT) $@ $<
 
-src/modules/pdf/mupdf-1.10a/generated/NotoSansInscriptionalParthian-Regular.c: src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansInscriptionalParthia-Regular.ttf src/modules/pdf/mupdf-1.10a/generated src/modules/pdf/mupdf-1.10a/scripts/fontdump$(EXEEXT)
+src/modules/pdf/mupdf-1.10a/generated/NotoSansInscriptionalParthian-Regular.c: src/modules/pdf/mupdf-1.10a/resources/fonts/noto/NotoSansInscriptionalParthian-Regular.ttf src/modules/pdf/mupdf-1.10a/generated src/modules/pdf/mupdf-1.10a/scripts/fontdump$(EXEEXT)
 	@echo "  GEN      $@"
 	@src/modules/pdf/mupdf-1.10a/scripts/fontdump$(EXEEXT) $@ $<
 

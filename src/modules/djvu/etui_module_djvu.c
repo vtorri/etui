@@ -27,6 +27,7 @@
 
 #include "Etui.h"
 #include "etui_module.h"
+#include "etui_file.h"
 #include "etui_module_djvu.h"
 
 /*============================================================================*
@@ -81,8 +82,8 @@ typedef struct
     /* Document */
     struct
     {
-        char *filename;
         Etui_Module_Djvu_Info *info; /* information specific to the document (creator, ...) */
+        int page_nbr;
         ddjvu_context_t *ctx;
         ddjvu_document_t *doc;
     } doc;
@@ -136,7 +137,7 @@ _etui_djvu_messages_cb(ddjvu_context_t *ctx, int wait)
 /* Virtual functions */
 
 static void *
-_etui_djvu_init(Evas *evas)
+_etui_djvu_init(const Etui_File *ef)
 {
     Etui_Module_Data *md;
 
@@ -146,30 +147,65 @@ _etui_djvu_init(Evas *evas)
 
     DBG("init module");
 
-    md->efl.obj = evas_object_image_add(evas);
-    if (!md->efl.obj)
-        goto free_md;
-
     md->doc.ctx = ddjvu_context_create("etui");
     if (!md->doc.ctx)
     {
         ERR("Could not create context");
-        goto del_obj;
+        goto free_md;
+    }
+
+    md->doc.doc = ddjvu_document_create_by_filename(md->doc.ctx,
+                                                    etui_file_filename_get(ef),
+                                                    EINA_TRUE);
+    if (!md->doc.doc)
+    {
+        ERR("Could not open document %s", etui_file_filename_get(ef));
+        goto release_context;
+    }
+
+    while (!ddjvu_document_decoding_done(md->doc.doc))
+        _etui_djvu_messages_cb(md->doc.ctx, EINA_TRUE);
+
+    if (ddjvu_document_decoding_error(md->doc.doc))
+    {
+        ERR("Could not decode document");
+        goto release_document;
     }
 
     md->doc.info = (Etui_Module_Djvu_Info *)calloc(1, sizeof(Etui_Module_Djvu_Info));
     if (!md->doc.info)
     {
         ERR("Could not allocate memory for information structure");
-        goto release_context;
+        goto release_document;
+    }
+
+    md->doc.page_nbr = ddjvu_document_get_pagenum(md->doc.doc);
+    md->page.page_num = -1;
+    md->page.rotation = ETUI_ROTATION_0;
+    md->page.hscale = 1.0f;
+    md->page.vscale = 1.0f;
+
+    printf("%d %d\n", ddjvu_document_get_pagenum(md->doc.doc), ddjvu_document_get_filenum(md->doc.doc));
+
+    {
+        ddjvu_fileinfo_t info;
+        int n = ddjvu_document_get_filenum(md->doc.doc);
+        int i;
+
+        for (i = 0; i < n; i++)
+        {
+            ddjvu_document_get_fileinfo(md->doc.doc, i, &info);
+            printf("%c %d %d %s %s %s\n",
+                   info.type, info.pageno, info.size, info.id, info.name, info.title);
+        }
     }
 
     return md;
 
+  release_document:
+    ddjvu_document_release(md->doc.doc);
   release_context:
     ddjvu_context_release(md->doc.ctx);
-  del_obj:
-    evas_object_del(md->efl.obj);
   free_md:
     free(md);
 
@@ -188,108 +224,31 @@ _etui_djvu_shutdown(void *d)
 
     md = (Etui_Module_Data *)d;
 
+    if (md->page.page)
+        ddjvu_page_release(md->page.page);
     free(md->doc.info);
-    free(md->doc.filename);
+    ddjvu_document_release(md->doc.doc);
     ddjvu_context_release(md->doc.ctx);
-    evas_object_del(md->efl.obj);
     free(md);
 }
 
 static Evas_Object *
-_etui_djvu_evas_object_get(void *d)
+_etui_djvu_evas_object_add(void *d, Evas *evas)
 {
     if (!d)
         return NULL;
 
+    ((Etui_Module_Data *)d)->efl.obj = evas_object_image_add(evas);
     return ((Etui_Module_Data *)d)->efl.obj;
 }
 
-static Eina_Bool
-_etui_djvu_file_open(void *d, const char *filename)
-{
-    Etui_Module_Data *md;
-
-    if (!d || !filename || !*filename)
-        return EINA_FALSE;
-
-    DBG("open file %s", filename);
-
-    md = (Etui_Module_Data *)d;
-
-    if (md->doc.filename && (strcmp(filename, md->doc.filename) == 0))
-      return EINA_TRUE;
-
-    if (md->doc.filename)
-        free(md->doc.filename);
-    md->doc.filename = strdup(filename);
-    if (!md->doc.filename)
-        return EINA_FALSE;
-
-    md->doc.doc = ddjvu_document_create_by_filename(md->doc.ctx, filename, TRUE);
-    if (!md->doc.doc)
-    {
-        ERR("Could not open document %s", filename);
-        goto free_filename;
-    }
-
-    while (!ddjvu_document_decoding_done(md->doc.doc))
-        _etui_djvu_messages_cb(md->doc.ctx, TRUE);
-
-    if (ddjvu_document_decoding_error(md->doc.doc))
-    {
-        ERR("Could not decode document");
-        goto release_document;
-    }
-
-    md->page.page_num = -1;
-
-    printf("%d %d\n", ddjvu_document_get_pagenum(md->doc.doc), ddjvu_document_get_filenum(md->doc.doc));
-
-    {
-        ddjvu_fileinfo_t info;
-        int n = ddjvu_document_get_filenum(md->doc.doc);
-        int i;
-
-        for (i = 0; i < n; i++)
-        {
-            ddjvu_document_get_fileinfo(md->doc.doc, i, &info);
-            printf("%c %d %d %s %s %s\n",
-                   info.type, info.pageno, info.size, info.id, info.name, info.title);
-        }
-    }
-
-    return EINA_TRUE;
-
-  release_document:
-    ddjvu_document_release(md->doc.doc);
-    md->doc.doc = NULL;
-  free_filename:
-    free(md->doc.filename);
-    md->doc.filename = NULL;
-
-  return EINA_FALSE;
-}
-
 static void
-_etui_djvu_file_close(void *d)
+_etui_djvu_evas_object_del(void *d)
 {
-    Etui_Module_Data *md;
-
     if (!d)
         return;
 
-    md = (Etui_Module_Data *)d;
-
-    DBG("close file %s", md->doc.filename);
-
-    if (md->page.page)
-        ddjvu_page_release(md->page.page);
-    if (md->doc.doc)
-        ddjvu_document_release(md->doc.doc);
-    md->doc.doc = NULL;
-    if (md->doc.filename)
-        free(md->doc.filename);
-    md->doc.filename = NULL;
+    evas_object_del(((Etui_Module_Data *)d)->efl.obj);
 }
 
 static const void *
@@ -377,10 +336,10 @@ _etui_djvu_page_set(void *d, int page_num)
     }
 
     while (!ddjvu_page_decoding_done(page))
-        _etui_djvu_messages_cb(md->doc.ctx, TRUE);
+        _etui_djvu_messages_cb(md->doc.ctx, EINA_TRUE);
     if (ddjvu_page_decoding_error(page))
     {
-        _etui_djvu_messages_cb(md->doc.ctx, FALSE);
+        _etui_djvu_messages_cb(md->doc.ctx, EINA_FALSE);
         ERR("Could not decode page %d\n", page_num);
         /* FIXME: corrupted file */
         ddjvu_page_release(page);
@@ -601,9 +560,8 @@ static Etui_Module_Func _etui_module_func_djvu =
 {
     /* .init              */ _etui_djvu_init,
     /* .shutdown          */ _etui_djvu_shutdown,
-    /* .evas_object_get   */ _etui_djvu_evas_object_get,
-    /* .file_open         */ _etui_djvu_file_open,
-    /* .file_close        */ _etui_djvu_file_close,
+    /* .evas_object_add   */ _etui_djvu_evas_object_add,
+    /* .evas_object_del   */ _etui_djvu_evas_object_del,
     /* .info_get          */ _etui_djvu_info_get,
     /* .title_get         */ _etui_djvu_title_get,
     /* .pages_count       */ _etui_djvu_pages_count,
@@ -677,7 +635,6 @@ module_close(Etui_Module *em)
     DBG("shutdown djvu module");
 
     /* shutdown module here */
-    em->functions->file_close(em->data);
     em->functions->shutdown(em->data);
 
     /* shutdown external libraries here */

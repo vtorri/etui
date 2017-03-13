@@ -22,7 +22,6 @@
 #include <Eina.h>
 #include <Evas.h>
 #include <Ecore.h>
-#include <Efreet_Mime.h>
 
 #include "Etui.h"
 #include "etui_module.h"
@@ -45,7 +44,6 @@ struct Etui_Smart_Data_
 
     /* properties */
     Etui_Module *module;
-    char *filename;
 
     /* private */
     Evas_Object *obj;
@@ -156,12 +154,8 @@ _etui_smart_del(Evas_Object *obj)
 
     EINA_REFCOUNT_UNREF(sd)
     {
-        if (sd->module)
-            etui_module_unload(sd->module);
         if (sd->obj)
-            evas_object_del(sd->obj);
-        if (sd->filename)
-            free(sd->filename);
+            sd->module->functions->evas_object_del(sd->module->data);
         free(sd);
     }
 }
@@ -329,7 +323,7 @@ _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *e
 
     evas_object_geometry_get(obj, NULL, NULL, &w, &h);
     evas_object_resize((Evas_Object *)data, w, h);
-    fprintf(stderr, " $$$$ _etui_smart_resize_cb : data : %p   obj : %p\n", data, obj);
+    fprintf(stderr, " $$$$ %s : data: %p   obj: %p\n", __FUNCTION__, data, obj);
     fprintf(stderr, " %s : %dx%d\n", __FUNCTION__, w, h);
 }
 
@@ -346,14 +340,23 @@ _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *e
  *                                   API                                      *
  *============================================================================*/
 
+
 EAPI Evas_Object *
 etui_object_add(Evas *evas)
 {
-  Evas_Object *o;
+    Evas_Object *obj;
+    Etui_Smart_Data *sd;
+
     _etui_smart_init();
-    o = evas_object_smart_add(evas, _etui_smart);
-    fprintf(stderr, " $$$$ smart object : %p\n", o);
-    return o;
+    obj = evas_object_smart_add(evas, _etui_smart);
+    fprintf(stderr, " $$$$ %s : %p\n", __FUNCTION__, obj);
+
+    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+    sd->obj = sd->module->functions->evas_object_add(sd->module->data, evas);
+    evas_object_smart_member_add(sd->obj, obj);
+    evas_object_event_callback_add(sd->obj, EVAS_CALLBACK_RESIZE,
+                                   _etui_smart_resize_cb, obj);
+    return obj;
 }
 
 EAPI const char *
@@ -364,125 +367,6 @@ etui_object_module_name_get(Evas_Object *obj)
     ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
 
     return sd->module->definition->name;
-}
-
-EAPI Eina_Bool
-etui_object_file_open(Evas_Object *obj, const char *filename)
-{
-    char file[PATH_MAX];
-    Eina_File *f;
-    char *res;
-    const char *module_name = NULL;
-    Etui_Smart_Data *sd;
-    Etui_Module *module;
-
-    fprintf(stderr, " $$$$_object_file_set : %p\n", obj);
-
-    if (!filename || !*filename)
-        return EINA_FALSE;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, EINA_FALSE);
-
-    if (eina_str_has_prefix(filename, "file://"))
-        res = realpath(filename + 7, file);
-    else
-        res = realpath(filename, file);
-    if (!res)
-        return EINA_FALSE;
-    if (sd->filename && (!strcmp(file, sd->filename)))
-        return EINA_TRUE;
-
-    f = eina_file_open(file, EINA_FALSE);
-    if (!f)
-        return EINA_FALSE;
-
-    if (etui_file_is_pdf(file, f))
-        module_name = "pdf";
-    else if (etui_file_is_ps(file, f))
-        module_name = "ps";
-    else if (etui_file_is_tiff(file, f))
-        module_name = "tiff";
-    else if (etui_file_is_djvu(file, f))
-        module_name = "djvu";
-    else if (etui_file_is_cb(file, f))
-        module_name = "cb";
-
-    /* FIXME: XPS, txt, EPUB, DVI */
-
-    eina_file_close(f);
-
-    INF("module name: %s", module_name);
-
-    module = etui_module_find(module_name);
-    if (!module)
-    {
-        Eina_List *l;
-        Eina_List *ll;
-
-        l = etui_module_list();
-        EINA_LIST_FOREACH(l, ll, module_name)
-        {
-            module = etui_module_find(module_name);
-            if (module)
-                break;
-        }
-    }
-
-    if (!module)
-    {
-        ERR("Can not find an appropriate module for file %s", filename);
-        return EINA_FALSE;
-    }
-
-    if (sd->module != module)
-    {
-        etui_module_unload(sd->module);
-        sd->module = module;
-    }
-
-    if (sd->module->data)
-        sd->module->functions->shutdown(sd->module->data);
-
-    sd->module->data = sd->module->functions->init(evas_object_evas_get(obj));
-    if (!sd->module->data)
-    {
-        ERR("can not initialize smart object");
-        if (sd->obj)
-            evas_object_del(sd->obj);
-        return EINA_FALSE;
-    }
-
-    if (sd->obj)
-        evas_object_del(sd->obj);
-    sd->obj = sd->module->functions->evas_object_get(sd->module->data);
-    evas_object_smart_member_add(sd->obj, obj);
-    evas_object_event_callback_add(sd->obj, EVAS_CALLBACK_RESIZE, _etui_smart_resize_cb, obj);
-
-    /* TODO: use stringshare ?? */
-    sd->filename = strdup(file);
-    if (!sd->filename)
-    {
-        WRN("Couldn't own filename");
-        return EINA_FALSE;
-    }
-
-    if (!sd->module->functions->file_open(sd->module->data, sd->filename))
-    {
-        WRN("Couldn't open file %s", sd->filename);
-        return EINA_FALSE;
-    }
-
-    return EINA_TRUE;
-}
-
-EAPI const char *
-etui_object_filename_get(Evas_Object *obj)
-{
-    Etui_Smart_Data *sd;
-
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
-
-    return sd->filename;
 }
 
 EAPI const void *

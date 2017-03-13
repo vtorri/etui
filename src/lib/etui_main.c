@@ -22,7 +22,6 @@
 #include <Eina.h>
 #include <Ecore.h>
 #include <Evas.h>
-#include <Efreet_Mime.h>
 #include <Eio.h>
 
 #include "Etui.h"
@@ -89,16 +88,10 @@ etui_init(void)
         goto shutdown_ecore;
     }
 
-    if (!efreet_mime_init())
-    {
-        ERR("Could not initialize Efreet Mime.");
-        goto shutdown_evas;
-    }
-
     if (!eio_init())
     {
         ERR("Could not initialize Eio.");
-        goto shutdown_efreet_mime;
+        goto shutdown_evas;
     }
 
     if (!etui_module_init())
@@ -111,8 +104,6 @@ etui_init(void)
 
   shutdown_eio:
     eio_shutdown();
-  shutdown_efreet_mime:
-    efreet_mime_shutdown();
   shutdown_evas:
     evas_shutdown();
   shutdown_ecore:
@@ -138,7 +129,6 @@ etui_shutdown(void)
 
     etui_module_shutdown();
     eio_shutdown();
-    efreet_mime_shutdown();
     evas_shutdown();
     ecore_shutdown();
     eina_log_domain_unregister(etui_log_dom_global);

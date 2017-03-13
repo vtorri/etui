@@ -18,7 +18,6 @@ Library:
   Evas
   Ecore
   Eio
-  Efreet
 
 Binary:
 -------
@@ -29,7 +28,6 @@ Binary:
   Eet
   Evas
   Ecore
-  Ecore_Evas
   Ecore_Input
   Elementary
 
@@ -42,7 +40,7 @@ PDF and XPS
   freetype
   openjpeg
 
-Image / Comic Book (cbz, cbr, cb7, cbt, cba)
+Comic Book (cbz, cbr, cb7, cbt, cba)
  Requirements:
   libarchive
 
@@ -60,7 +58,10 @@ EPUB:
  Requirements:
   Ecore_File
   libarchive
-  ewebkit2
+
+TIFF:
+ Requirements:
+  libtiff
 
 Key bindings:
 -------------
