@@ -220,6 +220,7 @@ int main(int argc, char *argv[])
     }
 
     o = etui_object_add(evas);
+    etui_object_file_set(o, ef);
 
     etui_object_page_set(o, 0);
     evas_object_geometry_get(o, NULL, NULL, &w, &h);
@@ -280,6 +281,9 @@ int main(int argc, char *argv[])
                     break;
                 case ETUI_CB_CBT:
                     type = "ebook CBT";
+                    break;
+                default:
+                    type = "unknown";
                     break;
             }
 

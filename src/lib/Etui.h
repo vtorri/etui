@@ -69,6 +69,8 @@ EAPI const char *etui_file_filename_get(const Etui_File *ef);
 
 EAPI Evas_Object *etui_object_add(Evas *evas);
 
+EAPI void etui_object_file_set(Evas_Object *obj, const Etui_File *ef);
+
 EAPI const char *etui_object_module_name_get(Evas_Object *obj);
 
 EAPI const void *etui_object_info_get(Evas_Object *obj);

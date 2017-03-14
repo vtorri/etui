@@ -345,18 +345,29 @@ EAPI Evas_Object *
 etui_object_add(Evas *evas)
 {
     Evas_Object *obj;
-    Etui_Smart_Data *sd;
 
     _etui_smart_init();
     obj = evas_object_smart_add(evas, _etui_smart);
     fprintf(stderr, " $$$$ %s : %p\n", __FUNCTION__, obj);
 
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
-    sd->obj = sd->module->functions->evas_object_add(sd->module->data, evas);
+    return obj;
+}
+
+EAPI void
+etui_object_file_set(Evas_Object *obj, const Etui_File *ef)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
+    INF("file set");
+
+    sd->module = (Etui_Module *)etui_file_module_get(ef);
+    sd->obj = sd->module->functions->evas_object_add(sd->module->data,
+                                                     evas_object_evas_get(obj));
     evas_object_smart_member_add(sd->obj, obj);
     evas_object_event_callback_add(sd->obj, EVAS_CALLBACK_RESIZE,
                                    _etui_smart_resize_cb, obj);
-    return obj;
+
 }
 
 EAPI const char *

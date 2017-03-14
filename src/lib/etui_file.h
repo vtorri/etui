@@ -19,6 +19,7 @@
 #define ETUI_FILE_H
 
 
+const Etui_Module *etui_file_module_get(const Etui_File *ef);
 EAPI const void *etui_file_base_get(const Etui_File *ef);
 EAPI size_t etui_file_size_get(const Etui_File *ef);
 

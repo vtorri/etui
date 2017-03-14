@@ -332,6 +332,24 @@ etui_file_is_tiff(const char *filename EINA_UNUSED,
  *============================================================================*/
 
 
+const Etui_Module *etui_file_module_get(const Etui_File *ef)
+{
+    return (ef) ? ef->module : NULL;
+}
+
+EAPI const void *
+etui_file_base_get(const Etui_File *ef)
+{
+    return ef ? ef->base : NULL;
+}
+
+EAPI size_t
+etui_file_size_get(const Etui_File *ef)
+{
+    return ef ? ef->size : 0;
+}
+
+
 /*============================================================================*
  *                                   API                                      *
  *============================================================================*/
@@ -449,20 +467,8 @@ etui_file_del(Etui_File *ef)
     free(ef);
 }
 
-const char *
+EAPI const char *
 etui_file_filename_get(const Etui_File *ef)
 {
     return ef ? ef->filename : NULL;
-}
-
-const void *
-etui_file_base_get(const Etui_File *ef)
-{
-    return ef ? ef->base : NULL;
-}
-
-size_t
-etui_file_size_get(const Etui_File *ef)
-{
-    return ef ? ef->size : 0;
 }

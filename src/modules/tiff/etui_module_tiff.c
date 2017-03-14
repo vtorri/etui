@@ -206,7 +206,7 @@ _etui_tiff_info_set(Etui_Module_Data *md)
 /* Virtual functions */
 
 static void *
-_etui_tiff_init(Etui_File *ef)
+_etui_tiff_init(const Etui_File *ef)
 {
     Etui_Module_Data *md;
 
