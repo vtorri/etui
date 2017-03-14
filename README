@@ -15,8 +15,8 @@ Library:
   Evil (on Windows)
   Eina
   Eet
-  Evas
   Ecore
+  Evas
   Eio
 
 Binary:
@@ -37,12 +37,25 @@ Supported backends:
 PDF and XPS
  Requirements:
   zlib
+  jpeglib
   freetype
-  openjpeg
+  harfbuzz
+  openssl
 
 Comic Book (cbz, cbr, cb7, cbt, cba)
  Requirements:
   libarchive
+
+DjVu:
+ Requirements:
+  libdjvu (DjVuLibre)
+
+TIFF:
+ Requirements:
+  libtiff
+
+Future supported backends:
+-------------------
 
 Postscript
  Requirements:
@@ -50,18 +63,13 @@ Postscript
    compilation: make so (debug mode: make sodebug)
    installation: make soinstall (debug mode: make sodebuginstall)
 
-DjVu:
- Requirements:
-  libdjvu (DjVuLibre)
-
 EPUB:
  Requirements:
-  Ecore_File
   libarchive
 
-TIFF:
+CHM:
  Requirements:
-  libtiff
+  libarchive
 
 Key bindings:
 -------------
