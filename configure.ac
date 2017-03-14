@@ -1,7 +1,7 @@
 
 m4_define([v_maj], [0])
 m4_define([v_min], [0])
-m4_define([v_mic], [3])
+m4_define([v_mic], [4])
 m4_define([v_ver], [v_maj.v_min.v_mic])
 
 m4_define([lt_cur], [m4_eval(v_maj + v_min)])
@@ -14,7 +14,7 @@ AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADERS([config.h])
 
-AM_INIT_AUTOMAKE([1.6 dist-bzip2])
+AM_INIT_AUTOMAKE([1.6 dist-xz])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AM_PROG_AR
