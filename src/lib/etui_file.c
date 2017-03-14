@@ -461,7 +461,6 @@ etui_file_del(Etui_File *ef)
     if (!ef)
         return;
 
-    ef->module->functions->shutdown(ef->module->data);
     etui_module_unload(ef->module);
     free(ef->filename);
     free(ef);
