@@ -5,13 +5,50 @@ collections
 {
     group
     {
-        name: "etui/base";
+        name: "etui";
+        parts
+        {
+            part
+            {
+                name: "bg";
+                type: GROUP;
+                source: "etui/background";
+                description
+                {
+                    state: "default" 0.0;
+                    visible: 1;
+                }
+            }
+            part
+            {
+                name: "content";
+                type: SWALLOW;
+                description
+                {
+                    state: "default" 0.0;
+                    visible: 1;
+                }
+            }
+            part
+            {
+                name: "fg";
+                type: GROUP;
+                source: "etui/panel";
+                description
+                {
+                    state: "default" 0.0;
+                    visible: 1;
+                }
+            }
+        }
+    }
+    group
+    {
+        name: "etui/background";
         images
         {
-            image: "bg_bevel.png" COMP;
             image: "bg_glint.png" COMP;
             image: "bg_glow_in.png" COMP;
-            image: "bg_shine.png" COMP;
         }
         set
         {
@@ -20,8 +57,29 @@ collections
             image { image: "bg_shadow2.png" COMP; size: 200 150 400 300; }
             image { image: "bg_shadow3.png" COMP; size: 400 300 99999 99999; }
         }
+        set
+        {
+            name: "bg_shine";
+            image { image: "bg_shine5.png" COMP; size: 0 0 256 120; }
+            image { image: "bg_shine4.png" COMP; size: 256 120 512 240; }
+            image { image: "bg_shine3.png" COMP; size: 512 240 1024 480; }
+            image { image: "bg_shine2.png" COMP; size: 1024 480 2048 960; }
+            image { image: "bg_shine.png"  COMP; size: 2048 960 99999 99999; }
+        }
         parts
         {
+            // background handling
+            part
+            {
+                name: "shadow";
+                mouse_events: 0;
+                description
+                {
+                    state: "default" 0.0;
+                    image.normal: "bg_shadow";
+                    fill.smooth: 0;
+                }
+            }
             part
             {
                 name: "base";
@@ -33,29 +91,7 @@ collections
                     color: BG_COL;
                 }
             }
-            part
-            {
-                name: "shadow";
-                mouse_events: 0;
-                description
-                {
-                    state: "default" 0.0;
-                    image.normal: "bg_shadow";
-                    fill.smooth: 0;
-                    visible: 0;
-                }
-            }
-            part
-            {
-                name: "base.content";
-                type: SWALLOW;
-                description
-                {
-                    state: "default" 0.0;
-                }
-            }
-
-            /* overlayed prettiness */
+            // background prettiness
             part
             {
                 name: "glow";
@@ -84,24 +120,38 @@ collections
             }
             part
             {
-                name: "bevel";
+                name: "shine";
                 mouse_events: 0;
                 description
                 {
                     state: "default" 0.0;
-                    image.normal: "bg_bevel.png";
-                    image.border: 3 3 3 3;
-                    image.middle: 0;
+                    rel1.offset: 0 0;
+                    rel2.offset: -1 -1;
+                    image.normal: "bg_shine";
                     fill.smooth: 0;
+                    align: 0.5 0.0;
+                    aspect: (256/120) (256/120);
+                    aspect_preference: HORIZONTAL;
+                    color: 255 255 255 64;
+                }
+                description
+                {
+                    state: "focused" 0.0;
+                    inherit: "default" 0.0;
+                    color: 255 255 255 255;
                 }
             }
             part
             {
-                name: "glintclip";
-                type: RECT;
+                name: "glintclip"; type: RECT;
                 description
                 {
                     state: "default" 0.0;
+                }
+                description
+                {
+                    state: "tab" 0.0;
+                    inherit: "default" 0.0;
                 }
             }
             part
@@ -127,29 +177,6 @@ collections
                     }
                     image.normal: "bg_glint.png";
                     color: 255 255 255 128;
-                }
-                description
-                {
-                    state: "focused" 0.0;
-                    inherit: "default" 0.0;
-                    color: 255 255 255 255;
-                }
-            }
-            part
-            {
-                name: "shine";
-                mouse_events: 0;
-                description
-                {
-                    state: "default" 0.0;
-                    rel1.offset: 0 0;
-                    rel2.offset: -1 -1;
-                    image.normal: "bg_shine.png";
-                    fill.smooth: 0;
-                    align: 0.5 0.0;
-                    aspect: (255/120) (255/120);
-                    aspect_preference: HORIZONTAL;
-                    color: 255 255 255 64;
                 }
                 description
                 {
@@ -186,27 +213,201 @@ collections
             }
         }
     }
-    /* splash icon */
+
     group
     {
-        name: "etui/splash";
-        images
-        {
-            image: "etui.png" COMP;
-        }
+        name: "etui/panel";
         parts
         {
+            // swallow to hold invisile rect to click on to dismiss things
             part
             {
-                name: "splash/icon";
-                mouse_events: 0;
+                name: "etui.dismiss";
+                type: SWALLOW;
                 description
                 {
                     state: "default" 0.0;
-                    min: 384 384;
-                    max: 384 384;
-                    image.normal: "etui.png";
                 }
+            }
+
+            // overlayed settings, the selected setting
+            part
+            {
+                name: "etui.stdetails";
+                type: SWALLOW;
+                scale: 1;
+                description
+                {
+                    state: "default" 0.0;
+                    fixed: 1 1;
+                    min: 40 40;
+                    align: 0.0 0.5;
+                    visible: 0;
+                    rel1
+                    {
+                        relative: 1.0 0.02;
+                        offset: 8 8;
+                    }
+                    rel2
+                    {
+                        relative: 1.0 0.98;
+                        offset: 8 -9;
+                    }
+                }
+                description
+                {
+                    state: "visible" 0.0;
+                    inherit: "default" 0.0;
+                    visible: 1;
+                    align: 1.0 0.5;
+                    rel1
+                    {
+                        relative: 0.1 0.02;
+                        offset: 8 8;
+                    }
+                    rel2
+                    {
+                        to_x: "etui.settings";
+                        relative: 0.0 0.98;
+                        offset: -9 -9;
+                    }
+                }
+            }
+            program
+            {
+                signal: "stdetails,show";
+                source: "etui";
+                action: STATE_SET "visible" 0.0;
+                transition: DECELERATE 0.4;
+                target: "etui.stdetails";
+            }
+            program
+            {
+                signal: "stdetails,hide";
+                source: "etui";
+                action: STATE_SET "default" 0.0;
+                transition: DECELERATE 0.2;
+                target: "etui.stdetails";
+                after: "stdt_hide2";
+            }
+            program
+            {
+                name: "stdt_hide2";
+                action: SIGNAL_EMIT "stdetails,hide,done" "etui";
+            }
+
+            // overlayed settings
+            part
+            {
+                name: "etui.settings";
+                type: SWALLOW;
+                scale: 1;
+                description
+                {
+                    state: "default" 0.0;
+                    fixed: 1 1;
+                    align: 0.0 0.5;
+                    visible: 0;
+                    rel1
+                    {
+                        relative: 1.0 0.02;
+                        offset: 8 8;
+                    }
+                    rel2
+                    {
+                        relative: 1.0 0.98;
+                        offset: 8 -9;
+                    }
+                }
+                description
+                {
+                    state: "visible" 0.0;
+                    inherit: "default" 0.0;
+                    visible: 1;
+                    align: 1.0 0.5;
+                    rel1
+                    {
+                        offset: -9 8;
+                    }
+                    rel2
+                    {
+                        offset: -9 -9;
+                    }
+                }
+            }
+            program
+            {
+                signal: "settings,show";
+                source: "etui";
+                action: STATE_SET "visible" 0.0;
+                transition: DECELERATE 0.4;
+                target: "etui.settings";
+            }
+            program
+            {
+                signal: "settings,hide";
+                source: "etui";
+                action: STATE_SET "default" 0.0;
+                transition: DECELERATE 0.6;
+                target: "etui.settings";
+            }
+
+            // overlayed controls
+            part
+            {
+                name: "etui.controls";
+                type: SWALLOW;
+                scale: 1;
+                description
+                {
+                    state: "default" 0.0;
+                    fixed: 1 1;
+                    min: 10 10;
+                    align: 0.0 0.5;
+                    visible: 0;
+                    rel1
+                    {
+                        relative: 1.0 0.5;
+                        offset: 8 8;
+                    }
+                    rel2
+                    {
+                        relative: 1.0 0.5;
+                        offset: 8 -9;
+                    }
+                }
+                description
+                {
+                    state: "visible" 0.0;
+                    inherit: "default" 0.0;
+                    visible: 1;
+                    align: 1.0 0.5;
+                    rel1
+                    {
+                        relative: 1.0 0.5;
+                        offset: -9 8;
+                    }
+                    rel2
+                    {
+                        offset: -9 -9;
+                    }
+                }
+            }
+            program
+            {
+                signal: "controls,show";
+                source: "etui";
+                action: STATE_SET "visible" 0.0;
+                transition: DECELERATE 0.3;
+                target: "etui.controls";
+            }
+            program
+            {
+                signal: "controls,hide";
+                source: "etui";
+                action: STATE_SET "default" 0.0;
+                transition: DECELERATE 0.5;
+                target: "etui.controls";
             }
         }
     }

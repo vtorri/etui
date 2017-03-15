@@ -21,13 +21,16 @@ themes_DATA = data/themes/default.edj
 
 EXTRA_DIST += \
 data/themes/default.edc \
-data/themes/images/bg_shadow.png \
-data/themes/images/bg_shadow2.png \
-data/themes/images/bg_shadow3.png \
-data/themes/images/bg_bevel.png \
-data/themes/images/bg_glint.png \
-data/themes/images/bg_glow_in.png \
-data/themes/images/bg_shine.png
+bg_glint.png \
+bg_glow_in.png \
+bg_shadow.png \
+bg_shadow2.png \
+bg_shadow3.png \
+bg_shine.png \
+bg_shine2.png \
+bg_shine3.png \
+bg_shine4.png \
+bg_shine5.png
 
 
 ETUI_CLEANFILES += default.edj
