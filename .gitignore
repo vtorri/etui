@@ -6,7 +6,7 @@
 .deps
 .dirstamp
 .libs
-Makefile
+./Makefile
 Makefile.in
 aclocal.m4
 ar-lib
