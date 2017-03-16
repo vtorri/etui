@@ -81,3 +81,4 @@ ETUI_CLEANFILES += etui.pc
 
 clean-local:
 	rm -rf $(ETUI_CLEANFILES)
+	cd src/modules/pdf/mupdf-1.10a && make clean

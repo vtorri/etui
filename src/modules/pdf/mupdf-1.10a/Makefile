@@ -400,7 +400,7 @@ cscope.files: $(shell find include source platform -name '*.[ch]')
 cscope.out: cscope.files
 	cscope -b
 
-all: libs apps
+all: libs
 
 clean:
 	rm -rf $(OUT)
