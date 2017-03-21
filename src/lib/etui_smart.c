@@ -69,28 +69,22 @@ static void _etui_smart_page_render_cancel(void *data, Ecore_Thread *thread);
     if (strcmp(_etui_smart_str, type)) return;         \
 }
 
-#define ETUI_SMART_OBJ_GET_RETURN(smart, o, type, ret) \
-{                                                      \
-    char *_etui_smart_str;                             \
-                                                       \
-    if (!o) return ret;                                \
-    smart = evas_object_smart_data_get(o);             \
-    if (!smart) return ret;                            \
-    _etui_smart_str = (char *)evas_object_type_get(o); \
-    if (!_etui_smart_str) return ret;                  \
-    if (strcmp(_etui_smart_str, type)) return ret;     \
-}
-
-#define ETUI_SMART_OBJ_GET_ERROR(smart, o, type)       \
-{                                                      \
-    char *_etui_smart_str;                             \
-                                                       \
-    if (!o) goto _err;                                 \
-    smart = evas_object_smart_data_get(o);             \
-    if (!smart) goto _err;                             \
-    _etui_smart_str = (char *)evas_object_type_get(o); \
-    if (!_etui_smart_str) goto _err;                   \
-    if (strcmp(_etui_smart_str, type)) goto _err;      \
+#define ETUI_SMART_OBJ_GET_ERROR(smart, o, type)          \
+{                                                         \
+    char *_etui_smart_str;                                \
+                                                          \
+    if (!o) goto _err;                                    \
+    smart = evas_object_smart_data_get(o);                \
+    if (!smart) goto _err;                                \
+    if (!smart->module)                                   \
+    {                                                     \
+        ERR("Module unvailable: "                         \
+            "etui_objectfile_set() has not been called"); \
+        goto _err;                                        \
+    }                                                     \
+    _etui_smart_str = (char *)evas_object_type_get(o);    \
+    if (!_etui_smart_str) goto _err;                      \
+    if (strcmp(_etui_smart_str, type)) goto _err;         \
 }
 
 #define ETUI_OBJ_NAME "etui_object"
@@ -375,9 +369,12 @@ etui_object_module_name_get(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
     return sd->module->definition->name;
+
+  _err:
+    return NULL;
 }
 
 EAPI const void *
@@ -385,9 +382,12 @@ etui_object_info_get(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
     return sd->module->functions->info_get(sd->module->data);
+
+  _err:
+    return NULL;
 }
 
 EAPI const char *
@@ -395,9 +395,12 @@ etui_object_title_get(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
     return sd->module->functions->title_get(sd->module->data);
+
+  _err:
+    return NULL;
 }
 
 EAPI int
@@ -405,9 +408,12 @@ etui_object_document_pages_count(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, -1);
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
     return sd->module->functions->pages_count(sd->module->data);
+
+  _err:
+    return -1;
 }
 
 EAPI const Eina_Array *
@@ -415,9 +421,12 @@ etui_object_toc_get(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, NULL);
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
     return sd->module->functions->toc_get(sd->module->data);
+
+  _err:
+    return NULL;
 }
 
 EAPI void
@@ -425,7 +434,7 @@ etui_object_page_set(Evas_Object *obj, int page_num)
 {
     Etui_Smart_Data *sd;
 
-    ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
     INF("page set %d", page_num);
     if (sd->module->functions->page_set(sd->module->data, page_num))
@@ -433,6 +442,9 @@ etui_object_page_set(Evas_Object *obj, int page_num)
         sd->module->functions->page_render_pre(sd->module->data);
         evas_object_smart_changed(obj);
     }
+
+  _err:
+    return;
 }
 
 EAPI int
@@ -440,10 +452,13 @@ etui_object_page_get(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, -1);
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
     INF("page get");
 
     return sd->module->functions->page_get(sd->module->data);
+
+  _err:
+    return -1;
 }
 
 EAPI void
@@ -468,13 +483,16 @@ etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation)
 {
     Etui_Smart_Data *sd;
 
-    ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
     if (sd->module->functions->page_rotation_set(sd->module->data, rotation))
     {
         sd->module->functions->page_render_pre(sd->module->data);
         evas_object_smart_changed(obj);
     }
+
+  _err:
+    return;
 }
 
 EAPI Etui_Rotation
@@ -482,9 +500,12 @@ etui_object_page_rotation_get(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
-    ETUI_SMART_OBJ_GET_RETURN(sd, obj, ETUI_OBJ_NAME, ETUI_ROTATION_0);
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
     return sd->module->functions->page_rotation_get(sd->module->data);
+
+  _err:
+    return ETUI_ROTATION_0;
 }
 
 EAPI void
@@ -492,7 +513,7 @@ etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale)
 {
     Etui_Smart_Data *sd;
 
-    ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
     fprintf(stderr, " %s 1\n", __FUNCTION__);
     if (sd->module->functions->page_scale_set(sd->module->data, hscale, vscale))
@@ -501,6 +522,9 @@ etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale)
         evas_object_smart_changed(obj);
     }
     fprintf(stderr, " %s 2\n", __FUNCTION__);
+
+  _err:
+    return;
 }
 
 EAPI void
