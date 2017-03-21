@@ -52,6 +52,7 @@ QUIET_MKDIR = @ echo ' ' ' ' MKDIR $@ ;
 QUIET_RM = @ echo ' ' ' ' RM $@ ;
 QUIET_TAGS = @ echo ' ' ' ' TAGS $@ ;
 QUIET_WINDRES = @ echo ' ' ' ' WINDRES $@ ;
+QUIET_SO = @ echo ' ' ' ' SO $@ ;
 endif
 
 CC_CMD = $(QUIET_CC) $(CC) $(CFLAGS) -o $@ -c $<
@@ -73,9 +74,6 @@ ALL_DIR += $(OUT)/cbz
 ALL_DIR += $(OUT)/html
 ALL_DIR += $(OUT)/gprf
 ALL_DIR += $(OUT)/tools
-ALL_DIR += $(OUT)/platform/x11
-ALL_DIR += $(OUT)/platform/x11/curl
-ALL_DIR += $(OUT)/platform/gl
 ALL_DIR += $(OUT)/fonts
 
 FITZ_HDR := include/mupdf/fitz.h $(wildcard include/mupdf/fitz/*.h)
@@ -152,8 +150,8 @@ $(FONT_GEN_SIL) : $(FONT_BIN_SIL)
 
 # --- Library ---
 
-MUPDF_LIB = $(OUT)/libmupdf.a
-THIRD_LIB = $(OUT)/libmupdfthird.a
+MUPDF_LIB = $(OUT)/libmupdf$(SOEXT)
+THIRD_LIB = $(OUT)/libmupdfthird$(SOEXT)
 
 MUPDF_OBJ := $(FITZ_OBJ) $(FONT_OBJ) $(PDF_OBJ) $(XPS_OBJ) $(SVG_OBJ) $(CBZ_OBJ) $(HTML_OBJ) $(GPRF_OBJ)
 THIRD_OBJ := $(FREETYPE_OBJ) $(HARFBUZZ_OBJ) $(JBIG2DEC_OBJ) $(JPEG_OBJ) $(JPEGXR_OBJ) $(LURATECH_OBJ) $(MUJS_OBJ) $(OPENJPEG_OBJ) $(ZLIB_OBJ)
@@ -167,6 +165,14 @@ INSTALL_LIBS := $(MUPDF_LIB) $(THIRD_LIB)
 
 $(ALL_DIR) $(OUT) $(GEN) :
 	$(MKDIR_CMD)
+
+$(OUT)/libmupdf$(SOEXT) : $(OUT)/libmupdfthird$(SOEXT)
+	$(RM_CMD)
+	$(QUIET_SO) $(CC) $(LDFLAGS) $(SFLAG) -o $@ $^ $(LIBS)
+
+$(OUT)/libmupdfthird$(SOEXT) :
+	$(RM_CMD)
+	$(QUIET_SO) $(CC) $(LDFLAGS) $(SFLAG) -o $@ $^
 
 $(OUT)/%.a :
 	$(RM_CMD)
@@ -363,7 +369,7 @@ extra: $(CURL_LIB) $(GLFW_LIB)
 libs: $(INSTALL_LIBS)
 apps: $(INSTALL_APPS)
 
-install: libs apps
+install: libs
 	install -d $(DESTDIR)$(incdir)/mupdf
 	install -d $(DESTDIR)$(incdir)/mupdf/fitz
 	install -d $(DESTDIR)$(incdir)/mupdf/pdf
@@ -391,10 +397,10 @@ tarball:
 java:
 	$(MAKE) -C platform/java
 
-tags: $(shell find include source platform thirdparty -name '*.[ch]' -or -name '*.cc' -or -name '*.hh' -or -name '*.java')
+tags: $(shell find include source thirdparty -name '*.[ch]' -or -name '*.cc' -or -name '*.hh' -or -name '*.java')
 	$(TAGS_CMD)
 
-cscope.files: $(shell find include source platform -name '*.[ch]')
+cscope.files: $(shell find include source -name '*.[ch]')
 	@ echo $^ | tr ' ' '\n' > $@
 
 cscope.out: cscope.files

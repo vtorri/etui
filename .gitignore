@@ -34,4 +34,7 @@ m4/lt~obsolete.m4
 src/bin/etui
 src/bin/etui_elm
 stamp-h1
-
+src/modules/pdf/mupdf-1.10a/build
+src/modules/pdf/mupdf-1.10a/generated
+src/modules/pdf/mupdf-1.10a/include/mupdf/pdf/name-table.h
+src/modules/pdf/mupdf-1.10a/source/pdf/pdf-name-table.h

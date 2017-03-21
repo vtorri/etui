@@ -72,21 +72,25 @@ CC=gcc
 CFLAGS+= -U__STRICT_ANSI__
 
 ifeq "$(shell pkg-config --exists harfbuzz && echo yes)" "yes"
-SYS_HARFBUZZ_CFLAGS = $(shell pkg-config --cflags harfbuzz)
-SYS_HARFBUZZ_LIBS = $(shell pkg-config --libs harfbuzz)
+SYS_HARFBUZZ_CFLAGS := $(shell pkg-config --cflags harfbuzz | sed -e "s/\r//g")
+SYS_HARFBUZZ_LIBS := $(shell pkg-config --libs harfbuzz | sed -e "s/\r//g")
 endif
 
 ifeq "$(shell pkg-config --exists freetype2 && echo yes)" "yes"
-SYS_FREETYPE_CFLAGS = $(shell pkg-config --cflags freetype2)
-SYS_FREETYPE_LIBS = $(shell pkg-config --libs freetype2)
+SYS_FREETYPE_CFLAGS := $(shell pkg-config --cflags freetype2 | sed -e "s/\r//g")
+SYS_FREETYPE_LIBS := $(shell pkg-config --libs freetype2 | sed -e "s/\r//g")
 endif
 
-SYS_JPEG_LIBS = -ljpeg
 
 ifeq "$(shell pkg-config --exists zlib && echo yes)" "yes"
-SYS_ZLIB_CFLAGS = $(shell pkg-config --cflags zlib)
-SYS_ZLIB_LIBS = $(shell pkg-config --libs zlib)
+SYS_ZLIB_CFLAGS := $(shell pkg-config --cflags zlib | sed -e "s/\r//g")
+SYS_ZLIB_LIBS := $(shell pkg-config --libs zlib | sed -e "s/\r//g")
+SYS_JPEG_CFLAGS := $(shell pkg-config --cflags zlib | sed -e "s/\r//g")
+SYS_JPEG_LIBS := $(shell pkg-config --libs-only-L zlib | sed -e "s/\r//g") -ljpeg
 endif
+
+SOEXT := .dll
+SFLAG := -shared -Wl,--out-implib,$@.a
 
 # Mac OS X doesn't have pkg-config so we hard code paths.
 else ifeq "$(OS)" "MACOS"
@@ -119,6 +123,9 @@ CC = xcrun cc
 AR = xcrun ar
 LD = xcrun ld
 RANLIB_CMD = xcrun ranlib $@
+
+SOEXT := .dylib
+SFLAG := -dynamiclib -fPIC
 
 # Linux uses pkg-config for system libraries.
 else ifeq "$(OS)" "Linux"
@@ -167,6 +174,9 @@ endif
 SYS_JBIG2DEC_LIBS = -ljbig2dec
 SYS_JPEG_LIBS = -ljpeg
 SYS_ZLIB_LIBS = -lz
+
+SOEXT := .so
+SFLAG := -shared -fPIC
 
 endif
 
