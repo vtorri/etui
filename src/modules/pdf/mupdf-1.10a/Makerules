@@ -5,6 +5,9 @@ OS := $(OS:MINGW%=MINGW)
 OS := $(OS:MSYS%=MINGW)
 OS := $(OS:Windows_NT=MINGW)
 OS := $(OS:Darwin=MACOS)
+OS := $(OS:SunOS%=Linux)
+OS := $(OS:FreeBSD%=Linux)
+OS := $(OS:OpenBSD%=Linux)
 
 HAVE_LIBDL ?= yes
 
@@ -88,8 +91,8 @@ SYS_JPEG_CFLAGS := $(shell pkg-config --cflags zlib | sed -e "s/\r//g")
 SYS_JPEG_LIBS := $(shell pkg-config --libs-only-L zlib | sed -e "s/\r//g") -ljpeg
 endif
 
-SOEXT := .dll
-SFLAG := -shared -Wl,--out-implib,$@.a
+SOEXT = .dll
+SFLAG = -shared -Wl,--out-implib,$@.a
 
 # Mac OS X doesn't have pkg-config so we hard code paths.
 else ifeq "$(OS)" "MACOS"
@@ -133,8 +136,8 @@ AR = xcrun ar
 LD = xcrun ld
 RANLIB_CMD = xcrun ranlib $@
 
-SOEXT := .dylib
-SFLAG := -dynamiclib -fPIC
+SOEXT = .dylib
+SFLAG = -dynamiclib -fPIC
 
 # Linux uses pkg-config for system libraries.
 else ifeq "$(OS)" "Linux"
@@ -184,8 +187,8 @@ SYS_JBIG2DEC_LIBS = -ljbig2dec
 SYS_JPEG_LIBS = -ljpeg
 SYS_ZLIB_LIBS = -lz
 
-SOEXT := .so
-SFLAG := -shared -fPIC
+SOEXT = .so
+SFLAG = -shared -fPIC
 
 endif
 

@@ -63,6 +63,7 @@ MKDIR_CMD = $(QUIET_MKDIR) mkdir -p $@
 RM_CMD = $(QUIET_RM) rm -f $@
 TAGS_CMD = $(QUIET_TAGS) ctags $^
 WINDRES_CMD = $(QUIET_WINDRES) $(WINDRES) $< $@
+SO_CMD = $(QUIET_SO) $(CC) $(LDFLAGS) $(SFLAG) -o $@ $^
 
 # --- File lists ---
 
@@ -168,11 +169,11 @@ $(ALL_DIR) $(OUT) $(GEN) :
 
 $(OUT)/libmupdf$(SOEXT) : $(OUT)/libmupdfthird$(SOEXT)
 	$(RM_CMD)
-	$(QUIET_SO) $(CC) $(LDFLAGS) $(SFLAG) -o $@ $^ $(LIBS)
+	$(SO_CMD) $(LIBS) $(OUT)/libmupdfthird$(SOEXT)
 
 $(OUT)/libmupdfthird$(SOEXT) :
 	$(RM_CMD)
-	$(QUIET_SO) $(CC) $(LDFLAGS) $(SFLAG) -o $@ $^
+	$(SO_CMD)
 
 $(OUT)/%.a :
 	$(RM_CMD)
@@ -363,6 +364,19 @@ libdir ?= $(prefix)/lib
 incdir ?= $(prefix)/include
 mandir ?= $(prefix)/share/man
 docdir ?= $(prefix)/share/doc/mupdf
+
+install-so: libs
+	install -d $(DESTDIR)$(libdir)
+ifeq "$(OS)" "MINGW"
+	install -d $(DESTDIR)$(bindir)
+	install $(OUT)/libmupdf$(SOEXT) $(DESTDIR)$(bindir)
+	install $(OUT)/libmupdfthird$(SOEXT) $(DESTDIR)$(bindir)
+	install $(OUT)/libmupdf$(SOEXT).a $(DESTDIR)$(libdir)
+	install $(OUT)/libmupdfthird$(SOEXT).a $(DESTDIR)$(libdir)
+else
+	install $(OUT)/libmupdf$(SOEXT) $(DESTDIR)$(libdir)
+	install $(OUT)/libmupdfthird$(SOEXT) $(DESTDIR)$(libdir)
+endif
 
 third: $(THIRD_LIB)
 extra: $(CURL_LIB) $(GLFW_LIB)
