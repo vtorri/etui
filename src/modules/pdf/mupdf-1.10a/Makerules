@@ -70,7 +70,7 @@ ifeq "$(OS)" "MINGW"
 WINDRES = windres
 HAVE_X11 ?= no
 HAVE_WIN32 = yes
-CC=gcc
+CC = gcc -std=c99
 # Add flags required for Harfbuzz because of missing strdup
 CFLAGS+= -U__STRICT_ANSI__
 
@@ -142,6 +142,8 @@ SFLAG = -dynamiclib -fPIC
 
 # Linux uses pkg-config for system libraries.
 else ifeq "$(OS)" "Linux"
+
+CC = gcc -std=c99
 
 HAVE_PTHREADS ?= yes
 
