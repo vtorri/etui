@@ -137,6 +137,7 @@ LD = xcrun ld
 RANLIB_CMD = xcrun ranlib $@
 
 SOEXT = .dylib
+CFLAGS += -fPIC
 SFLAG = -dynamiclib -fPIC
 
 # Linux uses pkg-config for system libraries.
@@ -188,6 +189,7 @@ SYS_JPEG_LIBS = -ljpeg
 SYS_ZLIB_LIBS = -lz
 
 SOEXT = .so
+CFLAGS += -fPIC
 SFLAG = -shared -fPIC
 
 endif

@@ -152,28 +152,22 @@ $(FONT_GEN_SIL) : $(FONT_BIN_SIL)
 # --- Library ---
 
 MUPDF_LIB = $(OUT)/libmupdf$(SOEXT)
-THIRD_LIB = $(OUT)/libmupdfthird$(SOEXT)
 
 MUPDF_OBJ := $(FITZ_OBJ) $(FONT_OBJ) $(PDF_OBJ) $(XPS_OBJ) $(SVG_OBJ) $(CBZ_OBJ) $(HTML_OBJ) $(GPRF_OBJ)
 THIRD_OBJ := $(FREETYPE_OBJ) $(HARFBUZZ_OBJ) $(JBIG2DEC_OBJ) $(JPEG_OBJ) $(JPEGXR_OBJ) $(LURATECH_OBJ) $(MUJS_OBJ) $(OPENJPEG_OBJ) $(ZLIB_OBJ)
 
 $(MUPDF_LIB) : $(MUPDF_OBJ)
-$(THIRD_LIB) : $(THIRD_OBJ)
 
-INSTALL_LIBS := $(MUPDF_LIB) $(THIRD_LIB)
+INSTALL_LIBS := $(MUPDF_LIB)
 
 # --- Rules ---
 
 $(ALL_DIR) $(OUT) $(GEN) :
 	$(MKDIR_CMD)
 
-$(OUT)/libmupdf$(SOEXT) : $(OUT)/libmupdfthird$(SOEXT)
+$(OUT)/libmupdf$(SOEXT) : $(MUPDF_OBJ) $(THIRD_OBJ)
 	$(RM_CMD)
-	$(SO_CMD) $(LIBS) $(OUT)/libmupdfthird$(SOEXT)
-
-$(OUT)/libmupdfthird$(SOEXT) :
-	$(RM_CMD)
-	$(SO_CMD)
+	$(SO_CMD) $(LIBS)
 
 $(OUT)/%.a :
 	$(RM_CMD)
@@ -370,12 +364,9 @@ install-so: libs
 ifeq "$(OS)" "MINGW"
 	install -d $(DESTDIR)$(bindir)
 	install $(OUT)/libmupdf$(SOEXT) $(DESTDIR)$(bindir)
-	install $(OUT)/libmupdfthird$(SOEXT) $(DESTDIR)$(bindir)
 	install $(OUT)/libmupdf$(SOEXT).a $(DESTDIR)$(libdir)
-	install $(OUT)/libmupdfthird$(SOEXT).a $(DESTDIR)$(libdir)
 else
 	install $(OUT)/libmupdf$(SOEXT) $(DESTDIR)$(libdir)
-	install $(OUT)/libmupdfthird$(SOEXT) $(DESTDIR)$(libdir)
 endif
 
 third: $(THIRD_LIB)
