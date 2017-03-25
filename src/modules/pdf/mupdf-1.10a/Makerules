@@ -193,6 +193,7 @@ SYS_ZLIB_LIBS = -lz
 SOEXT = .so
 CFLAGS += -fPIC
 CFLAGS += -D_POSIX_C_SOURCE
+CFLAGS += -D_XOPEN_SOURCE
 SFLAG = -shared -fPIC
 
 endif
