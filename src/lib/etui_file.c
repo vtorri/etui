@@ -462,6 +462,7 @@ etui_file_del(Etui_File *ef)
         return;
 
     etui_module_unload(ef->module);
+    eina_file_close(ef->file);
     free(ef->filename);
     free(ef);
 }
