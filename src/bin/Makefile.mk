@@ -1,6 +1,5 @@
 
-bin_PROGRAMS = src/bin/etui_test
-#src/bin/etui
+bin_PROGRAMS = src/bin/etui_test src/bin/etui
 
 src_bin_etui_test_SOURCES = \
 src/bin/etui.c
@@ -21,10 +20,13 @@ $(top_builddir)/src/lib/libetui.la \
 @ETUI_BIN_LIBS@
 
 src_bin_etui_SOURCES = \
-src/bin/config.c \
-src/bin/main.c \
+src/bin/etui_config.c \
+src/bin/etui_main.c \
+src/bin/etui_theme.c \
+src/bin/etui_win.c \
 src/bin/etui_config.h \
-src/bin/private.h
+src/bin/etui_theme.h \
+src/bin/etui_private.h
 
 if HAVE_WIN32
 src_bin_etui_SOURCES += \

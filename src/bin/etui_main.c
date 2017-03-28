@@ -1,5 +1,5 @@
 /* Etui - Multi-document rendering application using the EFL
- * Copyright (C) 2013-2014 Vincent Torri
+ * Copyright (C) 2013-2017 Vincent Torri
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,84 +24,127 @@
 
 #include <Etui.h>
 
-#include "etui_private.h"
-#include "etui_theme.h"
-#include "etui_doc.h"
-#include "etui_win.h"
-
+#include "etui_config.h"
+#include "private.h"
 
 static const Ecore_Getopt options = {
-   PACKAGE_NAME,
-   "%prog [options] [filename]",
-   PACKAGE_VERSION,
-   "(C) 2014 Vincent Torri",
-   "GPL v3",
-   "Multi-document rendering application written with Enlightenment Foundation Libraries.",
-   EINA_TRUE,
-   {
-      ECORE_GETOPT_STORE_STR ('g', "geometry",
-                              "Window geometry to use (eg 80x24 or 80x24+50+20 etc.)."),
-      ECORE_GETOPT_STORE_TRUE('f', "fullscreen",
-                              "Go into the fullscreen mode from start."),
+    PACKAGE_NAME,
+    "%prog [options] [filename]",
+    PACKAGE_VERSION,
+    gettext_noop("(C) 2013-2017 Vincent Torri and others"),
+    "AGPL v3",
+    gettext_noop("Multi-document rendering application written with Enlightenment Foundation Libraries."),
+    EINA_TRUE,
+    {
+        ECORE_GETOPT_STORE_STR ('g', "geometry",
+                                gettext_noop("Window geometry to use (eg 80x24 or 80x24+50+20 etc.).")),
+        ECORE_GETOPT_STORE_STR ('r', "role",
+                                gettext_noop("Set window role.")),
+        ECORE_GETOPT_STORE_TRUE('f', "fullscreen",
+                                gettext_noop("Go into the fullscreen mode from start.")),
 
-      ECORE_GETOPT_VERSION   ('V', "version"),
-      ECORE_GETOPT_COPYRIGHT ('C', "copyright"),
-      ECORE_GETOPT_LICENSE   ('L', "license"),
-      ECORE_GETOPT_HELP      ('h', "help"),
-      ECORE_GETOPT_SENTINEL
-   }
+        ECORE_GETOPT_VERSION   ('V', "version"),
+        ECORE_GETOPT_COPYRIGHT ('C', "copyright"),
+        ECORE_GETOPT_LICENSE   ('L', "license"),
+        ECORE_GETOPT_HELP      ('h', "help"),
+        ECORE_GETOPT_SENTINEL
+    }
 };
 
+#if HAVE_GETTEXT && ENABLE_NLS
+static void
+_etui_translate_options(void)
+{
+    Ecore_Getopt_Desc *desc;
+
+    options.copyright = eina_stringshare_printf(_(options.copyright),
+                                                2017);
+
+    desc = (Ecore_Getopt_Desc *)options.descs;
+    while ((desc->shortname != '\0') ||
+           (desc->longname) ||
+           (desc->action == ECORE_GETOPT_ACTION_CATEGORY))
+    {
+        if (desc->help)
+        {
+            switch (desc->action)
+            {
+                case ECORE_GETOPT_ACTION_VERSION:
+                    desc->help = _("show program version.");
+                    break;
+                case ECORE_GETOPT_ACTION_COPYRIGHT:
+                    desc->help = _("show copyright.");
+                    break;
+                case ECORE_GETOPT_ACTION_LICENSE:
+                    desc->help = _("show license.");
+                    break;
+                case ECORE_GETOPT_ACTION_HELP:
+                    desc->help = _("show this message.");
+                    break;
+                default:
+                    desc->help = _(desc->help);
+            }
+        }
+        desc++;
+    }
+}
+#endif
+
+int etui_app_log_dom_global = 1;
+
 static Etui *
-_etui_new(const char *filename)
+etui_new(const char *filename)
 {
     Etui *etui;
 
     etui = (Etui *)calloc(1, sizeof(Etui));
     if (!etui)
+    {
+        ERR(_("Can not allocate memory for main structure"));
         return NULL;
+    }
 
     if (filename)
     {
         etui->filename = strdup(filename);
         if (!etui->filename)
         {
-            ERR("Can not allocate memory for filename %s", filename);
-            goto free_etui;
+            ERR(_("Can not allocate memory for file name"));
+            free(etui);
+            return NULL;
         }
     }
 
     return etui;
-
-  free_etui:
-    free(etui);
-
-    return NULL;
 }
 
 static void
-_etui_free(Etui *etui)
+etui_del(Etui *etui)
 {
-    if (etui->theme.file)
-        free(etui->theme.file);
-    if (etui->filename)
-        free(etui->filename);
+    free(etui->filename);
     free(etui);
 }
-
-int etui_app_log_dom_global = 1;
-
-int elm_main(int argc, char **argv);
 
 EAPI_MAIN int
 elm_main(int argc, char **argv)
 {
     Etui *etui;
+    Etui_Config *config;
+    const char *filename = NULL;
     char *geometry = NULL;
+    char *role = NULL;
+    int args;
+    int pos_x = 0;
+    int pos_y = 0;
+    int size_w = 1;
+    int size_h = 1;
     Eina_Bool fullscreen = EINA_FALSE;
     Eina_Bool quit_option = EINA_FALSE;
+    Eina_Bool pos_set = EINA_FALSE;
+    Eina_Bool size_set = EINA_FALSE;
     Ecore_Getopt_Value values[] = {
         ECORE_GETOPT_VALUE_STR(geometry),
+        ECORE_GETOPT_VALUE_STR(role),
         ECORE_GETOPT_VALUE_BOOL(fullscreen),
 
         ECORE_GETOPT_VALUE_BOOL(quit_option),
@@ -111,174 +154,160 @@ elm_main(int argc, char **argv)
 
         ECORE_GETOPT_VALUE_NONE
     };
-    const char *filename = NULL;
-    char *theme = NULL;
-    int args;
-    int pos_set = 0;
-    int size_set = 0;
-    int pos_x = 0;
-    int pos_y = 0;
-    int size_w = 1;
-    int size_h = 1;
+
+    elm_language_set("");
+    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
+    elm_app_compile_bin_dir_set(PACKAGE_BIN_DIR);
+    elm_app_compile_lib_dir_set(PACKAGE_LIB_DIR);
+    elm_app_compile_data_dir_set(PACKAGE_DATA_DIR);
+#if HAVE_GETTEXT && ENABLE_NLS
+    elm_app_compile_locale_set(LOCALEDIR);
+#endif
+    elm_app_info_set(elm_main, "etui", "themes/default.edj");
+    elm_app_name_set("etui");
+
+#if HAVE_GETTEXT && ENABLE_NLS
+    bindtextdomain(PACKAGE, elm_app_locale_dir_get());
+    textdomain(PACKAGE);
+    _etui_translate_options();
+#endif
 
     etui_app_log_dom_global = eina_log_domain_register("etui-app", NULL);
     if (etui_app_log_dom_global < 0)
     {
-        EINA_LOG_CRIT("could not create log domain 'etui-app'.");
+        EINA_LOG_CRIT(_("could not create log domain 'etui-app'."));
         goto shutdown_elm;
     }
+
+    etui_config_init();
+    config = etui_config_load("config");
+    if (!config)
+    {
+        ERR(_("could not create log domain 'etui-app'."));
+        goto shutdown_config;
+    }
+    /* FIXME: key bindings */
 
     args = ecore_getopt_parse(&options, values, argc, argv);
     if (args < 0)
     {
-        ERR("Could not parse command line options.");
-        goto shutdown_elm;
+        ERR(_("Could not parse command line options."));
+        goto del_config;
     }
 
     if (quit_option)
-        goto shutdown_elm;
+        goto del_config;
 
     if (geometry)
     {
         if (sscanf(geometry,"%ix%i+%i+%i", &size_w, &size_h, &pos_x, &pos_y) == 4)
         {
-            pos_set = 1;
-            size_set = 1;
+            pos_set = EINA_TRUE;
+            size_set = EINA_TRUE;
         }
         else if (sscanf(geometry,"%ix%i-%i+%i", &size_w, &size_h, &pos_x, &pos_y) == 4)
         {
             pos_x = -pos_x;
-            pos_set = 1;
-            size_set = 1;
+            pos_set = EINA_TRUE;
+            size_set = EINA_TRUE;
         }
         else if (sscanf(geometry,"%ix%i-%i-%i", &size_w, &size_h, &pos_x, &pos_y) == 4)
         {
             pos_x = -pos_x;
             pos_y = -pos_y;
-            pos_set = 1;
-            size_set = 1;
+            pos_set = EINA_TRUE;
+            size_set = EINA_TRUE;
         }
         else if (sscanf(geometry,"%ix%i+%i-%i", &size_w, &size_h, &pos_x, &pos_y) == 4)
         {
             pos_y = -pos_y;
-            pos_set = 1;
-            size_set = 1;
+            pos_set = EINA_TRUE;
+            size_set = EINA_TRUE;
         }
         else if (sscanf(geometry,"%ix%i", &size_w, &size_h) == 2)
         {
-            size_set = 1;
+            size_set = EINA_TRUE;
         }
         else if (sscanf(geometry,"+%i+%i", &pos_x, &pos_y) == 2)
         {
-            pos_set = 1;
+            pos_set = EINA_TRUE;
         }
         else if (sscanf(geometry,"-%i+%i", &pos_x, &pos_y) == 2)
         {
             pos_x = -pos_x;
-            pos_set = 1;
+            pos_set = EINA_TRUE;
         }
         else if (sscanf(geometry,"+%i-%i", &pos_x, &pos_y) == 2)
         {
             pos_y = -pos_y;
-            pos_set = 1;
+            pos_set = EINA_TRUE;
         }
         else if (sscanf(geometry,"-%i-%i", &pos_x, &pos_y) == 2)
         {
             pos_x = -pos_x;
             pos_y = -pos_y;
-            pos_set = 1;
+            pos_set = EINA_TRUE;
         }
     }
 
     if (args != argc)
         filename = argv[args];
 
-    elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
-    elm_app_compile_bin_dir_set(PACKAGE_BIN_DIR);
-    elm_app_compile_data_dir_set(PACKAGE_DATA_DIR);
-    elm_app_info_set(elm_main, "etui", "themes/default.edj");
-#if (ELM_VERSION_MAJOR > 1) || (ELM_VERSION_MINOR >= 8)
-    elm_app_name_set("etui");
-#endif
-
-    if (!etui_init())
-        goto shutdown_elm;
-
-    etui = _etui_new(filename);
-    if (!etui)
-        goto shutdown_etui;
-
-    theme = etui_theme_default_get(etui);
-    if (!theme)
-        goto free_etui;
-
-    elm_theme_overlay_add(NULL, theme);
-
-    if (!etui_win_new(etui))
-        goto del_theme;
-
-    if (!etui_doc_init(etui))
-        goto free_win;
-
     if (!size_set)
     {
-        /* if (config->custom_geometry) */
-        /* { */
-        /*     size_w = config->cg_width; */
-        /*     size_h = config->cg_height; */
-        /* } */
-        /* else */
+        if (config->custom_geometry)
+        {
+            size_w = config->cg_width;
+            size_h = config->cg_height;
+        }
+        else
         {
             size_w = 480;
-            size_h = 600;
+            size_h = 640;
         }
     }
 
-    evas_object_resize(etui->window.win, size_w, size_h);
+    elm_theme_overlay_add(NULL, etui_config_theme_path_default_get(config));
+    elm_theme_overlay_add(NULL, etui_config_theme_path_get(config));
 
-    if (pos_set)
-    {
-        int screen_w;
-        int screen_h;
+    etui = etui_new(filename);
+    if (!etui)
+        goto del_config;
 
-        elm_win_screen_size_get(etui->window.win, NULL, NULL, &screen_w, &screen_h);
-        if (pos_x < 0) pos_x = screen_w + pos_x;
-        if (pos_y < 0) pos_y = screen_h + pos_y;
-        evas_object_move(etui->window.win, pos_x, pos_y);
-     }
-
-    etui_doc_show(etui);
+    etui_win_new(etui, role,
+                 pos_set, pos_x, pos_y, size_w, size_h, fullscreen,
+                 config);
 
     evas_object_show(etui->window.win);
 
     elm_run();
 
-    etui_doc_shutdown(etui);
-    etui_win_free(etui);
-    elm_theme_overlay_del(NULL, etui_theme_default_get(etui));
-    _etui_free(etui);
-    etui_shutdown();
+    etui_del(etui);
+    etui_config_del(config);
+    /* key binding shutdown */
+    etui_config_shutdown();
     eina_log_domain_unregister(etui_app_log_dom_global);
     etui_app_log_dom_global = -1;
+
+#if HAVE_GETTEXT && ENABLE_NLS
+    eina_stringshare_del(options.copyright);
+#endif
+
     elm_shutdown();
 
-    return EXIT_SUCCESS;
+    return 0;
 
-  free_win:
-    etui_win_free(etui);
-  del_theme:
-    elm_theme_overlay_del(NULL, etui_theme_default_get(etui));
-  free_etui:
-    _etui_free(etui);
-    etui = NULL;
-  shutdown_etui:
-    etui_shutdown();
+  /* del_etui: */
+  /*   etui_del(etui); */
+  del_config:
+    etui_config_del(config);
+  shutdown_config:
+    etui_config_shutdown();
+    eina_log_domain_unregister(etui_app_log_dom_global);
+    etui_app_log_dom_global = -1;
   shutdown_elm:
-    eina_log_domain_unregister(etui_app_log_dom_global);
-    etui_app_log_dom_global = -1;
     elm_shutdown();
 
-    return EXIT_FAILURE;
+    return -1;
 }
-
 ELM_MAIN()

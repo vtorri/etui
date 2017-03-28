@@ -1,5 +1,5 @@
 /* Etui - Multi-document rendering application using the EFL
- * Copyright (C) 2013-2014 Vincent Torri
+ * Copyright (C) 2013-2017 Vincent Torri
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,137 +21,69 @@
 
 #include <Elementary.h>
 
-#include "etui_private.h"
-#include "etui_theme.h"
-#include "etui_win.h"
+#include "etui_config.h"
+#include "private.h"
+
+
+/*============================================================================*
+ *                                  Local                                     *
+ *============================================================================*/
+
 
 static void
-_etui_win_delete_request_cb(void *data EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+_etui_win_delete_request_cb(void *data EINA_UNUSED,
+                            Evas_Object *obj EINA_UNUSED,
+                            void *event EINA_UNUSED)
 {
     elm_exit();
 }
 
-static void
-_etui_win_delete_cb(void *data, Evas *evas EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+
+/*============================================================================*
+ *                                 Global                                     *
+ *============================================================================*/
+
+
+void
+etui_win_new(Etui *etui, const char *role,
+             Eina_Bool pos_set, int x, int y, int width, int height,
+             Eina_Bool fullscreen, Etui_Config *config)
 {
-    etui_win_free((Etui *)data);
-}
-
-static void
-_etui_win_focus_in_cb(void *data, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
-{
-    Etui *etui = (Etui *)data;
-
-    if (!etui->window.focused)
-        elm_win_urgent_set(etui->window.win, EINA_FALSE);
-    etui->window.focused = EINA_TRUE;
-    elm_layout_signal_emit(etui->window.base, "focus,in", "etui");
-    /* elm_object_focus_set(term->term, EINA_TRUE); */
-}
-
-static void
-_etui_win_focus_out_cb(void *data, Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
-{
-    Etui *etui = (Etui *)data;
-
-    etui->window.focused = EINA_FALSE;
-    elm_layout_signal_emit(etui->window.base, "focus,out", "etui");
-    /* elm_object_focus_set(term->term, EINA_FALSE); */
-    /* elm_cache_all_flush(); */
-}
-
-static void
-_etui_win_title_set(Etui *etui)
-{
-    char buf[PATH_MAX];
-
-    if (etui->filename)
-    {
-        snprintf(buf, sizeof(buf), "etui - %s", etui->filename);
-        elm_win_title_set(etui->window.win, buf);
-    }
-    else
-        elm_win_title_set(etui->window.win, "etui");
-}
-
-Eina_Bool etui_win_new(Etui *etui)
-{
-    char buf[PATH_MAX];
     Evas_Object *o;
-    Evas_Load_Error err;
 
-    etui->window.win = elm_win_add(NULL, PACKAGE_NAME, ELM_WIN_BASIC);
-    _etui_win_title_set(etui);
+    /* all pointers and values are valid */
 
-    evas_object_smart_callback_add(etui->window.win, "delete,request",
+    o = elm_win_add(NULL, PACKAGE_NAME, ELM_WIN_BASIC);
+    elm_win_title_set(o, "Etui");
+    /* TODO: icon name */
+    if (role)
+        elm_win_role_set(o, role);
+    if (fullscreen)
+        elm_win_fullscreen_set(o, EINA_TRUE);
+    elm_win_focus_highlight_enabled_set(o, EINA_TRUE);
+    elm_win_autodel_set(o, EINA_TRUE);
+
+    evas_object_resize(o, width, height);
+    if (pos_set)
+    {
+        int screen_w;
+        int screen_h;
+
+        elm_win_screen_size_get(o, NULL, NULL, &screen_w, &screen_h);
+        evas_object_move(etui->window.win,
+                         (x < 0) ? screen_w + x : x,
+                         (y < 0) ? screen_h + y : y);
+    }
+
+    evas_object_smart_callback_add(o, "delete,request",
                                    _etui_win_delete_request_cb,
                                    NULL);
 
-    evas_object_event_callback_add(etui->window.win, EVAS_CALLBACK_DEL,
-                                   _etui_win_delete_cb, etui);
-
-    elm_win_autodel_set(etui->window.win, EINA_TRUE);
-
-    /* icon */
-    o = evas_object_image_add(evas_object_evas_get(etui->window.win));
-    snprintf(buf, sizeof(buf), "%s/256x256/etui.png",
-             elm_app_data_dir_get());
-    evas_object_image_file_set(o, buf, NULL);
-    err = evas_object_image_load_error_get(o);
-    if (err != EVAS_LOAD_ERROR_NONE)
-        INF("Can not find icon: %s", buf);
-    elm_win_icon_object_set(etui->window.win, o);
-
-    /* conformant */
-    o = elm_conformant_add(etui->window.win);
-    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-    elm_win_resize_object_add(etui->window.win, o);
-    evas_object_show(o);
-    etui->window.conform = o;
-
-    /* gui */
-    o = elm_layout_add(etui->window.win);
-    if (!etui_theme_apply(o, etui, "etui/base"))
-    {
-        etui_win_free(etui);
-        return EINA_FALSE;
-    }
-    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-    elm_object_content_set(etui->window.conform, o);
-    evas_object_show(o);
-    etui->window.base = o;
-
-    /* FIXME: focus seems to not work anymore */
-    evas_object_smart_callback_add(etui->window.win, "focus,in",
-                                   _etui_win_focus_in_cb, etui);
-    evas_object_smart_callback_add(etui->window.win, "focus,out",
-                                   _etui_win_focus_out_cb, etui);
-
-    return EINA_TRUE;
+    etui->window.win = o;
+    etui->window.config = config;
 }
 
-void
-etui_win_free(Etui *etui)
-{
-    if (etui->window.base)
-    {
-        evas_object_del(etui->window.base);
-        etui->window.base = NULL;
-    }
 
-    if (etui->window.conform)
-    {
-        evas_object_del(etui->window.conform);
-        etui->window.conform = NULL;
-    }
-
-    if (etui->window.win)
-    {
-        evas_object_event_callback_del_full(etui->window.win, EVAS_CALLBACK_DEL,
-                                            _etui_win_delete_cb, etui);
-        evas_object_del(etui->window.win);
-        etui->window.win = NULL;
-    }
-}
+/*============================================================================*
+ *                                   API                                      *
+ *============================================================================*/
