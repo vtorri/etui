@@ -235,7 +235,7 @@ int main(int argc, char *argv[])
     printf("module : %s\n", etui_object_module_name_get(o));
     prop = etui_object_title_get(o);
     printf("title : %s\n", prop);
-    printf("pages : %d\n", etui_object_document_pages_count(o));
+    printf("pages nbr : %d\n", etui_object_document_pages_count(o));
     printf("size : %dx%d\n", w, h);
 
     if (strcmp("pdf", etui_object_module_name_get(o)) == 0)
