@@ -134,8 +134,11 @@ _etui_module_close_cb(const Eina_Hash *hash EINA_UNUSED,
 
     em = (Etui_Module *)data;
 
-    em->definition->func.close(em);
-    em->loaded = 0;
+    if (em->loaded)
+    {
+        em->definition->func.close(em);
+        em->loaded = 0;
+    }
 
     return EINA_TRUE;
 }
