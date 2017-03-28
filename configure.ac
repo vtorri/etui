@@ -82,9 +82,7 @@ want_txt="yes"
 
 ### Checks for programs
 
-AC_PROG_CC_C99
-AC_PROG_CXX
-AC_LANG([C])
+AC_PROG_CC
 
 PKG_PROG_PKG_CONFIG
 
@@ -121,8 +119,6 @@ AC_C_BIGENDIAN
 AM_PROG_CC_C_O
 
 EFL_CHECK_C_COMPILER_FLAGS([ETUI_LIB], [-Wall -Wextra -Wshadow -Wdeclaration-after-statement -Wmissing-prototypes -Wstrict-prototypes -Wpointer-arith -Wno-missing-field-initializers -fvisibility=hidden -fdata-sections -ffunction-sections])
-
-EFL_CHECK_CXX_COMPILER_FLAGS([ETUI_LIB], [-Wall -Wextra -Wshadow -Wpointer-arith -Wno-missing-field-initializers -fvisibility=hidden -fdata-sections -ffunction-sections])
 
 EFL_CHECK_C_COMPILER_FLAGS([ETUI_BIN], [-Wall -Wextra -Wshadow -Wdeclaration-after-statement -Wmissing-prototypes -Wstrict-prototypes -Wpointer-arith -Wno-missing-field-initializers -fvisibility=hidden -fdata-sections -ffunction-sections])
 
@@ -171,7 +167,6 @@ echo
 echo "Compilation............: make (or gmake)"
 echo "  CPPFLAGS.............: $CPPFLAGS"
 echo "  CFLAGS...............: $CFLAGS"
-echo "  CXXFLAGS.............: $CXXFLAGS"
 echo "  LDFLAGS..............: $LDFLAGS"
 echo
 echo "Installation...........: make install (as root if needed, with 'su' or 'sudo')"
