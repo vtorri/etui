@@ -5,12 +5,12 @@ ACLOCAL_AMFLAGS = -I m4
 MAINTAINERCLEANFILES = \
 Makefile.in \
 aclocal.m4 \
-compile \
 config.guess \
 config.h.in \
 config.h.in~ \
 config.sub \
 configure \
+compile \
 depcomp \
 install-sh \
 ltmain.sh \
