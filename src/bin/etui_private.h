@@ -18,6 +18,7 @@
 #ifndef ETUI_BIN_PRIVATE_H
 #define ETUI_BIN_PRIVATE_H
 
+
 #if HAVE_GETTEXT && ENABLE_NLS
 # define _(string) gettext(string)
 #else
@@ -57,6 +58,7 @@ extern int etui_app_log_dom_global;
 #endif
 #define CRIT(...) EINA_LOG_DOM_CRIT(etui_app_log_dom_global, __VA_ARGS__)
 
+
 typedef struct Etui_ Etui;
 
 struct Etui_
@@ -68,6 +70,7 @@ struct Etui_
         Evas_Object *win;
         Evas_Object *conform;
         Evas_Object *base;
+        Evas_Object *panel;
         Evas_Object *event;
         Etui_Config *config;
         int win_w;
@@ -91,8 +94,9 @@ struct Etui_
     } theme;
 };
 
-void etui_win_new(Etui *etui, const char *role,
-                  Eina_Bool pos_set, int x, int y, int width, int height,
-                  Eina_Bool fullscreen, Etui_Config *config);
+Eina_Bool etui_win_new(Etui *etui, const char *role,
+                       Eina_Bool pos_set, int x, int y, int width, int height,
+                       Eina_Bool fullscreen, Etui_Config *config);
+
 
 #endif /* ETUI_BIN_PRIVATE_H */

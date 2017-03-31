@@ -26,6 +26,11 @@
 #include "etui_theme.h"
 
 
+/*============================================================================*
+ *                                  Local                                     *
+ *============================================================================*/
+
+
 static void
 _etui_theme_reload_cb(void *data EINA_UNUSED, Evas_Object *obj, const char *emission EINA_UNUSED, const char *source EINA_UNUSED)
 {
@@ -61,6 +66,12 @@ etui_theme_default_get(Etui *etui)
     return etui->theme.file;
 }
 
+
+/*============================================================================*
+ *                                 Global                                     *
+ *============================================================================*/
+
+
 Eina_Bool
 etui_theme_apply(Evas_Object *obj, Etui *etui, const char *group)
 {
@@ -83,3 +94,8 @@ etui_theme_reload(Evas_Object *obj)
     edje_object_signal_callback_add(obj, "edje,change,file", "edje",
                                     _etui_theme_reload_cb, NULL);
 }
+
+
+/*============================================================================*
+ *                                   API                                      *
+ *============================================================================*/

@@ -25,7 +25,7 @@
 #include <Etui.h>
 
 #include "etui_config.h"
-#include "private.h"
+#include "etui_private.h"
 
 static const Ecore_Getopt options = {
     PACKAGE_NAME,
@@ -274,9 +274,8 @@ elm_main(int argc, char **argv)
     if (!etui)
         goto del_config;
 
-    etui_win_new(etui, role,
-                 pos_set, pos_x, pos_y, size_w, size_h, fullscreen,
-                 config);
+    if (!etui_win_new(etui, role, pos_set, pos_x, pos_y, size_w, size_h, fullscreen, config))
+        goto del_etui;
 
     evas_object_show(etui->window.win);
 
@@ -297,8 +296,8 @@ elm_main(int argc, char **argv)
 
     return 0;
 
-  /* del_etui: */
-  /*   etui_del(etui); */
+  del_etui:
+    etui_del(etui);
   del_config:
     etui_config_del(config);
   shutdown_config:

@@ -21,10 +21,15 @@ $(top_builddir)/src/lib/libetui.la \
 
 src_bin_etui_SOURCES = \
 src/bin/etui_config.c \
+src/bin/etui_controls.c \
 src/bin/etui_main.c \
+src/bin/etui_settings.c \
+src/bin/etui_settings_elm.c \
 src/bin/etui_theme.c \
 src/bin/etui_win.c \
 src/bin/etui_config.h \
+src/bin/etui_controls.h \
+src/bin/etui_settings.h \
 src/bin/etui_theme.h \
 src/bin/etui_private.h
 

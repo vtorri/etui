@@ -18,6 +18,7 @@
 #ifndef ETUI_BIN_CONFIG_H
 #define ETUI_BIN_CONFIG_H
 
+
 typedef struct _Etui_Config Etui_Config;
 typedef struct _Etui_Config_Keys Etui_Config_Keys;
 
@@ -51,5 +52,6 @@ void etui_config_del(Etui_Config *config);
 
 const char *etui_config_theme_path_get(const Etui_Config *config);
 const char *etui_config_theme_path_default_get(const Etui_Config *config);
+
 
 #endif /* ETUI_BIN_CONFIG_H */

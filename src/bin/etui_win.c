@@ -22,7 +22,9 @@
 #include <Elementary.h>
 
 #include "etui_config.h"
-#include "private.h"
+#include "etui_controls.h"
+#include "etui_private.h"
+#include "etui_theme.h"
 
 
 /*============================================================================*
@@ -31,11 +33,78 @@
 
 
 static void
-_etui_win_delete_request_cb(void *data EINA_UNUSED,
-                            Evas_Object *obj EINA_UNUSED,
-                            void *event EINA_UNUSED)
+_etui_win_focus_in_cb(void *data,
+                      Evas_Object *obj EINA_UNUSED,
+                      void *event EINA_UNUSED)
 {
-    elm_exit();
+    Etui *etui = (Etui *)data;
+
+    fprintf(stderr, "focus in\n");
+    if (!etui->window.focused)
+        elm_win_urgent_set(etui->window.win, EINA_FALSE);
+    etui->window.focused = EINA_TRUE;
+    elm_layout_signal_emit(etui->window.base, "bg:focus,in", "etui");
+}
+
+static void
+_etui_win_focus_out_cb(void *data,
+                       Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
+{
+    Etui *etui = (Etui *)data;
+
+    fprintf(stderr, "focus out\n");
+    etui->window.focused = EINA_FALSE;
+    elm_layout_signal_emit(etui->window.base, "bg:focus,out", "etui");
+}
+
+static void
+_etui_mouse_down_cb(void *data,
+                    Evas *_e EINA_UNUSED,
+                    Evas_Object *_obj EINA_UNUSED,
+                    void *event)
+{
+    Evas_Event_Mouse_Down *ev;
+    Etui *etui;
+
+    EINA_SAFETY_ON_NULL_RETURN(data);
+    EINA_SAFETY_ON_NULL_RETURN(event);
+
+    etui = (Etui *)data;
+    ev = (Evas_Event_Mouse_Down *)event;
+
+    if (ev->button == 3)
+        etui_controls_toggle(etui->window.win, etui->window.base);
+}
+
+static void
+etui_win_free(Etui *etui)
+{
+    if (etui->window.panel)
+    {
+        evas_object_del(etui->window.panel);
+        etui->window.panel = NULL;
+    }
+
+    if (etui->window.base)
+    {
+        evas_object_del(etui->window.base);
+        etui->window.base = NULL;
+    }
+
+    if (etui->window.conform)
+    {
+        evas_object_del(etui->window.conform);
+        etui->window.conform = NULL;
+    }
+
+    if (etui->window.win)
+    {
+        /* TODO : to be done ? */
+        /* evas_object_event_callback_del_full(etui->window.win, EVAS_CALLBACK_DEL, */
+        /*                                     _etui_win_delete_cb, etui); */
+        evas_object_del(etui->window.win);
+        etui->window.win = NULL;
+    }
 }
 
 
@@ -44,7 +113,7 @@ _etui_win_delete_request_cb(void *data EINA_UNUSED,
  *============================================================================*/
 
 
-void
+Eina_Bool
 etui_win_new(Etui *etui, const char *role,
              Eina_Bool pos_set, int x, int y, int width, int height,
              Eina_Bool fullscreen, Etui_Config *config)
@@ -53,6 +122,7 @@ etui_win_new(Etui *etui, const char *role,
 
     /* all pointers and values are valid */
 
+    /* main window */
     o = elm_win_add(NULL, PACKAGE_NAME, ELM_WIN_BASIC);
     elm_win_title_set(o, "Etui");
     /* TODO: icon name */
@@ -74,13 +144,50 @@ etui_win_new(Etui *etui, const char *role,
                          (x < 0) ? screen_w + x : x,
                          (y < 0) ? screen_h + y : y);
     }
-
-    evas_object_smart_callback_add(o, "delete,request",
-                                   _etui_win_delete_request_cb,
-                                   NULL);
-
     etui->window.win = o;
+
+    /* TODO: delete_request or EVAS_CALLBACK_DEL ? */
+    evas_object_smart_callback_add(o, "focus,in", _etui_win_focus_in_cb, etui);
+    evas_object_smart_callback_add(o, "focus,out", _etui_win_focus_out_cb, etui);
+
+    /* conformant */
+    o = elm_conformant_add(etui->window.win);
+    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    elm_win_resize_object_add(etui->window.win, o);
+    evas_object_show(o);
+    etui->window.conform = o;
+
+    /* gui */
+    o = elm_layout_add(etui->window.win);
+    if (!etui_theme_apply(o, etui, "etui"))
+    {
+        etui_win_free(etui);
+        return EINA_FALSE;
+    }
+    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    elm_object_content_set(etui->window.conform, o);
+    evas_object_repeat_events_set(o, EINA_FALSE);
+    evas_object_show(o);
+    etui->window.base = o;
+
+    /* event catcher */
+    o = evas_object_rectangle_add(evas_object_evas_get(etui->window.win));
+    evas_object_color_set(o, 0, 0, 0, 0);
+    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    elm_win_resize_object_add(etui->window.win, o);
+    evas_object_repeat_events_set(o, EINA_TRUE);
+    evas_object_show(o);
+    etui->window.event = o;
+
+    evas_object_event_callback_add(o, EVAS_CALLBACK_MOUSE_DOWN,
+                                   _etui_mouse_down_cb, etui);
+
     etui->window.config = config;
+
+    return EINA_TRUE;
 }
 
 

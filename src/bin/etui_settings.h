@@ -1,5 +1,5 @@
 /* Etui - Multi-document rendering application using the EFL
- * Copyright (C) 2013-2014 Vincent Torri
+ * Copyright (C) 2013-2017 Vincent Torri
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,13 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ETUI_BIN_THEME_H
-#define ETUI_BIN_THEME_H
+#ifndef ETUI_BIN_SETTINGS_H
+#define ETUI_BIN_SETTINGS_H
 
 
-char *etui_theme_default_get(Etui *etui);
-Eina_Bool etui_theme_apply(Evas_Object *obj, Etui *etui, const char *group);
-void etui_theme_reload(Evas_Object *obj);
+Eina_Bool etui_settings_active_get(void);
+void etui_settings_toggle(Evas_Object *win, Evas_Object *bg);
+
+void etui_settings_elm(Evas_Object *stbox, Evas_Object *_term);
 
 
-#endif /* ETUI_BIN_THEME_H */
+#endif /* ETUI_BIN_SETTINGS_H */
