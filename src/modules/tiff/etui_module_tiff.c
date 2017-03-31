@@ -523,7 +523,7 @@ _etui_tiff_page_render_pre(void *d)
         md->page.has_begun = 1;
     }
     else
-        TIFFError("Etui", emsg);
+        TIFFError("Etui", "%s", emsg);
 }
 
 static void
