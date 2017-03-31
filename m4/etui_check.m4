@@ -165,7 +165,7 @@ fi
 
 dnl openssl
 if test "x${have_dep}" = "xyes" ; then
-   PKG_CHECK_EXISTS([openssl],
+   PKG_CHECK_EXISTS([openssl >= 1],
       [requirements_pc="openssl ${requirements_pc}"],
       [have_dep="no"])
 fi
