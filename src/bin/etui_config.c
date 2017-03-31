@@ -22,7 +22,7 @@
 #include <Elementary.h>
 
 #include "etui_config.h"
-#include "private.h"
+#include "etui_private.h"
 
 
 /*============================================================================*
