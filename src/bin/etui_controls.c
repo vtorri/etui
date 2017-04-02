@@ -52,6 +52,15 @@ _etui_ct_close_cb(void *_data EINA_UNUSED,
 }
 
 static void
+_etui_ct_open_cb(void *_data EINA_UNUSED,
+                 Evas_Object *_obj EINA_UNUSED,
+                 void *_event EINA_UNUSED)
+{
+    etui_controls_toggle(ct_win, ct_bg);
+    /* FIXME: open doc */
+}
+
+static void
 _etui_ct_settings_cb(void *_data EINA_UNUSED,
                      Evas_Object *_obj EINA_UNUSED,
                      void *_event EINA_UNUSED)
@@ -207,6 +216,9 @@ etui_controls_toggle(Evas_Object *win, Evas_Object *bg)
         elm_box_horizontal_set(o, EINA_FALSE);
         elm_object_content_set(ct_frame, o);
         evas_object_show(o);
+
+        o = _button_add(win, "Open", "document-open", _etui_ct_open_cb, NULL);
+        elm_box_pack_end(ct_box, o);
 
         o = _button_add(win, "Settings", "preferences-desktop", _etui_ct_settings_cb, NULL);
         elm_box_pack_end(ct_box, o);
