@@ -21,8 +21,8 @@
 
 #include <Elementary.h>
 
-#include "etui_config.h"
 #include "etui_private.h"
+#include "etui_config.h"
 
 
 /*============================================================================*

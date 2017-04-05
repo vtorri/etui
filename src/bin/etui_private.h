@@ -60,43 +60,7 @@ extern int etui_app_log_dom_global;
 
 
 typedef struct Etui_ Etui;
-
-struct Etui_
-{
-    char *filename;
-
-    struct
-    {
-        Evas_Object *win;
-        Evas_Object *conform;
-        Evas_Object *base;
-        Evas_Object *panel;
-        Evas_Object *event;
-        Etui_Config *config;
-        int win_w;
-        int win_h;
-        Eina_Bool focused : 1;
-    } window;
-
-    struct
-    {
-        Ecore_Event_Handler *handle_key_down;
-        Evas_Object *splash;
-        Evas_Object *sc;
-        Evas_Object *box;
-        Evas_Object *doc;
-        float scale;
-    } doc;
-
-    struct
-    {
-        char *file;
-    } theme;
-};
-
-Eina_Bool etui_win_new(Etui *etui, const char *role,
-                       Eina_Bool pos_set, int x, int y, int width, int height,
-                       Eina_Bool fullscreen, Etui_Config *config);
+typedef struct _Etui_Config Etui_Config;
 
 
 #endif /* ETUI_BIN_PRIVATE_H */

@@ -21,9 +21,9 @@
 
 #include <Elementary.h>
 
-#include "etui_config.h"
-#include "etui_controls.h"
 #include "etui_private.h"
+#include "etui_controls.h"
+#include "etui_main.h"
 #include "etui_theme.h"
 
 

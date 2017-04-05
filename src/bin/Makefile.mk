@@ -29,6 +29,7 @@ src/bin/etui_theme.c \
 src/bin/etui_win.c \
 src/bin/etui_config.h \
 src/bin/etui_controls.h \
+src/bin/etui_main.h \
 src/bin/etui_settings.h \
 src/bin/etui_theme.h \
 src/bin/etui_private.h

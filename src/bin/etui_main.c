@@ -24,8 +24,9 @@
 
 #include <Etui.h>
 
-#include "etui_config.h"
 #include "etui_private.h"
+#include "etui_main.h"
+#include "etui_config.h"
 
 static const Ecore_Getopt options = {
     PACKAGE_NAME,
