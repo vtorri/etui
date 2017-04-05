@@ -19,7 +19,6 @@
 #define ETUI_BIN_CONFIG_H
 
 
-typedef struct _Etui_Config Etui_Config;
 typedef struct _Etui_Config_Keys Etui_Config_Keys;
 
 struct _Etui_Config_Keys
