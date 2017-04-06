@@ -21,6 +21,7 @@
 
 #include <Elementary.h>
 
+#include "etui_open.h"
 #include "etui_settings.h"
 #include "etui_controls.h"
 
@@ -57,7 +58,8 @@ _etui_ct_open_cb(void *_data EINA_UNUSED,
                  void *_event EINA_UNUSED)
 {
     etui_controls_toggle(ct_win, ct_bg);
-    /* FIXME: open doc */
+    if (!etui_open_active_get())
+        etui_open_toggle(ct_win, ct_bg);
 }
 
 static void
