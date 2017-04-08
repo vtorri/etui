@@ -374,7 +374,7 @@ int main(int argc, char *argv[])
 
     ecore_event_handler_del(handler);
 
-    etui_file_del(ef);
+    etui_file_free(ef);
     etui_shutdown();
     ecore_evas_shutdown();
 

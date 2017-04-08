@@ -19,9 +19,9 @@
 #define ETUI_BIN_CONFIG_H
 
 
-typedef struct _Etui_Config_Keys Etui_Config_Keys;
+typedef struct Etui_Config_Keys_ Etui_Config_Keys;
 
-struct _Etui_Config_Keys
+struct Etui_Config_Keys_
 {
     const char *keyname;
     Eina_Bool   ctrl;
@@ -33,7 +33,7 @@ struct _Etui_Config_Keys
     const char *cb;
 };
 
-struct _Etui_Config
+struct Etui_Config_
 {
     const char *theme;
     int         cg_width;

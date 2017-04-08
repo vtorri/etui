@@ -80,12 +80,8 @@ _etui_mouse_down_cb(void *data,
 static void
 _etui_win_fs_cb(void *data, Evas *e, void *event_info)
 {
-    if (!etui_open_active_get())
-    {
-        Etui *etui = (Etui *)data;
-
-        etui_open_toggle(etui->window.win, etui->window.base);
-    }
+    Etui *etui = (Etui *)data;
+    etui_open_toggle(etui->window.win, etui->window.base);
 }
 
 static void
@@ -199,9 +195,10 @@ etui_win_new(Etui *etui, const char *role,
 
     etui->window.config = config;
 
-    evas_event_callback_add(evas_object_evas_get(etui->window.win),
-                            EVAS_CALLBACK_RENDER_POST,
-                            _etui_win_fs_cb, etui);
+    if ((eina_list_count(etui->docs) > 0) && !etui_open_active_get())
+        evas_event_callback_add(evas_object_evas_get(etui->window.win),
+                                EVAS_CALLBACK_RENDER_POST,
+                                _etui_win_fs_cb, etui);
 
     return EINA_TRUE;
 }

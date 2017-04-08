@@ -36,6 +36,7 @@ struct Etui_
         Eina_Bool focused : 1;
     } window;
 
+    Eina_List *docs;
     struct
     {
         Ecore_Event_Handler *handle_key_down;

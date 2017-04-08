@@ -456,7 +456,7 @@ etui_file_new (const char *filename)
 }
 
 EAPI void
-etui_file_del(Etui_File *ef)
+etui_file_free(Etui_File *ef)
 {
     if (!ef)
         return;

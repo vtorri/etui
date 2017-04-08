@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ETUI_WIN_H
-#define ETUI_WIN_H
+#ifndef ETUI_DOC_GENLIST_H
+#define ETUI_DOC_GENLIST_H
 
 
-Eina_Bool etui_win_new(Etui *etui);
-void etui_win_free(Etui *etui);
+Eina_Bool etui_doc_add(Etui *etui, const char *filename);
+void etui_doc_del(Etui_Doc_Genlist *doc);
 
 
-#endif /* ETUI_WIN_H */
+#endif /* ETUI_DOC_GENLIST_H */

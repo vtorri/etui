@@ -25,8 +25,9 @@
 #include <Etui.h>
 
 #include "etui_private.h"
-#include "etui_main.h"
 #include "etui_config.h"
+#include "etui_doc_genlist.h"
+#include "etui_main.h"
 
 static const Ecore_Getopt options = {
     PACKAGE_NAME,
@@ -122,7 +123,11 @@ etui_new(const char *filename)
 static void
 etui_del(Etui *etui)
 {
+    Etui_Doc_Genlist *doc;
+
     free(etui->filename);
+    EINA_LIST_FREE(etui->docs, doc)
+        etui_doc_del(doc);
     free(etui);
 }
 
@@ -177,6 +182,12 @@ elm_main(int argc, char **argv)
     if (etui_app_log_dom_global < 0)
     {
         EINA_LOG_CRIT(_("could not create log domain 'etui-app'."));
+        goto shutdown_elm;
+    }
+
+    if (!etui_init())
+    {
+        ERR(_("could not initialize Etui library."));
         goto shutdown_elm;
     }
 
@@ -278,6 +289,8 @@ elm_main(int argc, char **argv)
     if (!etui_win_new(etui, role, pos_set, pos_x, pos_y, size_w, size_h, fullscreen, config))
         goto del_etui;
 
+    etui_doc_add(etui, filename);
+
     evas_object_show(etui->window.win);
 
     elm_run();
@@ -286,6 +299,7 @@ elm_main(int argc, char **argv)
     etui_config_del(config);
     /* key binding shutdown */
     etui_config_shutdown();
+    etui_shutdown();
     eina_log_domain_unregister(etui_app_log_dom_global);
     etui_app_log_dom_global = -1;
 
@@ -303,6 +317,7 @@ elm_main(int argc, char **argv)
     etui_config_del(config);
   shutdown_config:
     etui_config_shutdown();
+    etui_shutdown();
     eina_log_domain_unregister(etui_app_log_dom_global);
     etui_app_log_dom_global = -1;
   shutdown_elm:

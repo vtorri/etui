@@ -60,7 +60,8 @@ extern int etui_app_log_dom_global;
 
 
 typedef struct Etui_ Etui;
-typedef struct _Etui_Config Etui_Config;
+typedef struct Etui_Config_ Etui_Config;
+typedef struct Etui_Doc_Genlist_ Etui_Doc_Genlist;
 
 
 #endif /* ETUI_BIN_PRIVATE_H */
