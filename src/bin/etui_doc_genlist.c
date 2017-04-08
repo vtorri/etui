@@ -152,8 +152,6 @@ etui_doc_add(Etui *etui, const char *filename)
 void
 etui_doc_del(Etui_Doc_Genlist *doc)
 {
-    evas_object_del(doc->gl);
-    evas_object_del(doc->obj);
     etui_file_free(doc->ef);
 }
 
