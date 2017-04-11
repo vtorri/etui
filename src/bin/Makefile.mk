@@ -22,7 +22,7 @@ $(top_builddir)/src/lib/libetui.la \
 src_bin_etui_SOURCES = \
 src/bin/etui_config.c \
 src/bin/etui_controls.c \
-src/bin/etui_doc_genlist.c \
+src/bin/etui_doc_simple.c \
 src/bin/etui_main.c \
 src/bin/etui_open.c \
 src/bin/etui_settings.c \
@@ -31,7 +31,7 @@ src/bin/etui_theme.c \
 src/bin/etui_win.c \
 src/bin/etui_config.h \
 src/bin/etui_controls.h \
-src/bin/etui_doc_genlist.h \
+src/bin/etui_doc_simple.h \
 src/bin/etui_main.h \
 src/bin/etui_open.h \
 src/bin/etui_settings.h \

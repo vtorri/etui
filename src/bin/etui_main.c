@@ -28,6 +28,7 @@
 #include "etui_config.h"
 #include "etui_doc_genlist.h"
 #include "etui_main.h"
+#include "etui_open.h"
 
 static const Ecore_Getopt options = {
     PACKAGE_NAME,
@@ -290,6 +291,10 @@ elm_main(int argc, char **argv)
         goto del_etui;
 
     etui_doc_add(etui, filename);
+
+    /* if no document, we display a file selector to open a file */
+    if (eina_list_count(etui->docs) == 0)
+        etui_open_toggle(etui->window.win, etui->window.base);
 
     evas_object_show(etui->window.win);
 

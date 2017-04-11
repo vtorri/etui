@@ -24,7 +24,6 @@
 #include "etui_private.h"
 #include "etui_controls.h"
 #include "etui_main.h"
-#include "etui_open.h"
 #include "etui_theme.h"
 
 
@@ -75,13 +74,6 @@ _etui_mouse_down_cb(void *data,
 
     if (ev->button == 3)
         etui_controls_toggle(etui->window.win, etui->window.base);
-}
-
-static void
-_etui_win_fs_cb(void *data, Evas *e, void *event_info)
-{
-    Etui *etui = (Etui *)data;
-    etui_open_toggle(etui->window.win, etui->window.base);
 }
 
 static void
@@ -194,11 +186,6 @@ etui_win_new(Etui *etui, const char *role,
                                    _etui_mouse_down_cb, etui);
 
     etui->window.config = config;
-
-    if ((eina_list_count(etui->docs) > 0) && !etui_open_active_get())
-        evas_event_callback_add(evas_object_evas_get(etui->window.win),
-                                EVAS_CALLBACK_RENDER_POST,
-                                _etui_win_fs_cb, etui);
 
     return EINA_TRUE;
 }
