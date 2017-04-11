@@ -112,6 +112,8 @@ etui_doc_add(Etui *etui, const char *filename)
     evas_object_repeat_events_set(doc->obj, EINA_TRUE);
     evas_object_show(doc->obj);
 
+    elm_object_part_content_set(etui->window.base, "content", doc->sc);
+
     evas_object_event_callback_add(doc->obj, EVAS_CALLBACK_KEY_DOWN,
                                    _etui_doc_key_down_cb, etui);
 
