@@ -131,7 +131,7 @@ _etui_smart_add(Evas_Object *obj)
     Etui_Smart_Data *sd;
 
     sd = calloc(1, sizeof(Etui_Smart_Data));
-    if (!sd) return;
+    EINA_SAFETY_ON_NULL_RETURN(sd);
 
     EINA_REFCOUNT_INIT(sd);
 
@@ -144,7 +144,7 @@ _etui_smart_del(Evas_Object *obj)
     Etui_Smart_Data *sd;
 
     sd = evas_object_smart_data_get(obj);
-    if (!sd) return;
+    EINA_SAFETY_ON_NULL_RETURN(sd);
 
     EINA_REFCOUNT_UNREF(sd)
     {
@@ -155,29 +155,35 @@ _etui_smart_del(Evas_Object *obj)
 }
 
 static void
-_etui_smart_move(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
+_etui_smart_move(Evas_Object *obj,
+                 Evas_Coord x EINA_UNUSED, Evas_Coord y EINA_UNUSED)
 {
     Etui_Smart_Data *sd;
 
     sd = evas_object_smart_data_get(obj);
-    if (!sd) return;
-
-    evas_object_move(sd->obj, x, y);
+    EINA_SAFETY_ON_NULL_RETURN(sd);
+    evas_object_smart_changed(obj);
 }
 
 static void
 _etui_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
 {
     Etui_Smart_Data *sd;
+    Evas_Coord ow;
+    Evas_Coord oh;
 
     sd = evas_object_smart_data_get(obj);
-    if (!sd) return;
+    EINA_SAFETY_ON_NULL_RETURN(sd);
+    evas_object_geometry_get(obj, NULL, NULL, &ow, &oh);
+    if ((ow == w) && (oh == h))
+        return;
+    evas_object_smart_changed(obj);
 
     /* FIXME: not always image object */
 
-    fprintf(stderr, " %s : %dx%d\n", __FUNCTION__, w, h);
-    evas_object_image_fill_set(sd->obj, 0, 0, w, h);
-    evas_object_resize(sd->obj, w, h);
+    fprintf(stderr, " %s : %dx%d\n", __FUNCTION__, ow, oh);
+    /* evas_object_image_fill_set(sd->obj, 0, 0, w, h); */
+    /* evas_object_resize(sd->obj, w, h); */
 }
 
 static void
@@ -186,8 +192,7 @@ _etui_smart_show(Evas_Object *obj)
     Etui_Smart_Data *sd;
 
     sd = evas_object_smart_data_get(obj);
-    if (!sd) return;
-
+    EINA_SAFETY_ON_NULL_RETURN(sd);
     evas_object_show(sd->obj);
 
 }
@@ -198,8 +203,7 @@ _etui_smart_hide(Evas_Object *obj)
     Etui_Smart_Data *sd;
 
     sd = evas_object_smart_data_get(obj);
-    if (!sd) return;
-
+    EINA_SAFETY_ON_NULL_RETURN(sd);
     evas_object_hide(sd->obj);
 }
 
@@ -209,8 +213,7 @@ _etui_smart_color_set(Evas_Object *obj, int r, int g, int b, int a)
     Etui_Smart_Data *sd;
 
     sd = evas_object_smart_data_get(obj);
-    if (!sd) return;
-
+    EINA_SAFETY_ON_NULL_RETURN(sd);
     evas_object_color_set(sd->obj, r, g, b, a);
 }
 
@@ -220,8 +223,7 @@ _etui_smart_clip_set(Evas_Object *obj, Evas_Object *clip)
     Etui_Smart_Data *sd;
 
     sd = evas_object_smart_data_get(obj);
-    if (!sd) return;
-
+    EINA_SAFETY_ON_NULL_RETURN(sd);
     evas_object_clip_set(sd->obj, clip);
 }
 
@@ -231,8 +233,7 @@ _etui_smart_clip_unset(Evas_Object *obj)
     Etui_Smart_Data *sd;
 
     sd = evas_object_smart_data_get(obj);
-    if (!sd) return;
-
+    EINA_SAFETY_ON_NULL_RETURN(sd);
     evas_object_clip_unset(sd->obj);
 }
 
@@ -243,9 +244,9 @@ _etui_smart_calculate(Evas_Object *obj)
     Etui_Smart_Data *sd;
 
     sd = evas_object_smart_data_get(obj);
-    if (!sd) return;
-
-    if (sd->module->render) ecore_thread_cancel(sd->module->render);
+    EINA_SAFETY_ON_NULL_RETURN(sd);
+    if (sd->module->render)
+        ecore_thread_cancel(sd->module->render);
     sd->module->render = ecore_thread_run(_etui_smart_page_render,
                                           _etui_smart_page_render_end,
                                           _etui_smart_page_render_cancel,
@@ -312,8 +313,8 @@ _etui_smart_page_render_cancel(void *data EINA_UNUSED, Ecore_Thread *thread EINA
 static void
 _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_info EINA_UNUSED)
 {
-    int w;
-    int h;
+    Evas_Coord w;
+    Evas_Coord h;
 
     evas_object_geometry_get(obj, NULL, NULL, &w, &h);
     evas_object_resize((Evas_Object *)data, w, h);
@@ -358,7 +359,7 @@ etui_object_file_set(Evas_Object *obj, const Etui_File *ef)
     sd->module = (Etui_Module *)etui_file_module_get(ef);
     sd->obj = sd->module->functions->evas_object_add(sd->module->data,
                                                      evas_object_evas_get(obj));
-    evas_object_repeat_events_set(sd->obj, EINA_TRUE);
+    /* evas_object_repeat_events_set(sd->obj, EINA_TRUE); */
     /* evas_object_pass_events_set(sd->obj, EINA_TRUE); */
     /* evas_object_propagate_events_set(sd->obj, EINA_FALSE); */
     evas_object_smart_member_add(sd->obj, obj);
