@@ -174,16 +174,10 @@ _etui_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
 
     sd = evas_object_smart_data_get(obj);
     EINA_SAFETY_ON_NULL_RETURN(sd);
-    evas_object_geometry_get(obj, NULL, NULL, &ow, &oh);
-    if ((ow == w) && (oh == h))
-        return;
-    evas_object_smart_changed(obj);
 
-    /* FIXME: not always image object */
+    /* FIXME: should do something here ? */
 
-    fprintf(stderr, " %s : %dx%d\n", __FUNCTION__, ow, oh);
-    /* evas_object_image_fill_set(sd->obj, 0, 0, w, h); */
-    /* evas_object_resize(sd->obj, w, h); */
+    fprintf(stderr, " %s 2 : %dx%d\n", __FUNCTION__, w, h);
 }
 
 static void
@@ -318,8 +312,7 @@ _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *e
 
     evas_object_geometry_get(obj, NULL, NULL, &w, &h);
     evas_object_resize((Evas_Object *)data, w, h);
-    fprintf(stderr, " $$$$ %s : data: %p   obj: %p\n", __FUNCTION__, data, obj);
-    fprintf(stderr, " %s : %dx%d\n", __FUNCTION__, w, h);
+    fprintf(stderr, " $$$$ %s : data: %p   obj: %p  %dx%d\n", __FUNCTION__, data, obj, w, h);
 }
 
 /**
@@ -359,9 +352,6 @@ etui_object_file_set(Evas_Object *obj, const Etui_File *ef)
     sd->module = (Etui_Module *)etui_file_module_get(ef);
     sd->obj = sd->module->functions->evas_object_add(sd->module->data,
                                                      evas_object_evas_get(obj));
-    /* evas_object_repeat_events_set(sd->obj, EINA_TRUE); */
-    /* evas_object_pass_events_set(sd->obj, EINA_TRUE); */
-    /* evas_object_propagate_events_set(sd->obj, EINA_FALSE); */
     evas_object_smart_member_add(sd->obj, obj);
     evas_object_event_callback_add(sd->obj, EVAS_CALLBACK_RESIZE,
                                    _etui_smart_resize_cb, obj);
