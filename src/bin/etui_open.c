@@ -36,23 +36,15 @@ static Evas_Object *op_bg = NULL;
 static Eina_Bool op_out = EINA_FALSE;
 
 static void
-my_fileselector_done(void            *data,
-                     Evas_Object *obj EINA_UNUSED,
-                     void            *event_info)
+_etui_fs_done_cb(void            *data,
+                 Evas_Object *obj EINA_UNUSED,
+                 void            *event_info)
 {
-    const char *selected = event_info;
-    if (selected)
-        fprintf(stderr, "done : %s\n", selected);
+    const char *filename = event_info;
+    if (filename)
+        fprintf(stderr, "done : %s\n", filename);
     else
         fprintf(stderr, "done\n");
-}
-
-static void
-my_fileselector_selected(void *data   EINA_UNUSED,
-                         Evas_Object *obj,
-                         void        *event_info)
-{
-    fprintf(stderr, "selected\n");
 }
 
 
@@ -99,9 +91,7 @@ etui_open_toggle(Evas_Object *win, Evas_Object *bg)
         elm_fileselector_expandable_set(o, EINA_TRUE);
         home_env = eina_environment_home_get();
         elm_fileselector_path_set(o, home_env);
-        evas_object_smart_callback_add(o, "done", my_fileselector_done, win);
-        evas_object_smart_callback_add(o, "selected", my_fileselector_selected,
-                                       win);
+        evas_object_smart_callback_add(o, "done", _etui_fs_done_cb, win);
         elm_win_inwin_content_set(op_inwin, o);
         evas_object_show(o);
         op_fs = o;
