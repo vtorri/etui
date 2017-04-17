@@ -187,6 +187,8 @@ etui_win_new(Etui *etui, const char *role,
 
     etui->window.config = config;
 
+    evas_object_data_set(etui->window.win, "etui", etui);
+
     return EINA_TRUE;
 }
 

@@ -26,7 +26,7 @@
 
 #include "etui_private.h"
 #include "etui_config.h"
-#include "etui_doc_genlist.h"
+#include "etui_doc_simple.h"
 #include "etui_main.h"
 #include "etui_open.h"
 
@@ -124,7 +124,7 @@ etui_new(const char *filename)
 static void
 etui_del(Etui *etui)
 {
-    Etui_Doc_Genlist *doc;
+    Etui_Doc_Simple *doc;
 
     free(etui->filename);
     EINA_LIST_FREE(etui->docs, doc)
@@ -290,7 +290,7 @@ elm_main(int argc, char **argv)
     if (!etui_win_new(etui, role, pos_set, pos_x, pos_y, size_w, size_h, fullscreen, config))
         goto del_etui;
 
-    etui_doc_add(etui, filename);
+    etui_doc_add(etui, etui_file_new(filename));
 
     /* if no document, we display a file selector to open a file */
     if (eina_list_count(etui->docs) == 0)

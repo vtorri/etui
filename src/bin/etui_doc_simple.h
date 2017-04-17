@@ -19,7 +19,7 @@
 #define ETUI_DOC_SIMPLE_H
 
 
-Eina_Bool etui_doc_add(Etui *etui, const char *filename);
+Eina_Bool etui_doc_add(Etui *etui, Etui_File *ef);
 void etui_doc_del(Etui_Doc_Simple *doc);
 
 

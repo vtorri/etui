@@ -20,6 +20,7 @@
 #endif
 
 #include <Elementary.h>
+
 #include <Etui.h>
 
 #include "etui_private.h"
@@ -71,19 +72,20 @@ _etui_doc_key_down_cb(void *data,
 
 
 Eina_Bool
-etui_doc_add(Etui *etui, const char *filename)
+etui_doc_add(Etui *etui, Etui_File *ef)
 {
     Etui_Doc_Simple *doc;
     int width;
     int height;
 
+    if (!ef)
+        return EINA_FALSE;
+
     doc = (Etui_Doc_Simple *)calloc(1, sizeof(Etui_Doc_Simple));
     if (!doc)
         return EINA_FALSE;
 
-    doc->ef = etui_file_new(filename);
-    if (!doc->ef)
-        goto free_doc;
+    doc->ef = ef;
 
     /* scroller object */
     doc->sc = elm_scroller_add(etui->window.win);
@@ -125,11 +127,6 @@ etui_doc_add(Etui *etui, const char *filename)
                                    _etui_doc_key_down_cb, etui);
 
     return EINA_TRUE;
-
-  free_doc:
-    free(doc);
-
-    return EINA_FALSE;
 }
 
 void

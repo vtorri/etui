@@ -21,8 +21,13 @@
 
 #include <Elementary.h>
 
-#include "etui_settings.h"
+#include <Etui.h>
+
+#include "etui_private.h"
+#include "etui_doc_simple.h"
+#include "etui_main.h"
 #include "etui_open.h"
+#include "etui_settings.h"
 
 
 /*============================================================================*
@@ -40,11 +45,14 @@ _etui_fs_done_cb(void            *data,
                  Evas_Object *obj EINA_UNUSED,
                  void            *event_info)
 {
-    const char *filename = event_info;
-    if (filename)
-        fprintf(stderr, "done : %s\n", filename);
-    else
-        fprintf(stderr, "done\n");
+    Etui *etui;
+
+    etui = evas_object_data_get((Evas_Object *)data, "etui");
+    if (!etui)
+        return;
+
+    if (etui_doc_add(etui, etui_file_new(event_info)))
+        etui_open_toggle(etui->window.win, etui->window.base);
 }
 
 
