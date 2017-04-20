@@ -140,7 +140,7 @@ etui_win_new(Etui *etui, const char *role,
         int screen_h;
 
         elm_win_screen_size_get(o, NULL, NULL, &screen_w, &screen_h);
-        evas_object_move(etui->window.win,
+        evas_object_move(o,
                          (x < 0) ? screen_w + x : x,
                          (y < 0) ? screen_h + y : y);
     }
