@@ -106,14 +106,15 @@ etui_doc_add(Etui *etui, const char *filename)
     evas_object_show(doc->bx);
 
     doc->obj = etui_object_add(evas_object_evas_get(etui->window.win));
+    etui_object_file_set(doc->obj, doc->ef);
+    etui_object_page_set(doc->obj, 0);
     evas_object_geometry_get(doc->obj, NULL, NULL, &width, &height);
+    fprintf(stderr, " ** %s 1 : %d %d\n", __FUNCTION__, width, height);
     evas_object_size_hint_min_set(doc->obj, width, height);
     evas_object_size_hint_max_set(doc->obj, width, height);
     evas_object_size_hint_weight_set(doc->obj, 0.5, 0.5);
     evas_object_size_hint_fill_set(doc->obj, 0.5, 0.5);
     evas_object_focus_set(doc->obj, EINA_TRUE);
-    etui_object_file_set(doc->obj, doc->ef);
-    etui_object_page_set(doc->obj, 0);
     elm_box_pack_end(doc->bx, doc->obj);
     evas_object_show(doc->obj);
 
