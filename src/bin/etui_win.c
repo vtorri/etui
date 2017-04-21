@@ -77,35 +77,13 @@ _etui_mouse_down_cb(void *data,
 }
 
 static void
-etui_win_free(Etui *etui)
+_etui_win_del_cb(void *data,
+                 Evas *_e EINA_UNUSED,
+                 Evas_Object *_obj EINA_UNUSED,
+                 void *_event EINA_UNUSED)
 {
-    if (etui->window.panel)
-    {
-        evas_object_del(etui->window.panel);
-        etui->window.panel = NULL;
-    }
-
-    if (etui->window.base)
-    {
-        evas_object_del(etui->window.base);
-        etui->window.base = NULL;
-    }
-
-    if (etui->window.conform)
-    {
-        evas_object_del(etui->window.conform);
-        etui->window.conform = NULL;
-    }
-
-    if (etui->window.win)
-    {
-        /* TODO : to be done ? */
-        /* evas_object_event_callback_del_full(etui->window.win, EVAS_CALLBACK_DEL, */
-        /*                                     _etui_win_delete_cb, etui); */
-        evas_object_del(etui->window.win);
-        etui->window.win = NULL;
-    }
-}
+    etui_win_free(data);
+ }
 
 
 /*============================================================================*
@@ -146,7 +124,8 @@ etui_win_new(Etui *etui, const char *role,
     }
     etui->window.win = o;
 
-    /* TODO: delete_request or EVAS_CALLBACK_DEL ? */
+    evas_object_event_callback_add(o, EVAS_CALLBACK_DEL, _etui_win_del_cb, etui);
+
     evas_object_smart_callback_add(o, "focus,in", _etui_win_focus_in_cb, etui);
     evas_object_smart_callback_add(o, "focus,out", _etui_win_focus_out_cb, etui);
 
@@ -190,6 +169,36 @@ etui_win_new(Etui *etui, const char *role,
     evas_object_data_set(etui->window.win, "etui", etui);
 
     return EINA_TRUE;
+}
+
+void
+etui_win_free(Etui *etui)
+{
+    if (etui->window.panel)
+    {
+        evas_object_del(etui->window.panel);
+        etui->window.panel = NULL;
+    }
+
+    if (etui->window.base)
+    {
+        evas_object_del(etui->window.base);
+        etui->window.base = NULL;
+    }
+
+    if (etui->window.conform)
+    {
+        evas_object_del(etui->window.conform);
+        etui->window.conform = NULL;
+    }
+
+    if (etui->window.win)
+    {
+        evas_object_event_callback_del_full(etui->window.win, EVAS_CALLBACK_DEL,
+                                            _etui_win_del_cb, etui);
+        evas_object_del(etui->window.win);
+        etui->window.win = NULL;
+    }
 }
 
 

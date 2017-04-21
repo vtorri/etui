@@ -21,6 +21,8 @@
 
 #include <Elementary.h>
 
+#include "etui_private.h"
+#include "etui_main.h"
 #include "etui_open.h"
 #include "etui_settings.h"
 #include "etui_controls.h"
@@ -44,12 +46,11 @@ static Eina_Bool ct_out = EINA_FALSE; // is controls displayed ?
 /* controls callbacks */
 
 static void
-_etui_ct_close_cb(void *_data EINA_UNUSED,
+_etui_ct_close_cb(void *_data,
                   Evas_Object *_obj EINA_UNUSED,
                   void *_event EINA_UNUSED)
 {
-    /* FIXME */
-    //term_close(ct_win, ct_term, EINA_FALSE);
+    etui_win_free(evas_object_data_get(_data, "etui"));
 }
 
 static void
@@ -228,7 +229,7 @@ etui_controls_toggle(Evas_Object *win, Evas_Object *bg)
         o = _button_add(win, "About", "help-about", _etui_ct_about_cb, NULL);
         elm_box_pack_end(ct_box, o);
 
-        o = _button_add(win, "Quit", "window-close", _etui_ct_close_cb, NULL);
+        o = _button_add(win, "Quit", "window-close", _etui_ct_close_cb, win);
         elm_box_pack_end(ct_box, o);
     }
 

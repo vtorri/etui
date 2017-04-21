@@ -48,5 +48,7 @@ Eina_Bool etui_win_new(Etui *etui, const char *role,
                        Eina_Bool pos_set, int x, int y, int width, int height,
                        Eina_Bool fullscreen, Etui_Config *config);
 
+void etui_win_free(Etui *etui);
+
 
 #endif /* ETUI_BIN_MAIN_H */
