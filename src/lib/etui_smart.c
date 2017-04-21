@@ -155,22 +155,19 @@ _etui_smart_del(Evas_Object *obj)
 }
 
 static void
-_etui_smart_move(Evas_Object *obj,
-                 Evas_Coord x EINA_UNUSED, Evas_Coord y EINA_UNUSED)
+_etui_smart_move(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
 {
     Etui_Smart_Data *sd;
 
     sd = evas_object_smart_data_get(obj);
     EINA_SAFETY_ON_NULL_RETURN(sd);
-    evas_object_smart_changed(obj);
+    evas_object_move(sd->obj, x, y);
 }
 
 static void
 _etui_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
 {
     Etui_Smart_Data *sd;
-    Evas_Coord ow;
-    Evas_Coord oh;
 
     sd = evas_object_smart_data_get(obj);
     EINA_SAFETY_ON_NULL_RETURN(sd);
