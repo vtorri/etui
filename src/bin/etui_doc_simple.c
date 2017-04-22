@@ -69,9 +69,8 @@ _etui_doc_key_down_cb(void *data,
         evas_key_modifier_is_set(ev->modifiers, "ISO_Level3_Shift");
     hyper = evas_key_modifier_is_set(ev->modifiers, "Hyper");
 
-    ERR("Key: %s  %d %d %d %d %d %d\n", ev->keyname, ctrl, alt, shift, win, meta, hyper);
-
     doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
+
     /* No modifier */
     if (!ctrl && !alt && !shift && !win && !meta && !hyper)
     {
@@ -79,18 +78,6 @@ _etui_doc_key_down_cb(void *data,
             etui_object_page_set(doc->obj, etui_object_page_get(doc->obj) + 1);
         else if (!strcmp(ev->keyname, "Left"))
             etui_object_page_set(doc->obj, etui_object_page_get(doc->obj) - 1);
-    }
-
-    /* ctrl modifier */
-    if (ctrl && !alt && !shift && !win && !meta && !hyper)
-    {
-        if (!strcmp(ev->keyname, "q"))
-            etui_win_free(etui);
-        else if (!strcmp(ev->keyname, "o"))
-        {
-            if (!etui_open_active_get())
-                etui_open_toggle(etui->window.win, etui->window.base);
-        }
     }
 }
 
@@ -140,13 +127,14 @@ etui_doc_add(Etui *etui, Etui_File *ef)
     etui_object_file_set(doc->obj, doc->ef);
     etui_object_page_set(doc->obj, 0);
     evas_object_geometry_get(doc->obj, NULL, NULL, &width, &height);
-    fprintf(stderr, " ** %s 1 : %d %d\n", __FUNCTION__, width, height);
     evas_object_size_hint_min_set(doc->obj, width, height);
     evas_object_size_hint_max_set(doc->obj, width, height);
     evas_object_size_hint_weight_set(doc->obj, 0.5, 0.5);
     evas_object_size_hint_fill_set(doc->obj, 0.5, 0.5);
     elm_box_pack_end(doc->bx, doc->obj);
     evas_object_show(doc->obj);
+
+    elm_object_focus_set(doc->sc, EINA_TRUE);
 
     etui->docs = eina_list_append(etui->docs, doc);
 

@@ -95,8 +95,36 @@ _etui_translate_options(void)
 
 int etui_app_log_dom_global = 1;
 
+static Eina_Bool
+_etui_key_down(void *data, int type EINA_UNUSED, void *event)
+{
+    Etui *etui;
+    Ecore_Event_Key *ev;
+
+    etui = (Etui *)data;
+    ev = (Ecore_Event_Key *)event;
+
+#define IS_MOD(mod_) ((ev->modifiers & mod_) == mod_)
+
+    /* ctrl modifier */
+    if (IS_MOD(ECORE_EVENT_MODIFIER_CTRL))
+    {
+        if (!strcmp(ev->keyname, "q"))
+            etui_win_free(etui);
+        else if (!strcmp(ev->keyname, "o"))
+        {
+            if (!etui_open_active_get())
+                etui_open_toggle(etui->window.win, etui->window.base);
+        }
+    }
+
+#undef IS_MOD
+
+    return ECORE_CALLBACK_PASS_ON;
+}
+
 static Etui *
-etui_new(const char *filename)
+etui_new(void)
 {
     Etui *etui;
 
@@ -107,15 +135,13 @@ etui_new(const char *filename)
         return NULL;
     }
 
-    if (filename)
+    etui->handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN,
+                                            _etui_key_down, etui);
+    if (!etui->handler)
     {
-        etui->filename = strdup(filename);
-        if (!etui->filename)
-        {
-            ERR(_("Can not allocate memory for file name"));
-            free(etui);
-            return NULL;
-        }
+        ERR(_("Can not create key handler"));
+        free(etui);
+        return NULL;
     }
 
     return etui;
@@ -126,9 +152,9 @@ etui_del(Etui *etui)
 {
     Etui_Doc_Simple *doc;
 
-    free(etui->filename);
     EINA_LIST_FREE(etui->docs, doc)
         etui_doc_del(doc);
+    ecore_event_handler_del(etui->handler);
     free(etui);
 }
 
@@ -283,7 +309,7 @@ elm_main(int argc, char **argv)
     elm_theme_overlay_add(NULL, etui_config_theme_path_default_get(config));
     elm_theme_overlay_add(NULL, etui_config_theme_path_get(config));
 
-    etui = etui_new(filename);
+    etui = etui_new();
     if (!etui)
         goto del_config;
 

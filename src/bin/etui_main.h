@@ -21,7 +21,7 @@
 
 struct Etui_
 {
-    char *filename;
+    Ecore_Event_Handler *handler;
 
     struct
     {
