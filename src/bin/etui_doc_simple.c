@@ -25,6 +25,7 @@
 
 #include "etui_private.h"
 #include "etui_main.h"
+#include "etui_open.h"
 #include "etui_doc_simple.h"
 
 
@@ -50,19 +51,47 @@ _etui_doc_key_down_cb(void *data,
     Evas_Event_Key_Down *ev;
     Etui *etui;
     Etui_Doc_Simple *doc;
+    int ctrl, alt, shift, win, meta, hyper;
 
     EINA_SAFETY_ON_NULL_RETURN(data);
     EINA_SAFETY_ON_NULL_RETURN(event);
 
     etui = (Etui *)data;
     ev = (Evas_Event_Key_Down *)event;
-    ERR("Key: %s\n", ev->keyname);
+
+    ctrl = evas_key_modifier_is_set(ev->modifiers, "Control");
+    alt = evas_key_modifier_is_set(ev->modifiers, "Alt");
+    shift = evas_key_modifier_is_set(ev->modifiers, "Shift");
+    win = evas_key_modifier_is_set(ev->modifiers, "Super");
+    meta =
+        evas_key_modifier_is_set(ev->modifiers, "Meta") ||
+        evas_key_modifier_is_set(ev->modifiers, "AltGr") ||
+        evas_key_modifier_is_set(ev->modifiers, "ISO_Level3_Shift");
+    hyper = evas_key_modifier_is_set(ev->modifiers, "Hyper");
+
+    ERR("Key: %s  %d %d %d %d %d %d\n", ev->keyname, ctrl, alt, shift, win, meta, hyper);
 
     doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
-    if (!strcmp(ev->keyname, "Right"))
-        etui_object_page_set(doc->obj, etui_object_page_get(doc->obj) + 1);
-    else if (!strcmp(ev->keyname, "Left"))
-        etui_object_page_set(doc->obj, etui_object_page_get(doc->obj) - 1);
+    /* No modifier */
+    if (!ctrl && !alt && !shift && !win && !meta && !hyper)
+    {
+        if (!strcmp(ev->keyname, "Right"))
+            etui_object_page_set(doc->obj, etui_object_page_get(doc->obj) + 1);
+        else if (!strcmp(ev->keyname, "Left"))
+            etui_object_page_set(doc->obj, etui_object_page_get(doc->obj) - 1);
+    }
+
+    /* ctrl modifier */
+    if (ctrl && !alt && !shift && !win && !meta && !hyper)
+    {
+        if (!strcmp(ev->keyname, "q"))
+            etui_win_free(etui);
+        else if (!strcmp(ev->keyname, "o"))
+        {
+            if (!etui_open_active_get())
+                etui_open_toggle(etui->window.win, etui->window.base);
+        }
+    }
 }
 
 
@@ -116,7 +145,6 @@ etui_doc_add(Etui *etui, Etui_File *ef)
     evas_object_size_hint_max_set(doc->obj, width, height);
     evas_object_size_hint_weight_set(doc->obj, 0.5, 0.5);
     evas_object_size_hint_fill_set(doc->obj, 0.5, 0.5);
-    evas_object_focus_set(doc->obj, EINA_TRUE);
     elm_box_pack_end(doc->bx, doc->obj);
     evas_object_show(doc->obj);
 

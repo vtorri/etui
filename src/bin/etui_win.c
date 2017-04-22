@@ -124,6 +124,8 @@ etui_win_new(Etui *etui, const char *role,
     }
     etui->window.win = o;
 
+    evas_object_data_set(etui->window.win, "etui", etui);
+
     evas_object_event_callback_add(o, EVAS_CALLBACK_DEL, _etui_win_del_cb, etui);
 
     evas_object_smart_callback_add(o, "focus,in", _etui_win_focus_in_cb, etui);
@@ -165,8 +167,6 @@ etui_win_new(Etui *etui, const char *role,
                                    _etui_mouse_down_cb, etui);
 
     etui->window.config = config;
-
-    evas_object_data_set(etui->window.win, "etui", etui);
 
     return EINA_TRUE;
 }
