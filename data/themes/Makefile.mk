@@ -21,16 +21,21 @@ themes_DATA = data/themes/default.edj
 
 EXTRA_DIST += \
 data/themes/default.edc \
-bg_glint.png \
-bg_glow_in.png \
-bg_shadow.png \
-bg_shadow2.png \
-bg_shadow3.png \
-bg_shine.png \
-bg_shine2.png \
-bg_shine3.png \
-bg_shine4.png \
-bg_shine5.png
+data/themes/images/bg_glint.png \
+data/themes/images/bg_glow_in.png \
+data/themes/images/bg_led.png \
+data/themes/images/bg_led_base.png \
+data/themes/images/bg_led_glow.png \
+data/themes/images/bg_led_strobe.png \
+data/themes/images/bg_shadow.png \
+data/themes/images/bg_shadow2.png \
+data/themes/images/bg_shadow3.png \
+data/themes/images/bg_shine.png \
+data/themes/images/bg_shine2.png \
+data/themes/images/bg_shine3.png \
+data/themes/images/bg_shine4.png \
+data/themes/images/bg_shine5.png \
+data/themes/sounds/bell.wav
 
 
 ETUI_CLEANFILES += default.edj
