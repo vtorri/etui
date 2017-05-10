@@ -63,6 +63,10 @@ Postscript
    compilation: make so (debug mode: make sodebug)
    installation: make soinstall (debug mode: make sodebuginstall)
 
+DVI
+ Requirements:
+  libdvi
+
 EPUB:
  Requirements:
   libarchive
@@ -71,26 +75,26 @@ CHM:
  Requirements:
   libarchive
 
-Key bindings:
+Key bindings: ([C] means can be configured)
 -------------
 
 Ctrl-q : quit
 Ctrl-o : open file
-F1: help
+[C] F1: help
 
-right arrow, down arrow or space : next page
-left arrow, up arrow, backspace : previous page
-page up : page + 10
-page down : page - 10
-F11: toggle fullscreen
+[C] right arrow, down arrow or space : next page
+[C] left arrow, up arrow, backspace : previous page
+[C] page up : page + 10
+[C] page down : page - 10
+[C] F11: toggle fullscreen
 esc : exit fullscreen
-Ctrl-+ : scale * sqrt(2)
-Ctrl-- : scale / sqrt(2)
-Ctrl-0 : zoom to fit height
-Ctrl-1 : zoom to original size
-Ctrl-2 : zoom to fit width
-Ctrl-home : go to first page
-Ctrl-end : go to last page
+[C] Ctrl-+ : scale * sqrt(2)
+[C] Ctrl-- : scale / sqrt(2)
+[C] Ctrl-0 : zoom to fit height
+[C] Ctrl-1 : zoom to original size
+[C] Ctrl-2 : zoom to fit width
+[C] Ctrl-home : go to first page
+[C] Ctrl-end : go to last page
 
 Mouse bindings:
 ---------------
