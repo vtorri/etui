@@ -123,10 +123,33 @@ _etui_doc_key_down_cb(void *data,
     if (!ctrl && !alt && !shift && !win && !meta && !hyper)
     {
         if (!strcmp(ev->keyname, "Right"))
-            etui_object_page_set(doc->obj, etui_object_page_get(doc->obj) + 1);
+        {
+            int page;
+
+            page = etui_object_page_get(doc->obj);
+            if (page == (etui_object_document_pages_count(doc->obj) - 1))
+            {
+                elm_object_signal_emit(etui->window.base, "bell:bell", "etui");
+                elm_object_signal_emit(etui->window.base, "bell:bell,ring", "etui");
+            }
+            else
+                etui_object_page_set(doc->obj, page + 1);
+        }
         else if (!strcmp(ev->keyname, "Left"))
-            etui_object_page_set(doc->obj, etui_object_page_get(doc->obj) - 1);
+        {
+            int page;
+
+            page = etui_object_page_get(doc->obj);
+            if (page == 0)
+            {
+                elm_object_signal_emit(etui->window.base, "bell:bell", "etui");
+                elm_object_signal_emit(etui->window.base, "bell:bell,ring", "etui");
+            }
+            else
+                etui_object_page_set(doc->obj, page - 1);
+        }
         else if (!strcmp(ev->keyname, "F11"))
+        {
             _etui_doc_fullscreen_set(etui,
                                      !elm_win_fullscreen_get(etui->window.win));
         }
