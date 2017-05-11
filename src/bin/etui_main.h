@@ -31,8 +31,6 @@ struct Etui_
         Evas_Object *panel;
         Evas_Object *event;
         Etui_Config *config;
-        int win_w;
-        int win_h;
         Eina_Bool focused : 1;
     } window;
 

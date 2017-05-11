@@ -40,7 +40,55 @@ struct Etui_Doc_Simple_
     Evas_Object *sc;
     Evas_Object *bx;
     Evas_Object *obj;
+    float scale; /* scale before fullscreen */
 };
+
+static void
+_etui_doc_fullscreen_set(Etui *etui, Eina_Bool on)
+{
+    Etui_Doc_Simple *doc;
+    int w;
+    int h;
+
+    doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
+
+    if (on)
+    {
+        float scale;
+        int ws;
+        int hs;
+
+        /* we save the scale before going fullscreen */
+        etui_object_page_scale_get(doc->obj, &doc->scale, &doc->scale);
+
+        /* we set the new scale to fit the entire screen */
+        etui_object_page_size_get(doc->obj, &w, &h);
+        elm_win_screen_size_get(etui->window.win, NULL, NULL, &ws, &hs);
+        scale = (w < h) ? (float)(hs) / (float)h : (float)(ws) / (float)w;
+        etui_object_page_scale_set(doc->obj, scale, scale);
+
+        /* no more scrollbar */
+        elm_scroller_policy_set(doc->sc,
+                                ELM_SCROLLER_POLICY_OFF,
+                                ELM_SCROLLER_POLICY_OFF);
+    }
+    else
+    {
+        elm_scroller_policy_set(doc->sc,
+                                ELM_SCROLLER_POLICY_AUTO,
+                                ELM_SCROLLER_POLICY_AUTO);
+
+        /* we restore the scale */
+        etui_object_page_scale_set(doc->obj, doc->scale, doc->scale);
+    }
+
+    /* FIXME: is it necessary ? */
+    evas_object_geometry_get(doc->obj, NULL, NULL, &w, &h);
+    evas_object_size_hint_min_set(doc->obj, w, h);
+    evas_object_size_hint_max_set(doc->obj, w, h);
+
+    elm_win_fullscreen_set(etui->window.win, on);
+}
 
 static void
 _etui_doc_key_down_cb(void *data,
@@ -78,6 +126,15 @@ _etui_doc_key_down_cb(void *data,
             etui_object_page_set(doc->obj, etui_object_page_get(doc->obj) + 1);
         else if (!strcmp(ev->keyname, "Left"))
             etui_object_page_set(doc->obj, etui_object_page_get(doc->obj) - 1);
+        else if (!strcmp(ev->keyname, "F11"))
+            _etui_doc_fullscreen_set(etui,
+                                     !elm_win_fullscreen_get(etui->window.win));
+        }
+        else if (!strcmp(ev->keyname, "Escape"))
+        {
+            if (elm_win_fullscreen_get(etui->window.win))
+                _etui_doc_fullscreen_set(etui, EINA_FALSE);
+        }
     }
 }
 
