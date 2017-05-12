@@ -129,70 +129,22 @@ MUPDF_CFLAGS=""
 MUPDF_LIBS=""
 
 requirements_pc=""
-requirements_libs=""
 
-have_dep="yes"
-
-dnl zlib
-if test "x${have_dep}" = "xyes" ; then
-   PKG_CHECK_EXISTS([zlib >= 1.2.5],
-      [requirements_pc="zlib ${requirements_pc}"], [have_dep="no"])
-fi
-
-dnl jpeglib
-if test "x${have_dep}" = "xyes" ; then
-   AC_CHECK_HEADER([jpeglib.h], [have_dep="yes"], [have_dep="no"])
-   if test "x${have_dep}" = "xyes" ; then
-      AC_CHECK_LIB([jpeg], [jpeg_std_error],
-         [requirements_libs="${requirements_libs} -ljpeg"],
-         [have_dep="no"])
-   fi
-fi
-
-dnl freetype
-if test "x${have_dep}" = "xyes" ; then
-   PKG_CHECK_EXISTS([freetype2],
-      [requirements_pc="freetype2 ${requirements_pc}"],
-      [have_dep="no"])
-fi
-
-dnl harfbuzz
-if test "x${have_dep}" = "xyes" ; then
-   PKG_CHECK_EXISTS([harfbuzz],
-      [requirements_pc="harfbuzz ${requirements_pc}"],
-      [have_dep="no"])
-fi
-
-dnl openssl
-if test "x${have_dep}" = "xyes" ; then
-   PKG_CHECK_EXISTS([openssl >= 1],
-      [requirements_pc="openssl ${requirements_pc}"],
-      [have_dep="no"])
-fi
+dnl muPDF
+PKG_CHECK_EXISTS([mupdf],
+   [
+    have_dep="yes"
+    requirements_pc="mupdf ${requirements_pc}"
+   ],
+   [have_dep="no"])
 
 dnl check libraries
-
-if test "x${have_dep}" = "xyes" ; then
-   PKG_CHECK_MODULES([MUPDF],
-      [${requirements_pc}],
-      [
-       have_dep="yes"
-       MUPDF_LIBS="${requirements_libs} ${MUPDF_LIBS}"
-      ],
-      [have_dep="no"])
+if ! test "x${requirements_pc}" = "x" ; then
+   PKG_CHECK_MODULES([MUPDF], [${requirements_pc}], [], [])
 fi
-
-AC_ARG_VAR([MUPDF_CFLAGS], [preprocessor flags for mupdf])
-AC_SUBST([MUPDF_CFLAGS])
-AC_ARG_VAR([MUPDF_LIBS], [linker flags for mupdf])
-AC_SUBST([MUPDF_LIBS])
-
-AC_SUBST([JPEG_LIBS])
-AC_SUBST([OPENJPEG_LIBS])
 
 if test "x$1" = "xstatic" ; then
    requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
-   requirements_etui_libs="${requirements_libs} ${requirements_etui_libs}"
 fi
 
 AS_IF([test "x${have_dep}" = "xyes"], [$2], [$3])
