@@ -36,11 +36,7 @@ Supported backends:
 
 PDF and XPS
  Requirements:
-  zlib
-  jpeglib
-  freetype
-  harfbuzz
-  openssl
+  muPDF 1.11
 
 Comic Book (cbz, cbr, cb7, cbt, cba)
  Requirements:
