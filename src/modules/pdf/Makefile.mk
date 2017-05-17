@@ -31,10 +31,14 @@ src_modules_pdf_module_la_CFLAGS = \
 
 src_modules_pdf_module_la_LIBADD = \
 src/lib/libetui.la \
-@ETUI_LIBS@ \
-@MUPDF_LIBS@
+@ETUI_LIBS@
 
-src_modules_pdf_module_la_LDFLAGS = -no-undefined -module -avoid-version
+src_modules_pdf_module_la_LDFLAGS = \
+-no-undefined \
+-module \
+-avoid-version \
+-Wl,@MUPDF_LIBS@/libmupdf.a \
+-Wl,@MUPDF_LIBS@/libmupdfthird.a
 
 src_modules_pdf_module_la_LIBTOOLFLAGS = --tag=disable-static
 
