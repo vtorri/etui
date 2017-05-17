@@ -125,27 +125,24 @@ dnl use: ETUI_CHECK_DEP_PDF(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]
 AC_DEFUN([ETUI_CHECK_DEP_PDF],
 [
 
-MUPDF_CFLAGS=""
-MUPDF_LIBS=""
-
-requirements_pc=""
-
 dnl muPDF
-PKG_CHECK_EXISTS([mupdf],
-   [
-    have_dep="yes"
-    requirements_pc="mupdf ${requirements_pc}"
-   ],
+CFLAGS_save="$CFLAGS"
+LIBS_save="$LIBS"
+CFLAGS="${MUPDF_CFLAGS} $CFLAGS"
+LIBS="-Wl,${MUPDF_LIBS}/libmupdf.a -Wl,${MUPDF_LIBS}/libmupdfthird.a $LIBS"
+AC_LINK_IFELSE(
+   [AC_LANG_PROGRAM(
+       [[
+#include <mupdf/fitz.h>
+       ]],
+       [[
+fz_context *ctx;
+ctx = fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
+       ]])],
+   [have_dep="yes"],
    [have_dep="no"])
-
-dnl check libraries
-if ! test "x${requirements_pc}" = "x" ; then
-   PKG_CHECK_MODULES([MUPDF], [${requirements_pc}], [], [])
-fi
-
-if test "x$1" = "xstatic" ; then
-   requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
-fi
+CFLAGS="$CFLAGS_save"
+LIBS="$LIBS_save"
 
 AS_IF([test "x${have_dep}" = "xyes"], [$2], [$3])
 

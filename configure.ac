@@ -43,6 +43,20 @@ AC_ARG_ENABLE([gpl],
    ],
    [enable_gpl="no"])
 
+AC_ARG_WITH([mupdf-includedir],
+   [AS_HELP_STRING([--with-mupdf-includedir=path],[path where mupdf/fitz.h is located @<:@default=/usr/include@:>@])],
+   [MUPDF_CFLAGS="-I${withval}"],
+   [MUPDF_CFLAGS="-I/usr/include"])
+
+AC_SUBST([MUPDF_CFLAGS])
+
+AC_ARG_WITH([mupdf-libdir],
+   [AS_HELP_STRING([--with-mupdf-libdir=path],[path where libmupdf.a and libmupdfthird.a are located @<:@default=/usr/lib@:>@])],
+   [MUPDF_LIBS="${withval}"],
+   [MUPDF_LIBS="/usr/lib"])
+
+AC_SUBST([MUPDF_LIBS])
+
 
 ### Default options with respect to host
 
