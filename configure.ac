@@ -51,7 +51,7 @@ AC_ARG_WITH([mupdf-includedir],
 AC_SUBST([MUPDF_CFLAGS])
 
 AC_ARG_WITH([mupdf-static-libs],
-   [AS_HELP_STRING([--with-mupdf-static-libs=flags],[flags to pass to linker (usually, fullpath to libmupdf.a and eventually libmupdfthird.a prepend with -Wl, @<:@default=none@:>@])],
+   [AS_HELP_STRING([--with-mupdf-static-libs=flags],[flags to pass to linker (usually, fullpath to libmupdf.a and eventually libmupdfthird.a prepend with -Wl,) @<:@default=none@:>@])],
    [MUPDF_STATIC_LIBS="${withval}"],
    [MUPDF_STATIC_LIBS=""])
 
