@@ -75,7 +75,8 @@ pkgconfig_DATA = etui.pc
 
 EXTRA_DIST += \
 autogen.sh \
-etui.pc.in
+etui.pc.in \
+pkgbuild/PKGBUILD.in
 
 ETUI_CLEANFILES += etui.pc
 

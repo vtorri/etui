@@ -156,6 +156,7 @@ AC_SYS_LARGEFILE
 
 AC_CONFIG_FILES([
 Makefile
+pkgbuild/PKGBUILD
 ])
 
 AC_OUTPUT

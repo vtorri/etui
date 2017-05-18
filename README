@@ -82,6 +82,9 @@ Windows (MinGW):
 Fedora:
 ./configure --enable-gpl --with-mupdf-static-libs=-Wl,/usr/lib64/libmupdf.a --with-mupdf-shared-libs="-ljbig2dec -ljpeg `pkg-config --libs libopenjp2 freetype2 zlib`"
 
+ArchLinux:
+see pkgbuild/PKGBUILD
+
 OpenBSD:
 ./configure --enable-gpl --with-mupdf-shared-libs="-L/usr/local/lib -lmupdf -lmupdfthird `pkg-config --libs freetype2`"
 
