@@ -125,11 +125,13 @@ dnl use: ETUI_CHECK_DEP_PDF(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]
 AC_DEFUN([ETUI_CHECK_DEP_PDF],
 [
 
+have_dep="no"
+
 dnl muPDF
 CFLAGS_save="$CFLAGS"
 LIBS_save="$LIBS"
 CFLAGS="${MUPDF_CFLAGS} $CFLAGS"
-LIBS="-Wl,${MUPDF_LIBS}/libmupdf.a -Wl,${MUPDF_LIBS}/libmupdfthird.a $LIBS"
+LIBS="${MUPDF_STATIC_LIBS} ${MUPDF_SHARED_LIBS} $LIBS"
 AC_LINK_IFELSE(
    [AC_LANG_PROGRAM(
        [[
@@ -143,6 +145,7 @@ ctx = fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
    [have_dep="no"])
 CFLAGS="$CFLAGS_save"
 LIBS="$LIBS_save"
+
 
 AS_IF([test "x${have_dep}" = "xyes"], [$2], [$3])
 

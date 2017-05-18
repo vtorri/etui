@@ -50,12 +50,19 @@ AC_ARG_WITH([mupdf-includedir],
 
 AC_SUBST([MUPDF_CFLAGS])
 
-AC_ARG_WITH([mupdf-libdir],
-   [AS_HELP_STRING([--with-mupdf-libdir=path],[path where libmupdf.a and libmupdfthird.a are located @<:@default=/usr/lib@:>@])],
-   [MUPDF_LIBS="${withval}"],
-   [MUPDF_LIBS="/usr/lib"])
+AC_ARG_WITH([mupdf-static-libs],
+   [AS_HELP_STRING([--with-mupdf-static-libs=flags],[flags to pass to linker (usually, fullpath to libmupdf.a and eventually libmupdfthird.a prepend with -Wl, @<:@default=none@:>@])],
+   [MUPDF_STATIC_LIBS="${withval}"],
+   [MUPDF_STATIC_LIBS=""])
 
-AC_SUBST([MUPDF_LIBS])
+AC_SUBST([MUPDF_STATIC_LIBS])
+
+AC_ARG_WITH([mupdf-shared-libs],
+   [AS_HELP_STRING([--with-mupdf-shared-libs=flags],[flags to pass to linker (usually, dependencies of mupdf like freetype, libpng, etc... specific to the distro @<:@default=none@:>@])],
+   [MUPDF_SHARED_LIBS="${withval}"],
+   [MUPDF_SHARED_LIBS=""])
+
+AC_SUBST([MUPDF_SHARED_LIBS])
 
 
 ### Default options with respect to host
