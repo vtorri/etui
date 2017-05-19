@@ -166,6 +166,7 @@ fi
 dnl check libraries
 if ! test "x${requirements_pc}" = "x" ; then
    PKG_CHECK_MODULES([MUPDF_DEPS], [${requirements_pc}], [], [])
+   MUPDF_DEPS_LIBS="${MUPDF_DEPS_LIBS} -ljpeg"
 fi
 
 dnl muPDF
@@ -188,8 +189,6 @@ if test "x${have_mupdf_dep}" = "xyes" ; then
    CFLAGS="$CFLAGS_save"
    LIBS="$LIBS_save"
 fi
-
-MUPDF_DEPS_LIBS="${MUPDF_DEPS_LIBS} -ljpeg"
 
 if test "x$1" = "xstatic" ; then
    requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"

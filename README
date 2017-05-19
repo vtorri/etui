@@ -36,6 +36,9 @@ Supported backends:
 
 PDF and XPS
  Requirements:
+  zlib
+  freetype2
+  libopenjp2
   muPDF 1.11
 
 Comic Book (cbz, cbr, cb7, cbt, cba)
@@ -76,17 +79,20 @@ Compilation:
 
 Common usage of configure. Here are some example to compile with PDF and DJVU support:
 
-Windows (MinGW):
-./configure --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs=-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a
+Windows (MinGW 32bits):
+./configure --host=i686-w64-mingw32 --disable-static --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs="-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a"
+
+Windows (MinGW 64bits):
+./configure --host=x86_64-w64-mingw32 --disable-static --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs="-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a"
 
 Fedora:
-./configure --enable-gpl --with-mupdf-static-libs=-Wl,/usr/lib64/libmupdf.a --with-mupdf-shared-libs="-ljbig2dec -ljpeg `pkg-config --libs libopenjp2 freetype2 zlib`"
+./configure --enable-gpl --with-mupdf-static-libs=-Wl,/usr/lib64/libmupdf.a --with-mupdf-shared-libs="-ljbig2dec"
 
 ArchLinux:
 see pkgbuild/PKGBUILD
 
 OpenBSD:
-./configure --enable-gpl --with-mupdf-shared-libs="-L/usr/local/lib -lmupdf -lmupdfthird `pkg-config --libs freetype2`"
+./configure --enable-gpl --with-mupdf-shared-libs="-L/usr/local/lib -lmupdf -lmupdfthird"
 
 
 Key bindings: ([C] means can be configured)
