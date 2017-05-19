@@ -36,7 +36,7 @@ build() {
   ./autogen.sh \
     --prefix=/usr \
     --enable-gpl \
-    --with-mupdf-static-libs="-Wl,/usr/lib/libmupdf.a -Wl,/usr/lib/libmupdfthird.a" --with-mupdf-shared-libs="-ljbig2dec -ljpeg `pkg-config --libs libopenjp2 freetype2 zlib`"
+    --with-mupdf-static-libs="-Wl,/usr/lib/libmupdf.a -Wl,/usr/lib/libmupdfthird.a" --with-mupdf-shared-libs="-ljbig2dec"
   make
 }
 

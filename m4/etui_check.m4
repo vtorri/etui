@@ -174,7 +174,7 @@ if test "x${have_mupdf_dep}" = "xyes" ; then
    CFLAGS_save="$CFLAGS"
    LIBS_save="$LIBS"
    CFLAGS="${MUPDF_CFLAGS} $CFLAGS"
-   LIBS="${MUPDF_STATIC_LIBS} ${MUPDF_SHARED_LIBS} $LIBS -lm"
+   LIBS="${MUPDF_STATIC_LIBS} ${MUPDF_SHARED_LIBS} ${MUPDF_DEPS_LIBS} $LIBS -lm"
    AC_LINK_IFELSE(
       [AC_LANG_PROGRAM(
           [[
