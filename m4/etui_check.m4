@@ -125,27 +125,76 @@ dnl use: ETUI_CHECK_DEP_PDF(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]
 AC_DEFUN([ETUI_CHECK_DEP_PDF],
 [
 
+MUPDF_DEPS_CFLAGS=""
+MUPDF_DEPS_LIBS=""
+
+requirements_pc=""
+requirements_libs=""
 have_dep="no"
 
-dnl muPDF
-CFLAGS_save="$CFLAGS"
-LIBS_save="$LIBS"
-CFLAGS="${MUPDF_CFLAGS} $CFLAGS"
-LIBS="${MUPDF_STATIC_LIBS} ${MUPDF_SHARED_LIBS} $LIBS -lm"
+dnl libjpeg
+LIBS_save="${LIBS}"
+LIBS="${LIBS} -ljpeg"
 AC_LINK_IFELSE(
    [AC_LANG_PROGRAM(
        [[
-#include <mupdf/fitz.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <jpeglib.h>
        ]],
        [[
-fz_context *ctx;
-ctx = fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
-       ]])],
-   [have_dep="yes"],
-   [have_dep="no"])
-CFLAGS="$CFLAGS_save"
-LIBS="$LIBS_save"
+struct jpeg_decompress_struct cinfo;
+jpeg_create_decompress(&cinfo);
+             ]])],
+         [
+          have_mupdf_dep="yes"
+          requirements_libs="-ljpeg ${requirements_libs}"
+         ],
+         [have_mupdf_dep="no"])
+LIBS="${LIBS_save}"
 
+dnl openjp2, freetype zlib
+if test "x${have_mupdf_dep}" = "xyes" ; then
+   PKG_CHECK_EXISTS([libopenjp2 freetype2 zlib],
+      [
+       have_mupdf_dep="yes"
+       requirements_pc="libopenjp2 freetype2 zlib ${requirements_pc}"
+      ],
+      [have_mupdf_dep="no"])
+fi
+
+dnl check libraries
+if ! test "x${requirements_pc}" = "x" ; then
+   PKG_CHECK_MODULES([MUPDF_DEPS], [${requirements_pc}], [], [])
+fi
+
+dnl muPDF
+if test "x${have_mupdf_dep}" = "xyes" ; then
+   CFLAGS_save="$CFLAGS"
+   LIBS_save="$LIBS"
+   CFLAGS="${MUPDF_CFLAGS} $CFLAGS"
+   LIBS="${MUPDF_STATIC_LIBS} ${MUPDF_SHARED_LIBS} $LIBS -lm"
+   AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM(
+          [[
+#include <mupdf/fitz.h>
+          ]],
+          [[
+   fz_context *ctx;
+   ctx = fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
+          ]])],
+      [have_dep="yes"],
+      [have_dep="no"])
+   CFLAGS="$CFLAGS_save"
+   LIBS="$LIBS_save"
+fi
+
+MUPDF_DEPS_LIBS="${MUPDF_DEPS_LIBS} -ljpeg"
+
+if test "x$1" = "xstatic" ; then
+   requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
+   requirements_etui_libs="${requirements_libs} ${requirements_etui_libs}"
+fi
 
 AS_IF([test "x${have_dep}" = "xyes"], [$2], [$3])
 

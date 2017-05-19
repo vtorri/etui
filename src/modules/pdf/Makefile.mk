@@ -24,6 +24,7 @@ src_modules_pdf_module_la_CPPFLAGS = \
 -I$(top_srcdir)/src/lib \
 -DECRIN_ETUI_BUILD \
 @ETUI_CFLAGS@ \
+@MUPDF_DEPS_CFLAGS@ \
 @MUPDF_CFLAGS@
 
 src_modules_pdf_module_la_CFLAGS = \
@@ -32,6 +33,7 @@ src_modules_pdf_module_la_CFLAGS = \
 src_modules_pdf_module_la_LIBADD = \
 src/lib/libetui.la \
 @ETUI_LIBS@ \
+@MUPDF_DEPS_LIBS@ \
 @MUPDF_SHARED_LIBS@ \
 -lm
 
