@@ -132,6 +132,12 @@ requirements_pc=""
 requirements_libs=""
 have_dep="no"
 
+if test "x${have_win32}" = "xyes" ; then
+
+have_mupdf_dep="yes"
+
+else
+
 dnl libjpeg
 LIBS_save="${LIBS}"
 LIBS="${LIBS} -ljpeg"
@@ -167,6 +173,8 @@ dnl check libraries
 if ! test "x${requirements_pc}" = "x" ; then
    PKG_CHECK_MODULES([MUPDF_DEPS], [${requirements_pc}], [], [])
    MUPDF_DEPS_LIBS="${MUPDF_DEPS_LIBS} -ljpeg"
+fi
+
 fi
 
 dnl muPDF
