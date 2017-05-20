@@ -272,6 +272,8 @@ _etui_tiff_evas_object_add(void *d, Evas *evas)
         return NULL;
 
     ((Etui_Module_Data *)d)->efl.obj = evas_object_image_add(evas);
+    evas_object_move(((Etui_Module_Data *)d)->efl.obj, 0, 0);
+
     return ((Etui_Module_Data *)d)->efl.obj;
 }
 
@@ -516,6 +518,7 @@ _etui_tiff_page_render_pre(void *d)
             return;
 
         evas_object_image_size_set(md->efl.obj, width, height);
+        evas_object_image_fill_set(md->efl.obj, 0, 0, width, height);
         evas_object_resize(md->efl.obj, width, height);
         md->page.width = width;
         md->page.height = height;
