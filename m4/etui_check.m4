@@ -139,25 +139,43 @@ have_mupdf_dep="yes"
 else
 
 dnl libjpeg
-LIBS_save="${LIBS}"
-LIBS="${LIBS} -ljpeg"
-AC_LINK_IFELSE(
-   [AC_LANG_PROGRAM(
-       [[
+PKG_CHECK_EXISTS([libturbojpeg],
+   [
+    have_mupdf_dep="yes"
+    requirements_pc="libturbojpeg ${requirements_pc}"
+   ],
+   [have_mupdf_dep="no"])
+
+if test "x${have_mupdf_dep}" = "xno" ; then
+   PKG_CHECK_EXISTS([libjpeg],
+      [
+       have_mupdf_dep="yes"
+       requirements_pc="libjpeg ${requirements_pc}"
+      ],
+      [have_mupdf_dep="no"])
+fi
+
+if test "x${have_mupdf_dep}" = "xno" ; then
+   LIBS_save="${LIBS}"
+   LIBS="${LIBS} -ljpeg"
+   AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM(
+          [[
 #include <stdlib.h>
 #include <stdio.h>
 #include <jpeglib.h>
-       ]],
-       [[
+          ]],
+          [[
 struct jpeg_decompress_struct cinfo;
 jpeg_create_decompress(&cinfo);
-             ]])],
-         [
-          have_mupdf_dep="yes"
-          requirements_libs="-ljpeg ${requirements_libs}"
-         ],
-         [have_mupdf_dep="no"])
-LIBS="${LIBS_save}"
+                ]])],
+            [
+             have_mupdf_dep="yes"
+             requirements_libs="-ljpeg ${requirements_libs}"
+            ],
+            [have_mupdf_dep="no"])
+   LIBS="${LIBS_save}"
+fi
 
 dnl openjp2, freetype zlib
 if test "x${have_mupdf_dep}" = "xyes" ; then
@@ -172,7 +190,7 @@ fi
 dnl check libraries
 if ! test "x${requirements_pc}" = "x" ; then
    PKG_CHECK_MODULES([MUPDF_DEPS], [${requirements_pc}], [], [])
-   MUPDF_DEPS_LIBS="${MUPDF_DEPS_LIBS} -ljpeg"
+   MUPDF_DEPS_LIBS="${MUPDF_DEPS_LIBS} ${requirements_libs}"
 fi
 
 fi
