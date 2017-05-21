@@ -44,7 +44,19 @@ struct Etui_Doc_Simple_
 };
 
 static void
-_etui_doc_fullscreen_set(Etui *etui, Eina_Bool on)
+_etui_doc_zoom(const Etui_Doc_Simple *doc)
+{
+    int w;
+    int h;
+
+    etui_object_page_scale_set(doc->obj, doc->scale, doc->scale);
+    evas_object_geometry_get(doc->obj, NULL, NULL, &w, &h);
+    evas_object_size_hint_min_set(doc->obj, w, h);
+    evas_object_size_hint_max_set(doc->obj, w, h);
+}
+
+static void
+_etui_doc_fullscreen_set(const Etui *etui, Eina_Bool on)
 {
     Etui_Doc_Simple *doc;
     int w;
@@ -122,7 +134,7 @@ _etui_doc_key_down_cb(void *data,
     /* No modifier */
     if (!ctrl && !alt && !shift && !win && !meta && !hyper)
     {
-        if (!strcmp(ev->keyname, "Right"))
+        if (!strcmp(ev->keyname, "Right") || !strcmp(ev->keyname, "space"))
         {
             int page;
 
@@ -135,7 +147,7 @@ _etui_doc_key_down_cb(void *data,
             else
                 etui_object_page_set(doc->obj, page + 1);
         }
-        else if (!strcmp(ev->keyname, "Left"))
+        else if (!strcmp(ev->keyname, "Left") || !strcmp(ev->keyname, "BackSpace"))
         {
             int page;
 
@@ -148,6 +160,35 @@ _etui_doc_key_down_cb(void *data,
             else
                 etui_object_page_set(doc->obj, page - 1);
         }
+        if (!strcmp(ev->keyname, "Next"))
+        {
+            int page;
+            int num_pages;
+
+            page = etui_object_page_get(doc->obj);
+            num_pages = etui_object_document_pages_count(doc->obj);
+            if (page == (num_pages - 1))
+            {
+                elm_object_signal_emit(etui->window.base, "bell:bell", "etui");
+                elm_object_signal_emit(etui->window.base, "bell:bell,ring", "etui");
+            }
+            else
+                etui_object_page_set(doc->obj,
+                                     ((page + 10) < num_pages) ? (page + 10) : (num_pages - 1));
+        }
+        else if (!strcmp(ev->keyname, "Prior"))
+        {
+            int page;
+
+            page = etui_object_page_get(doc->obj);
+            if (page == 0)
+            {
+                elm_object_signal_emit(etui->window.base, "bell:bell", "etui");
+                elm_object_signal_emit(etui->window.base, "bell:bell,ring", "etui");
+            }
+            else
+                etui_object_page_set(doc->obj, (page >= 10) ? (page - 10) : 0);
+        }
         else if (!strcmp(ev->keyname, "F11"))
         {
             _etui_doc_fullscreen_set(etui,
@@ -157,6 +198,36 @@ _etui_doc_key_down_cb(void *data,
         {
             if (elm_win_fullscreen_get(etui->window.win))
                 _etui_doc_fullscreen_set(etui, EINA_FALSE);
+        }
+    }
+
+    /* Ctrl modifier */
+    if (ctrl && !alt && !shift && !win && !meta && !hyper)
+    {
+        if (!strcmp(ev->key, "KP_Add"))
+        {
+            doc->scale *= M_SQRT2;
+            _etui_doc_zoom(doc);
+        }
+        else if (!strcmp(ev->key, "KP_Subtract"))
+        {
+            doc->scale *= M_SQRT1_2;
+            _etui_doc_zoom(doc);
+        }
+        else if (!strcmp(ev->key, "KP_1"))
+        {
+            /* zoom to 100% */
+            doc->scale = 1.0f;
+            _etui_doc_zoom(doc);
+        }
+        else if (!strcmp(ev->key, "Home"))
+        {
+            etui_object_page_set(doc->obj, 0);
+        }
+        else if (!strcmp(ev->key, "End"))
+        {
+            etui_object_page_set(doc->obj,
+                                 etui_object_document_pages_count(doc->obj) - 1);
         }
     }
 }
@@ -213,6 +284,8 @@ etui_doc_add(Etui *etui, Etui_File *ef)
     evas_object_size_hint_fill_set(doc->obj, 0.5, 0.5);
     elm_box_pack_end(doc->bx, doc->obj);
     evas_object_show(doc->obj);
+
+    etui_object_page_scale_get(doc->obj, &doc->scale, NULL);
 
     elm_object_focus_set(doc->sc, EINA_TRUE);
 
