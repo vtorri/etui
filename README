@@ -102,17 +102,17 @@ Ctrl-q : quit
 Ctrl-o : open file
 [C] F1: help
 
-[C] right arrow, down arrow or space : next page
-[C] left arrow, up arrow, backspace : previous page
+[C] right arrow or space : next page
+[C] left arrow or backspace : previous page
 [C] page up : page + 10
 [C] page down : page - 10
 [C] F11: toggle fullscreen
 esc : exit fullscreen
 [C] Ctrl-+ : scale * sqrt(2)
 [C] Ctrl-- : scale / sqrt(2)
-[C] Ctrl-0 : zoom to fit height
+[C] Ctrl-0 : zoom to fit height (not done yet)
 [C] Ctrl-1 : zoom to original size
-[C] Ctrl-2 : zoom to fit width
+[C] Ctrl-2 : zoom to fit width (not done yet)
 [C] Ctrl-home : go to first page
 [C] Ctrl-end : go to last page
 
