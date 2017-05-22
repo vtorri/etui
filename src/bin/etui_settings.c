@@ -21,6 +21,8 @@
 
 #include <Elementary.h>
 
+#include "etui_private.h"
+#include "etui_main.h"
 #include "etui_settings.h"
 
 
@@ -33,6 +35,7 @@ typedef enum
 {
     SETTINGS_NONE,
     SETTINGS_THEME,
+    SETTINGS_BEHAVIOR,
     SETTINGS_KEYS,
     SETTINGS_ELM
 } Settings_Mode;
@@ -114,6 +117,7 @@ _etui_stdt_hide_done_cb(void *data,
     {
         case SETTINGS_NONE: break;
         case SETTINGS_THEME: /* etui_settings_elm(st_stbox, data); */ break;
+        case SETTINGS_BEHAVIOR:  etui_settings_behavior(st_stbox, data); break;
         case SETTINGS_KEYS: /* options_keys(st_stbox, data); */ break;
         case SETTINGS_ELM: etui_settings_elm(st_stbox, data); break;
     }
@@ -209,6 +213,7 @@ etui_settings_toggle(Evas_Object *win, Evas_Object *bg)
                                 (void*) SETTINGS_##_option_mode)
 
         item = ITEM_APPEND("preferences-desktop-theme", "Theme", THEME);
+        ITEM_APPEND("preferences-system", ("Behavior"), BEHAVIOR);
         ITEM_APPEND("preferences-desktop-keyboard-shortcuts", "Keys", KEYS);
         ITEM_APPEND("preferences-color", "Toolkit", ELM);
 #undef ITEM_APPEND
@@ -233,7 +238,8 @@ etui_settings_toggle(Evas_Object *win, Evas_Object *bg)
     {
         elm_object_signal_callback_add(bg, "stdetails,hide,done",
                                        "fg:etui",
-                                       _etui_stdt_hide_done_cb, NULL);
+                                       _etui_stdt_hide_done_cb,
+                                       evas_object_data_get(win, "etui"));
         o = evas_object_rectangle_add(evas_object_evas_get(win));
         evas_object_color_set(o, 0, 0, 0, 0);
         elm_object_part_content_set(bg, "fg:etui.dismiss", o);

@@ -39,6 +39,8 @@ struct Etui_Config_
     int         cg_width;
     int         cg_height;
     Eina_Bool   custom_geometry;
+    Eina_Bool   disable_visual_bell;
+    Eina_Bool   bell_rings;
     Eina_List  *keys;
 
     const char *config_key;
@@ -48,6 +50,7 @@ void etui_config_init(void);
 void etui_config_shutdown(void);
 Etui_Config *etui_config_load(const char *key);
 void etui_config_del(Etui_Config *config);
+void etui_config_save(Etui_Config *config, const char *key);
 
 const char *etui_config_theme_path_get(const Etui_Config *config);
 const char *etui_config_theme_path_default_get(const Etui_Config *config);

@@ -24,6 +24,7 @@
 #include <Etui.h>
 
 #include "etui_private.h"
+#include "etui_config.h"
 #include "etui_main.h"
 #include "etui_open.h"
 #include "etui_doc_simple.h"
@@ -138,10 +139,13 @@ _etui_doc_key_down_cb(void *data,
             int page;
 
             page = etui_object_page_get(doc->obj);
-            if (page == (etui_object_document_pages_count(doc->obj) - 1))
+            if ((page == (etui_object_document_pages_count(doc->obj) - 1)) &&
+                (!etui->window.config->disable_visual_bell))
             {
                 elm_object_signal_emit(etui->window.base, "bell:bell", "etui");
-                elm_object_signal_emit(etui->window.base, "bell:bell,ring", "etui");
+                if (etui->window.config->bell_rings)
+                    elm_object_signal_emit(etui->window.base,
+                                           "bell:bell,ring", "etui");
             }
             else
                 etui_object_page_set(doc->obj, page + 1);
@@ -151,10 +155,13 @@ _etui_doc_key_down_cb(void *data,
             int page;
 
             page = etui_object_page_get(doc->obj);
-            if (page == 0)
+            if ((page == 0) &&
+                (!etui->window.config->disable_visual_bell))
             {
                 elm_object_signal_emit(etui->window.base, "bell:bell", "etui");
-                elm_object_signal_emit(etui->window.base, "bell:bell,ring", "etui");
+                if (etui->window.config->bell_rings)
+                    elm_object_signal_emit(etui->window.base,
+                                           "bell:bell,ring", "etui");
             }
             else
                 etui_object_page_set(doc->obj, page - 1);
@@ -166,10 +173,13 @@ _etui_doc_key_down_cb(void *data,
 
             page = etui_object_page_get(doc->obj);
             num_pages = etui_object_document_pages_count(doc->obj);
-            if (page == (num_pages - 1))
+            if ((page == (num_pages - 1)) &&
+                (!etui->window.config->disable_visual_bell))
             {
                 elm_object_signal_emit(etui->window.base, "bell:bell", "etui");
-                elm_object_signal_emit(etui->window.base, "bell:bell,ring", "etui");
+                if (etui->window.config->bell_rings)
+                    elm_object_signal_emit(etui->window.base,
+                                           "bell:bell,ring", "etui");
             }
             else
                 etui_object_page_set(doc->obj,
@@ -180,10 +190,13 @@ _etui_doc_key_down_cb(void *data,
             int page;
 
             page = etui_object_page_get(doc->obj);
-            if (page == 0)
+            if ((page == 0) &&
+                (!etui->window.config->disable_visual_bell))
             {
                 elm_object_signal_emit(etui->window.base, "bell:bell", "etui");
-                elm_object_signal_emit(etui->window.base, "bell:bell,ring", "etui");
+                if (etui->window.config->bell_rings)
+                    elm_object_signal_emit(etui->window.base,
+                                           "bell:bell,ring", "etui");
             }
             else
                 etui_object_page_set(doc->obj, (page >= 10) ? (page - 10) : 0);

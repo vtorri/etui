@@ -22,6 +22,7 @@
 Eina_Bool etui_settings_active_get(void);
 void etui_settings_toggle(Evas_Object *win, Evas_Object *bg);
 
+void etui_settings_behavior(Evas_Object *stbox, Etui *etui);
 void etui_settings_elm(Evas_Object *stbox, Evas_Object *_term);
 
 

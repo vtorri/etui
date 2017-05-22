@@ -68,6 +68,8 @@ _etui_config_new(void)
    config->cg_width = 480;
    config->cg_height = 640;
    config->custom_geometry = EINA_FALSE;
+   config->disable_visual_bell = EINA_FALSE;
+   config->bell_rings = EINA_TRUE;
    _etui_default_keys_add(config);
 
    return config;
@@ -128,7 +130,9 @@ etui_config_init(void)
     EET_DATA_DESCRIPTOR_ADD_BASIC(edd_base, Etui_Config, "theme", theme, EET_T_STRING);
     EET_DATA_DESCRIPTOR_ADD_BASIC(edd_base, Etui_Config, "cg_width", cg_width, EET_T_INT);
     EET_DATA_DESCRIPTOR_ADD_BASIC(edd_base, Etui_Config, "cg_height", cg_height, EET_T_INT);
-   EET_DATA_DESCRIPTOR_ADD_BASIC(edd_base, Etui_Config, "custom_geometry", custom_geometry, EET_T_UCHAR);
+    EET_DATA_DESCRIPTOR_ADD_BASIC(edd_base, Etui_Config, "custom_geometry", custom_geometry, EET_T_UCHAR);
+    EET_DATA_DESCRIPTOR_ADD_BASIC(edd_base, Etui_Config, "disable_visual_bell", disable_visual_bell, EET_T_UCHAR);
+    EET_DATA_DESCRIPTOR_ADD_BASIC(edd_base, Etui_Config, "bell_rings", bell_rings, EET_T_UCHAR);
     EET_DATA_DESCRIPTOR_ADD_LIST(edd_base, Etui_Config, "keys", keys, edd_keys);
 }
 
