@@ -290,8 +290,8 @@ _etui_doc_mouse_wheel_cb(void *data,
         evas_key_modifier_is_set(ev->modifiers, "ISO_Level3_Shift");
     hyper = evas_key_modifier_is_set(ev->modifiers, "Hyper");
 
-    /* No modifier */
-    if (!ctrl && !alt && !shift && !win && !meta && !hyper)
+    /* Ctrl modifier */
+    if (ctrl && !alt && !shift && !win && !meta && !hyper)
     {
         if (ev->z == 1)
             doc->scale *= M_SQRT2;

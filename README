@@ -120,5 +120,5 @@ Mouse bindings:
 ---------------
 
 double left click : toggle fullscreen
-wheel up : scale * sqrt(2)
-wheel down : scale / sqrt(2)
+Ctrl-wheel up : scale * sqrt(2)
+Ctrl-wheel down : scale / sqrt(2)
