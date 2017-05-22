@@ -118,6 +118,7 @@ _etui_doc_key_down_cb(void *data,
 
     etui = (Etui *)data;
     ev = (Evas_Event_Key_Down *)event;
+    doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
 
     ctrl = evas_key_modifier_is_set(ev->modifiers, "Control");
     alt = evas_key_modifier_is_set(ev->modifiers, "Alt");
@@ -128,8 +129,6 @@ _etui_doc_key_down_cb(void *data,
         evas_key_modifier_is_set(ev->modifiers, "AltGr") ||
         evas_key_modifier_is_set(ev->modifiers, "ISO_Level3_Shift");
     hyper = evas_key_modifier_is_set(ev->modifiers, "Hyper");
-
-    doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
 
     /* No modifier */
     if (!ctrl && !alt && !shift && !win && !meta && !hyper)
@@ -233,7 +232,10 @@ _etui_doc_key_down_cb(void *data,
 }
 
 static void
-_etui_doc_mouse_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_UNUSED, void *event)
+_etui_doc_mouse_down_cb(void *data,
+                        Evas *e EINA_UNUSED,
+                        Evas_Object *obj EINA_UNUSED,
+                        void *event)
 {
     Evas_Event_Mouse_Down *ev;
     Etui *etui;
@@ -260,6 +262,42 @@ _etui_doc_mouse_down_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj EINA_U
             _etui_doc_fullscreen_set(etui,
                                      !elm_win_fullscreen_get(etui->window.win));
         }
+    }
+}
+
+static void
+_etui_doc_mouse_wheel_cb(void *data,
+                         Evas *e EINA_UNUSED,
+                         Evas_Object *obj EINA_UNUSED,
+                         void *event)
+{
+    Evas_Event_Mouse_Wheel *ev;
+    Etui *etui;
+    Etui_Doc_Simple *doc;
+    int ctrl, alt, shift, win, meta, hyper;
+
+    ev = (Evas_Event_Mouse_Wheel *)event;
+    etui = (Etui *)data;
+    doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
+
+    ctrl = evas_key_modifier_is_set(ev->modifiers, "Control");
+    alt = evas_key_modifier_is_set(ev->modifiers, "Alt");
+    shift = evas_key_modifier_is_set(ev->modifiers, "Shift");
+    win = evas_key_modifier_is_set(ev->modifiers, "Super");
+    meta =
+        evas_key_modifier_is_set(ev->modifiers, "Meta") ||
+        evas_key_modifier_is_set(ev->modifiers, "AltGr") ||
+        evas_key_modifier_is_set(ev->modifiers, "ISO_Level3_Shift");
+    hyper = evas_key_modifier_is_set(ev->modifiers, "Hyper");
+
+    /* No modifier */
+    if (!ctrl && !alt && !shift && !win && !meta && !hyper)
+    {
+        if (ev->z == 1)
+            doc->scale *= M_SQRT2;
+        else
+            doc->scale *= M_SQRT1_2;
+        _etui_doc_zoom(doc);
     }
 }
 
@@ -328,6 +366,8 @@ etui_doc_add(Etui *etui, Etui_File *ef)
                                    _etui_doc_key_down_cb, etui);
     evas_object_event_callback_add(doc->sc, EVAS_CALLBACK_MOUSE_DOWN,
                                    _etui_doc_mouse_down_cb, etui);
+    evas_object_event_callback_add(doc->sc, EVAS_CALLBACK_MOUSE_WHEEL,
+                                   _etui_doc_mouse_wheel_cb, etui);
 
     return EINA_TRUE;
 }
