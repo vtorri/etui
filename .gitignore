@@ -32,6 +32,6 @@ m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
 src/bin/etui
-src/bin/etui_elm
+src/bin/etui_test
 stamp-h1
 pkgbuild/PKGBUILD
