@@ -87,7 +87,6 @@ _etui_ct_about_cb(void *_data EINA_UNUSED,
 static Eina_Bool
 _etui_ct_del_delay_cb(void *_data EINA_UNUSED)
 {
-    fprintf(stderr, "delay !!\n");
     if (ct_over)
     {
         evas_object_del(ct_over);
@@ -190,8 +189,6 @@ etui_controls_toggle(Evas_Object *win, Evas_Object *bg)
 {
     Evas_Object *o;
 
-    fprintf(stderr, "ct_out avant : %d\n", ct_out);
-
     if (!ct_out)
     {
         if (etui_settings_active_get())
@@ -272,7 +269,6 @@ etui_controls_toggle(Evas_Object *win, Evas_Object *bg)
         /* FIXME: callback */
         if (ct_del_timer)
             ecore_timer_del(ct_del_timer);
-        fprintf(stderr, "delay timer created\n");
         ct_del_timer = ecore_timer_add(10.0, _etui_ct_del_delay_cb, NULL);
     }
 
@@ -283,8 +279,6 @@ etui_controls_toggle(Evas_Object *win, Evas_Object *bg)
     if (ct_out)
         evas_object_event_callback_add(ct_win, EVAS_CALLBACK_DEL,
                                        _etui_saved_del_cb, NULL);
-
-    fprintf(stderr, "ct_out apres : %d\n", ct_out);
 }
 
 
