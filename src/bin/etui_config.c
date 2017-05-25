@@ -58,21 +58,21 @@ _etui_default_keys_add(Etui_Config *config)
 static Etui_Config *
 _etui_config_new(void)
 {
-   Etui_Config *config;
+    Etui_Config *config;
 
-   config = (Etui_Config *)calloc(1, sizeof(Etui_Config));
-   if (!config)
-       return NULL;
+    config = (Etui_Config *)calloc(1, sizeof(Etui_Config));
+    if (!config)
+        return NULL;
 
-   config->theme = eina_stringshare_add("default.edj");
-   config->cg_width = 480;
-   config->cg_height = 640;
-   config->custom_geometry = EINA_FALSE;
-   config->disable_visual_bell = EINA_FALSE;
-   config->bell_rings = EINA_TRUE;
-   _etui_default_keys_add(config);
+    config->theme = eina_stringshare_add("default.edj");
+    config->cg_width = 480;
+    config->cg_height = 640;
+    config->custom_geometry = EINA_FALSE;
+    config->disable_visual_bell = EINA_FALSE;
+    config->bell_rings = EINA_TRUE;
+    _etui_default_keys_add(config);
 
-   return config;
+    return config;
 }
 
 static const char *
@@ -111,8 +111,6 @@ etui_config_init(void)
     eet_eina_stream_data_descriptor_class_set(&eddc, sizeof(eddc),
                                               "Config", sizeof(Etui_Config));
     edd_base = eet_data_descriptor_stream_new(&eddc);
-
-    EET_DATA_DESCRIPTOR_ADD_LIST(edd_base, Etui_Config, "keys", keys, edd_keys);
 
     eet_eina_stream_data_descriptor_class_set(&eddkc, sizeof(eddkc),
                                               "Config_Keys", sizeof(Etui_Config_Keys));
