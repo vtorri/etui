@@ -32,8 +32,9 @@
  *============================================================================*/
 
 
-static Evas_Object *op_w;
-static Evas_Object *op_h;
+static Evas_Object *op_w = NULL;
+static Evas_Object *op_h = NULL;
+static Evas_Object *op_bell = NULL;
 
 #define CB(_cfg_name, _inv) \
 static void \
@@ -48,6 +49,7 @@ _etui_settings_behavior_##_cfg_name##_cb(void *data, Evas_Object *obj, \
    /* termio_config_update(term); */ \
    /* windows_update(); */ \
    etui_config_save(config, NULL); \
+   elm_object_disabled_set(op_bell, config->disable_visual_bell); \
 }
 
 CB(disable_visual_bell, 1);
@@ -161,6 +163,7 @@ etui_settings_behavior(Evas_Object *stbox, Etui *etui)
 
     CX(("Visual Bell"), disable_visual_bell, 1);
     CX(("Bell rings"), bell_rings, 0);
+    op_bell = o;
 
 #undef CX
 
