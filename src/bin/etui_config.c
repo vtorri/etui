@@ -204,12 +204,12 @@ etui_config_save(Etui_Config *config, const char *key)
     EINA_SAFETY_ON_NULL_RETURN(config);
 
     if (!key) key = config->config_key;
-    snprintf(buf, sizeof(buf), "%s/.etui/config/standard",
+    snprintf(buf, sizeof(buf), "%s/.etui/config",
              eina_environment_home_get());
     ecore_file_mkpath(buf);
-    snprintf(buf, sizeof(buf), "%s/.etui/config/standard/base.cfg.tmp",
+    snprintf(buf, sizeof(buf), "%s/.etui/config/base.cfg.tmp",
              eina_environment_home_get());
-    snprintf(buf2, sizeof(buf2), "%s/.etui/config/standard/base.cfg",
+    snprintf(buf2, sizeof(buf2), "%s/.etui/config/base.cfg",
              eina_environment_home_get());
     ef = eet_open(buf, EET_FILE_MODE_WRITE);
     if (ef)
