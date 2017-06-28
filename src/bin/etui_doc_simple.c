@@ -373,7 +373,7 @@ etui_doc_add(Etui *etui, Etui_File *ef)
 
     etui->docs = eina_list_append(etui->docs, doc);
 
-    elm_object_part_content_set(etui->window.base, "content", doc->sc);
+    elm_object_part_content_set(etui->window.base, "doc:etui.content", doc->sc);
 
     evas_object_event_callback_add(doc->sc, EVAS_CALLBACK_KEY_DOWN,
                                    _etui_doc_key_down_cb, etui);

@@ -21,8 +21,9 @@ collections
             }
             part
             {
-                name: "content";
-                type: SWALLOW;
+                name: "doc";
+                type: GROUP;
+                source: "etui/document";
                 description
                 {
                     state: "default" 0.0;
@@ -233,6 +234,24 @@ collections
                 target: "glint";
                 target: "glow";
                 target: "shine";
+            }
+        }
+    }
+
+    group
+    {
+        name: "etui/document";
+        parts
+        {
+            part
+            {
+                name: "etui.content";
+                type: SWALLOW;
+                description
+                {
+                    state: "default" 0.0;
+                    visible: 1;
+                }
             }
         }
     }
