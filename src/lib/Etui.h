@@ -190,6 +190,10 @@ typedef struct
     char *creation_date;
     char *modification_date;
     char *encryption;
+
+    /* pdf API */
+    void *mod;
+    Eina_Inarray *(*search)(void *mod, int page_num, const char *needle);
 } Etui_Module_Pdf_Info;
 
 /* tiff */

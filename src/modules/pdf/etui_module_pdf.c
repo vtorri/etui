@@ -115,6 +115,45 @@ struct _Etui_Module_Data
 static int _etui_module_pdf_init_count = 0;
 static int _etui_module_pdf_log_domain = -1;
 
+static Eina_Inarray *
+_etui_pdf_search(void *mod, int page_num, const char *needle)
+{
+    fz_rect r[512];
+    Etui_Module_Data *md;
+    int nbr;
+
+    if ((page_num < 0) || !needle || !*needle)
+        return NULL;
+
+    md = (Etui_Module_Data *)mod;
+    nbr = fz_search_page_number(md->doc.ctx, md->doc.doc,
+                                page_num, needle, r, nelem(r));
+    if (nbr > 0)
+    {
+        Eina_Inarray *boxes;
+        int i;
+
+        boxes = eina_inarray_new(sizeof(Eina_Rectangle), 0);
+        if (!boxes)
+            return NULL;
+
+        for (i = 0; i < nbr; i++)
+        {
+            Eina_Rectangle box;
+
+            box.x = floor(r[i].x0);
+            box.y = floor(r[i].y0);
+            box.w = ceil(r[i].x1 - r[i].x0);
+            box.h = ceil(r[i].y1 - r[i].y0);
+            eina_inarray_push(boxes, &box);
+        }
+
+        return boxes;
+    }
+
+    return NULL;
+}
+
 #if 0
 
 static char
@@ -362,6 +401,9 @@ _etui_pdf_info_set(Etui_Module_Data *md)
     md->doc.info->creation_date = _etui_pdf_info_date_get(md, "info:CreationDate");
     md->doc.info->modification_date = _etui_pdf_info_date_get(md, "info:ModDate");
     md->doc.info->encryption = _etui_pdf_metadata_get(md, "encryption");
+
+    md->doc.info->mod = md;
+    md->doc.info->search = _etui_pdf_search;
 }
 
 /* Virtual functions */
