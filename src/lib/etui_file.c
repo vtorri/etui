@@ -46,11 +46,13 @@ struct Etui_File_s
 
 /****** Comic Book ******/
 
+#ifdef ETUI_BUILD_CB
+
 static Eina_Bool
 etui_file_is_cb(const char *filename,
                 unsigned char *base, size_t size)
 {
-    /* check the file name extension and the signatures */
+    /* check the file name extension and the signatures if any */
 
     /* CBR */
     if (eina_str_has_extension(filename, ".cbr") &&
@@ -59,7 +61,10 @@ etui_file_is_cb(const char *filename,
         (base[1] == 'a') &&
         (base[2] == 'r') &&
         (base[3] == '!'))
+    {
+        INF("%s is a Comic Book (RAR archive)", filename);
         return EINA_TRUE;
+    }
 
     /* CBZ */
     if (eina_str_has_extension(filename, ".cbz") &&
@@ -68,7 +73,10 @@ etui_file_is_cb(const char *filename,
         (base[1] == 'K') &&
         (base[2] == 0x03) &&
         (base[3] == 0x04))
+    {
+        INF("%s is a Comic Book (ZIP archive)", filename);
         return EINA_TRUE;
+    }
 
     /* CB7 */
     if (eina_str_has_extension(filename, ".cb7") &&
@@ -79,18 +87,41 @@ etui_file_is_cb(const char *filename,
         (base[3] == 0xaf) &&
         (base[3] == 0x27) &&
         (base[3] == 0x1c))
+    {
+        INF("%s is a Comic Book (7z archive)", filename);
         return EINA_TRUE;
+    }
 
     /* CBT */
     if (eina_str_has_extension(filename, ".cbt"))
+    {
+        INF("%s is a Comic Book (tar archive)", filename);
         return EINA_TRUE;
+    }
 
-    /* CBT */
+    /* CBA */
     if (eina_str_has_extension(filename, ".cba"))
+    {
+        INF("%s is a Comic Book (ACE archive)", filename);
         return EINA_TRUE;
+    }
+
+    INF("%s is not a Comic Book", filename);
 
     return EINA_FALSE;
 }
+
+#else
+
+static Eina_Bool
+etui_file_is_cb(const char *filename EINA_UNUSED,
+                unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
+{
+    INF("Comic Book files not supported (check if libarchive is installed and correctly found");
+    return EINA_FALSE;
+}
+
+#endif /* ETUI_BUILD_DJVU */
 
 /****** DJVU ******/
 
@@ -100,14 +131,29 @@ static Eina_Bool
 etui_file_is_djvu(const char *filename EINA_UNUSED,
                   unsigned char *base, size_t size)
 {
-    if ((size >= 4) &&
-        (base[0] == 0x41) &&
-        (base[1] == 0x54) &&
-        (base[2] == 0x26) &&
-        (base[3] == 0x54))
-        return EINA_TRUE;
+    if (size < 4)
+    {
+        INF("File %s too smal to be a DJVU file", filename);
+        return EINA_FALSE;
+    }
 
-    return EINA_FALSE;
+    if (!((base[0] == 0x41) &&
+          (base[1] == 0x54) &&
+          (base[2] == 0x26) &&
+          (base[3] == 0x54)))
+    {
+        INF("File %s has magic number %c%c%c%c but is not a valid DJVU one",
+            filename,
+            base[0],
+            base[1],
+            base[2],
+            base[3]);
+        return EINA_FALSE;
+    }
+
+    INF("%s is a DJVU file", filename);
+
+    return EINA_TRUE;
 }
 
 #else
@@ -116,6 +162,7 @@ static Eina_Bool
 etui_file_is_djvu(const char *filename EINA_UNUSED,
                   unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
 {
+    INF("DJVU files not supported (check if djvulibre is installed and correctly found");
     return EINA_FALSE;
 }
 
@@ -141,6 +188,8 @@ static Eina_Bool
 etui_file_is_epub(const char *filename EINA_UNUSED,
                   unsigned char *base, size_t size)
 {
+    Eina_Bool res = EINA_FALSE;
+
     if ((sz >= 48) && /* first local file header should be large enough */
         (_uint32_get(base) == 0x04034b50) && /* ZIP file */
         ((_uint16_get(base + 4) == 10) || /* version needed to extract */
@@ -153,9 +202,11 @@ etui_file_is_epub(const char *filename EINA_UNUSED,
         (_uint16_get(base + 28) == 0) && /* no extra field */
         (memcmp(base + 30, "mimetype", 8) == 0) && /* file name */
         (memcmp(base + 38, "application/epub+zip", 20) == 0)) /* mimetype */
-    return  EINA_TRUE;
+        res = EINA_TRUE;
 
-    return EINA_FALSE;
+    INF("%s is an EPUB file: %s", filename, res ? "yes" : "no");
+
+    return res;
 }
 
 #else
@@ -177,19 +228,38 @@ static Eina_Bool
 etui_file_is_pdf(const char *filename EINA_UNUSED,
                  unsigned char *base, size_t size)
 {
-    if ((size >= 8) &&
-        (base[0] == '%') &&
-        (base[1] == 'P') &&
-        (base[2] == 'D') &&
-        (base[3] == 'F') &&
-        (base[4] == '-') &&
-        (base[5] == '1') &&
-        (base[6] == '.') &&
-        (base[7] >= '0') &&
-        (base[7] <= '7'))
-        return EINA_TRUE;
+    if (size < 8)
+    {
+        INF("File %s too smal to be a PDF file", filename);
+        return EINA_FALSE;
+    }
 
-    return EINA_FALSE;
+    if (!((base[0] == '%') &&
+          (base[1] == 'P') &&
+          (base[2] == 'D') &&
+          (base[3] == 'F') &&
+          (base[4] == '-') &&
+          (base[5] == '1') &&
+          (base[6] == '.') &&
+          (base[7] >= '0') &&
+          (base[7] <= '7')))
+    {
+        INF("File %s has magic number %c%c%c%c%c%c%c%c but is not a valid PDF one",
+            filename,
+            base[0],
+            base[1],
+            base[2],
+            base[3],
+            base[4],
+            base[5],
+            base[6],
+            base[7]);
+        return EINA_FALSE;
+    }
+
+    INF("%s is a PDF file", filename);
+
+    return EINA_TRUE;
 }
 
 #else
@@ -198,6 +268,7 @@ static Eina_Bool
 etui_file_is_pdf(const char *filename EINA_UNUSED,
                  unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
 {
+    INF("PDF files not supported (check if muPDF is installed and correctly found");
     return EINA_FALSE;
 }
 
@@ -211,6 +282,8 @@ static Eina_Bool
 etui_file_is_ps(const char *filename EINA_UNUSED,
                 unsigned char *base, size_t size)
 {
+    Eina_Bool res = EINA_FALSE;
+
     /*
      * Available versions are:
      * 1.0
@@ -240,9 +313,11 @@ etui_file_is_ps(const char *filename EINA_UNUSED,
         (base[12] == '.') &&
         (base[13] >= '0') &&
         (base[13] <= '2'))
-        return EINA_TRUE;
+        res = EINA_TRUE;
 
-    return EINA_FALSE;
+    INF("%s is a PostScript file: %s", filename, res ? "yes" : "no");
+
+    return res;
 }
 
 #else
@@ -273,7 +348,10 @@ etui_file_is_tiff(const char *filename EINA_UNUSED,
     Tiff_Header *hdr;
 
     if (size < sizeof(Tiff_Header))
+    {
+        INF("File %s too smal to be a TIFF file", filename);
         return EINA_FALSE;
+    }
 
     hdr = (Tiff_Header *)base;
     if (
@@ -285,7 +363,10 @@ etui_file_is_tiff(const char *filename EINA_UNUSED,
         (hdr->magic != 0x5045) /* MDI little endian */
 # endif
         )
+    {
+        INF("File %s has not a TIFF magic number", filename);
         return EINA_FALSE;
+    }
 
 # if WORDS_BIGENDIAN == 1
     {
@@ -302,15 +383,26 @@ etui_file_is_tiff(const char *filename EINA_UNUSED,
     if (hdr->version == 42)
     {
         if (size < 8)
+        {
+            INF("File %s too smal to be a TIFF file", filename);
             return EINA_FALSE;
+        }
     }
     else if (hdr->version == 43)
     {
         if (size < 16)
+        {
+            INF("File %s too smal to be a TIFF file", filename);
             return EINA_FALSE;
+        }
     }
     else
+    {
+        INF("File %s has not a valid TIFF version", filename);
         return EINA_FALSE;
+    }
+
+    INF("File %s has a valid TIFF header", filename);
 
     return EINA_TRUE;
 }
@@ -321,6 +413,7 @@ static Eina_Bool
 etui_file_is_tiff(const char *filename EINA_UNUSED,
                   unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
 {
+    INF("TIFF files not supported (check if tifflib is installed and correctly found");
     return EINA_FALSE;
 }
 
