@@ -4,6 +4,8 @@ m4_define([v_min], [0])
 m4_define([v_mic], [4])
 m4_define([v_ver], [v_maj.v_min.v_mic])
 
+m4_define([v_rel], [])
+
 m4_define([lt_cur], [m4_eval(v_maj + v_min)])
 m4_define([lt_rev], [v_mic])
 m4_define([lt_age], [v_min])
@@ -18,6 +20,7 @@ AM_INIT_AUTOMAKE([1.6 dist-xz])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AM_PROG_AR
+lt_cv_deplibs_check_method='pass_all'
 LT_INIT([win32-dll disable-static])
 
 version_info="lt_cur:lt_rev:lt_age"
