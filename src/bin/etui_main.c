@@ -114,7 +114,7 @@ _etui_key_down(void *data, int type EINA_UNUSED, void *event)
         else if (!strcmp(ev->keyname, "o"))
         {
             if (!etui_open_active_get())
-                etui_open_toggle(etui->window.win, etui->window.base);
+                etui_open_add(etui->window.win);
         }
     }
 
@@ -320,7 +320,7 @@ elm_main(int argc, char **argv)
 
     /* if no document, we display a file selector to open a file */
     if (eina_list_count(etui->docs) == 0)
-        etui_open_toggle(etui->window.win, etui->window.base);
+        etui_open_add(etui->window.win);
 
     evas_object_show(etui->window.win);
 

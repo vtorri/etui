@@ -60,7 +60,7 @@ _etui_ct_open_cb(void *_data EINA_UNUSED,
 {
     etui_controls_toggle(ct_win, ct_bg);
     if (!etui_open_active_get())
-        etui_open_toggle(ct_win, ct_bg);
+        etui_open_add(ct_win);
 }
 
 static void

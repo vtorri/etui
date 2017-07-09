@@ -20,7 +20,8 @@
 
 
 Eina_Bool etui_open_active_get(void);
-void etui_open_toggle(Evas_Object *win, Evas_Object *bg);
+void etui_open_add(Evas_Object *win);
+void etui_open_del(void);
 
 
 #endif /* ETUI_BIN_OPEN_H */
