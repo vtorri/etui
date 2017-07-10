@@ -177,12 +177,46 @@ jpeg_create_decompress(&cinfo);
    LIBS="${LIBS_save}"
 fi
 
-dnl openjp2, freetype zlib
+dnl openjp2
 if test "x${have_mupdf_dep}" = "xyes" ; then
    PKG_CHECK_EXISTS([libopenjp2 freetype2 zlib],
       [
        have_mupdf_dep="yes"
-       requirements_pc="libopenjp2 freetype2 zlib ${requirements_pc}"
+       requirements_pc="libopenjp2 ${requirements_pc}"
+      ],
+      [have_mupdf_dep="no"])
+fi
+
+if test "x${have_mupdf_dep}" = "xno" ; then
+   LIBS_save="${LIBS}"
+   LIBS="${LIBS} -lopenjp2"
+   AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM(
+          [[
+#include <stdlib.h>
+#include <stdio.h>
+#include <openjpeg.h>
+          ]],
+          [[
+opj_dparameters_t params;
+
+opj_set_default_decoder_parameters(&params);
+params.flags |= OPJ_DPARAMETERS_IGNORE_PCLR_CMAP_CDEF_FLAG;
+                ]])],
+            [
+             have_mupdf_dep="yes"
+             requirements_libs="-lopenjp2 ${requirements_libs}"
+            ],
+            [have_mupdf_dep="no"])
+   LIBS="${LIBS_save}"
+fi
+
+dnl freetype zlib
+if test "x${have_mupdf_dep}" = "xyes" ; then
+   PKG_CHECK_EXISTS([freetype2 zlib],
+      [
+       have_mupdf_dep="yes"
+       requirements_pc="freetype2 zlib ${requirements_pc}"
       ],
       [have_mupdf_dep="no"])
 fi
@@ -192,6 +226,21 @@ if ! test "x${requirements_pc}" = "x" ; then
    PKG_CHECK_MODULES([MUPDF_DEPS], [${requirements_pc}], [], [])
    MUPDF_DEPS_LIBS="${MUPDF_DEPS_LIBS} ${requirements_libs}"
 fi
+
+fi
+
+if test "x${have_mupdf_dep}" = "xyes" ; then
+   AC_MSG_CHECKING([whether fPIC compiler option is accepted])
+   CFLAGS_save="$CFLAGS"
+   CFLAGS="$CFLAGS -fPIC -Werror"
+   AC_COMPILE_IFELSE(
+      [AC_LANG_PROGRAM([], [return 0;])],
+      [
+       AC_MSG_RESULT([yes])
+       MUPDF_CFLAGS="${MUPDF_CFLAGS} -fPIC"
+      ],
+      [AC_MSG_RESULT([no])])
+   CFLAGS="$CFLAGS_save"
 
 fi
 
