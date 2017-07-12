@@ -49,6 +49,9 @@ _etui_fs_done_cb(void            *data,
     if (!etui)
         return;
 
+    if (!event_info && (eina_list_count(etui->docs) != 0))
+        etui_open_del();
+
     if (etui_doc_add(etui, etui_file_new(event_info)))
         etui_open_del();
 }
