@@ -86,6 +86,7 @@ struct _Etui_Module_Data
     struct
     {
         Etui_Module_Pdf_Info *info; /* information specific to the document (creator, ...) */
+        Etui_Module_Pdf_Api *api; /* api (search, etc...) */
         int page_nbr;
         Eina_Array toc;
         char *title;
@@ -401,9 +402,6 @@ _etui_pdf_info_set(Etui_Module_Data *md)
     md->doc.info->creation_date = _etui_pdf_info_date_get(md, "info:CreationDate");
     md->doc.info->modification_date = _etui_pdf_info_date_get(md, "info:ModDate");
     md->doc.info->encryption = _etui_pdf_metadata_get(md, "encryption");
-
-    md->doc.info->mod = md;
-    md->doc.info->search = _etui_pdf_search;
 }
 
 /* Virtual functions */
@@ -487,6 +485,16 @@ _etui_pdf_init(const Etui_File *ef)
         goto free_title;
     }
 
+    md->doc.api = (Etui_Module_Pdf_Api *)calloc(1, sizeof(Etui_Module_Pdf_Api));
+    if (!md->doc.api)
+    {
+        ERR("Could not allocate memory for api structure");;
+        goto free_info;
+    }
+
+    md->doc.api->mod = md;
+    md->doc.api->search = _etui_pdf_search;
+
     md->doc.page_nbr = fz_count_pages(md->doc.ctx, md->doc.doc);
     md->page.page_num = -1;
     md->page.rotation = ETUI_ROTATION_0;
@@ -495,6 +503,8 @@ _etui_pdf_init(const Etui_File *ef)
 
     return md;
 
+  free_info:
+    free(md->doc.info);
   free_title:
     _etui_pdf_toc_unfill(&md->doc.toc, EINA_FALSE);
     eina_array_flush(&md->doc.toc);
@@ -524,6 +534,7 @@ _etui_pdf_shutdown(void *d)
     /* _etui_pdf_links_unfill(&md->page.links); */
     /* eina_array_flush(&md->page.links); */
 
+    free(md->doc.api);
     _etui_pdf_info_del(md);
     free(md->doc.info);
     _etui_pdf_toc_unfill(&md->doc.toc, EINA_FALSE);
@@ -894,26 +905,40 @@ _etui_pdf_page_render_end(void *d)
     fz_drop_pixmap(md->doc.ctx, md->page.image);
 }
 
+static const void *
+_etui_pdf_api_get(void *d)
+{
+    Etui_Module_Data *md;
+
+    if (!d)
+        return NULL;
+
+    md = (Etui_Module_Data *)d;
+
+    return md->doc.api;
+}
+
 static Etui_Module_Func _etui_module_func_pdf =
 {
-    /* .init                          */ _etui_pdf_init,
-    /* .shutdown                      */ _etui_pdf_shutdown,
-    /* .evas_object_add               */ _etui_pdf_evas_object_add,
-    /* .evas_object_del               */ _etui_pdf_evas_object_del,
-    /* .info_get                      */ _etui_pdf_info_get,
-    /* .title_get                     */ _etui_pdf_title_get,
-    /* .pages_count                   */ _etui_pdf_pages_count,
-    /* .toc_get                       */ _etui_pdf_toc_get,
-    /* .page_set                      */ _etui_pdf_page_set,
-    /* .page_get                      */ _etui_pdf_page_get,
-    /* .page_size_get                 */ _etui_pdf_page_size_get,
-    /* .page_rotation_set             */ _etui_pdf_page_rotation_set,
-    /* .page_rotation_get             */ _etui_pdf_page_rotation_get,
-    /* .page_scale_set                */ _etui_pdf_page_scale_set,
-    /* .page_scale_get                */ _etui_pdf_page_scale_get,
-    /* .page_render_pre               */ _etui_pdf_page_render_pre,
-    /* .page_render                   */ _etui_pdf_page_render,
-    /* .page_render_end               */ _etui_pdf_page_render_end
+    /* .init              */ _etui_pdf_init,
+    /* .shutdown          */ _etui_pdf_shutdown,
+    /* .evas_object_add   */ _etui_pdf_evas_object_add,
+    /* .evas_object_del   */ _etui_pdf_evas_object_del,
+    /* .info_get          */ _etui_pdf_info_get,
+    /* .title_get         */ _etui_pdf_title_get,
+    /* .pages_count       */ _etui_pdf_pages_count,
+    /* .toc_get           */ _etui_pdf_toc_get,
+    /* .page_set          */ _etui_pdf_page_set,
+    /* .page_get          */ _etui_pdf_page_get,
+    /* .page_size_get     */ _etui_pdf_page_size_get,
+    /* .page_rotation_set */ _etui_pdf_page_rotation_set,
+    /* .page_rotation_get */ _etui_pdf_page_rotation_get,
+    /* .page_scale_set    */ _etui_pdf_page_scale_set,
+    /* .page_scale_get    */ _etui_pdf_page_scale_get,
+    /* .page_render_pre   */ _etui_pdf_page_render_pre,
+    /* .page_render       */ _etui_pdf_page_render,
+    /* .page_render_end   */ _etui_pdf_page_render_end,
+    /* .api_get           */ _etui_pdf_api_get
 };
 
 /**

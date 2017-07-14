@@ -60,6 +60,7 @@ struct _Etui_Module_Func
     void              (*page_render_pre)(void *d);
     void              (*page_render)(void *d);
     void              (*page_render_end)(void *d);
+    const void       *(*api_get)(void *d);
 };
 
 struct _Etui_Module_Api

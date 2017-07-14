@@ -62,14 +62,14 @@ _etui_doc_search_add(Etui *etui)
 
     doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
 
-    o = elm_box_add(etui->window.win);
+    o = elm_box_add(doc->sc);
     elm_box_horizontal_set(o, EINA_FALSE);
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
     evas_object_show(o);
     doc->search.vbox = o;
 
-    o = elm_box_add(etui->window.win);
+    o = elm_box_add(doc->sc);
     elm_box_horizontal_set(o, EINA_TRUE);
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, 0.0);
     evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
@@ -77,7 +77,7 @@ _etui_doc_search_add(Etui *etui)
     evas_object_show(o);
     doc->search.hbox = o;
 
-    o = elm_entry_add(etui->window.win);
+    o = elm_entry_add(doc->sc);
     elm_entry_single_line_set(o, EINA_TRUE);
     elm_object_part_text_set(o, "guide", "Type search text here");
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
@@ -86,7 +86,7 @@ _etui_doc_search_add(Etui *etui)
     evas_object_show(o);
     doc->search.entry = o;
 
-    o = elm_button_add(etui->window.win);
+    o = elm_button_add(doc->sc);
     elm_object_style_set(o, "spinner/decrease/vertical");
     evas_object_size_hint_weight_set(o, 0.0, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
@@ -94,7 +94,7 @@ _etui_doc_search_add(Etui *etui)
     evas_object_show(o);
     doc->search.bt_next = o;
 
-    o = elm_button_add(etui->window.win);
+    o = elm_button_add(doc->sc);
     elm_object_style_set(o, "spinner/increase/vertical");
     evas_object_size_hint_weight_set(o, 0.0, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
@@ -102,7 +102,7 @@ _etui_doc_search_add(Etui *etui)
     evas_object_show(o);
     doc->search.bt_prev = o;
 
-    o = elm_genlist_add(etui->window.win);
+    o = elm_genlist_add(doc->sc);
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
     elm_box_pack_end(doc->search.vbox, o);
@@ -283,7 +283,6 @@ _etui_doc_key_down_cb(void *data,
                 elm_object_signal_emit(etui->window.base,
                                        "doc:search,hide", "etui");
                 doc->search.searching = EINA_FALSE;
-                fprintf(stderr, " ** no search\n");
             }
         }
     }
@@ -330,7 +329,46 @@ _etui_doc_key_down_cb(void *data,
                 elm_object_signal_emit(etui->window.base,
                                        "doc:search,show", "etui");
                 doc->search.searching = EINA_TRUE;
-                fprintf(stderr, " ** search\n");
+            }
+        }
+        else if (!strcmp(ev->key, "g"))
+        {
+            const char *text;
+
+            fprintf(stderr, " ** dbg : %d %s\n",
+                    doc->search.searching,
+                    elm_entry_entry_get(doc->search.entry));
+            if (doc->search.searching &&
+                (text = elm_entry_entry_get(doc->search.entry)))
+            {
+                Eina_Rectangle *r;
+                const Etui_Module_Pdf_Api *api;
+                Eina_Inarray *a;
+                int page;
+                int num_pages;
+                int i;
+
+                api = etui_object_api_get(doc->obj);
+                num_pages = etui_object_document_pages_count(doc->obj);
+                a = NULL;
+                for (i = 0; i < num_pages; i++)
+                {
+                    if ((a = api->search(api->mod, i, text)))
+                    {
+                        page = i;
+                        break;
+                    }
+                }
+                if (a)
+                {
+                    etui_object_page_set(doc->obj, page);
+                    fprintf(stderr, "text '%s' find page %d\n", text, page);
+                    EINA_INARRAY_FOREACH(a, r)
+                    {
+                        fprintf(stderr, "  box (%d, %d) (%d, %d)\n",
+                                r->x, r->y, r->w, r->h);
+                    }
+                }
             }
         }
     }

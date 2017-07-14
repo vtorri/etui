@@ -533,3 +533,16 @@ etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale)
     if (hscale) *hscale = 1.0;
     if (vscale) *vscale = 1.0;
 }
+
+EAPI const void *
+etui_object_api_get(Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
+
+    return sd->module->functions->api_get(sd->module->data);
+
+  _err:
+    return NULL;
+}

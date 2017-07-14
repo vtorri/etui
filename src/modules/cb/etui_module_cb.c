@@ -638,7 +638,8 @@ static Etui_Module_Func _etui_module_func_cb =
     /* .page_scale_get    */ _etui_cb_page_scale_get,
     /* .page_render_pre   */ _etui_cb_page_render_pre,
     /* .page_render       */ _etui_cb_page_render,
-    /* .page_render_end   */ _etui_cb_page_render_end
+    /* .page_render_end   */ _etui_cb_page_render_end,
+    /* .api_get           */ NULL
 };
 
 /**

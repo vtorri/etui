@@ -88,6 +88,8 @@ EAPI Etui_Rotation etui_object_page_rotation_get(Evas_Object *obj);
 EAPI void etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale);
 EAPI void etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale);
 
+EAPI const void *etui_object_api_get(Evas_Object *obj);
+
 /*** specific module features ***/
 
 /* cb */
@@ -190,11 +192,13 @@ typedef struct
     char *creation_date;
     char *modification_date;
     char *encryption;
+} Etui_Module_Pdf_Info;
 
-    /* pdf API */
+typedef struct
+{
     void *mod;
     Eina_Inarray *(*search)(void *mod, int page_num, const char *needle);
-} Etui_Module_Pdf_Info;
+} Etui_Module_Pdf_Api;
 
 /* tiff */
 
