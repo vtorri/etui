@@ -283,6 +283,7 @@ _etui_doc_key_down_cb(void *data,
                 elm_object_signal_emit(etui->window.base,
                                        "doc:search,hide", "etui");
                 doc->search.searching = EINA_FALSE;
+                elm_object_focus_set(doc->sc, EINA_TRUE);
             }
         }
     }
@@ -329,15 +330,13 @@ _etui_doc_key_down_cb(void *data,
                 elm_object_signal_emit(etui->window.base,
                                        "doc:search,show", "etui");
                 doc->search.searching = EINA_TRUE;
+                elm_object_focus_set(doc->search.entry, EINA_TRUE);
             }
         }
         else if (!strcmp(ev->key, "g"))
         {
             const char *text;
 
-            fprintf(stderr, " ** dbg : %d %s\n",
-                    doc->search.searching,
-                    elm_entry_entry_get(doc->search.entry));
             if (doc->search.searching &&
                 (text = elm_entry_entry_get(doc->search.entry)))
             {
@@ -505,7 +504,7 @@ etui_doc_add(Etui *etui, Etui_File *ef)
 
     elm_object_part_content_set(etui->window.base, "doc:etui.content", doc->sc);
 
-    evas_object_event_callback_add(doc->sc, EVAS_CALLBACK_KEY_DOWN,
+    evas_object_event_callback_add(etui->window.win, EVAS_CALLBACK_KEY_DOWN,
                                    _etui_doc_key_down_cb, etui);
     evas_object_event_callback_add(doc->sc, EVAS_CALLBACK_MOUSE_DOWN,
                                    _etui_doc_mouse_down_cb, etui);
