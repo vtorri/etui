@@ -148,6 +148,8 @@ _etui_smart_del(Evas_Object *obj)
 
     EINA_REFCOUNT_UNREF(sd)
     {
+        if (sd->module->render)
+            ecore_thread_cancel(sd->module->render);
         if (sd->obj)
             sd->module->functions->evas_object_del(sd->module->data);
         free(sd);
