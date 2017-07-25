@@ -520,8 +520,8 @@ etui_doc_del(Etui_Doc_Simple *doc)
     evas_object_del(doc->obj);
     evas_object_del(doc->bx);
     evas_object_del(doc->sc);
-    free(doc);
     etui_file_free(doc->ef);
+    free(doc);
 }
 
 
