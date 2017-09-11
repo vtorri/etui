@@ -345,7 +345,7 @@ _etui_pdf_info_date_get(const Etui_Module_Data *md, const char *key)
 
     date = _etui_pdf_metadata_get(md, key);
     if (!date)
-            return NULL;
+        return NULL;
 
     /* FIXME: manage minutes and seconds ? */
 
@@ -965,7 +965,7 @@ module_open(Etui_Module *em)
         return EINA_FALSE;
 
     _etui_module_pdf_log_domain = eina_log_domain_register("etui-pdf",
-                                                            ETUI_MODULE_PDF_DEFAULT_LOG_COLOR);
+                                                           ETUI_MODULE_PDF_DEFAULT_LOG_COLOR);
     if (_etui_module_pdf_log_domain < 0)
     {
         EINA_LOG_ERR("Can not create a module log domain.");
