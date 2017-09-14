@@ -1,0 +1,4 @@
+language: c
+before_install:
+  - sudo apt-get install -qq libdjvulibre-dev libtiff5-dev libarchive-dev libmupdf-dev
+script: ./autogen.sh --disable-static --enable-gpl
