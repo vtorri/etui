@@ -15,12 +15,8 @@ script: ./autogen.sh --disable-static --enable-gpl && make
 addons:
   coverity_scan:
     project:
-      name: vtorri/etui
-      version: 0.0.4
-      description: Multi document rendering library
-
-    notification_email: vincent.torri@gmail.com
-
-    build_command_prepend: ./autogen.sh --disable-static --enable-gpl
-
-    build_command: make
+      name: "vtorri/etui"
+      description: "Multi document rendering library"
+      notification_email: vincent.torri@gmail.com
+      build_command_prepend: ./autogen.sh --disable-static --enable-gpl
+      build_command: make
