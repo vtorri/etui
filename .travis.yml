@@ -4,4 +4,5 @@ before_install:
   - sudo add-apt-repository ppa:enlightenment-git/ppa -y
   - sudo apt-get -qq update
   - sudo apt-get install -y e20-dev
-script: ./autogen.sh --disable-static --enable-gpl
+script: ./autogen.sh --disable-static --enable-gpl && make
+
