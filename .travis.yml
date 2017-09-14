@@ -1,8 +1,24 @@
 language: c
+
 before_install:
   - sudo apt-get install -qq libdjvulibre-dev libtiff5-dev libarchive-dev libmupdf-dev
   - sudo add-apt-repository ppa:enlightenment-git/ppa -y
   - sudo apt-get -qq update
   - sudo apt-get install -y e20-dev
-script: ./autogen.sh --disable-static --enable-gpl && make
 
+env:
+  global:
+    - secure: "xxxx"
+
+addons:
+  coverity_scan:
+    project:
+      name: vtorri/etui
+      version: 0.0.4
+      description: Multi document rendering library
+
+    notification_email: vincent.torri@gmail.com
+
+    build_command_prepend: ./autogen.sh --disable-static --enable-gpl
+
+    build_command: make
