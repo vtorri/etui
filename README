@@ -1,3 +1,8 @@
+<a href="https://scan.coverity.com/projects/vtorri-etui">
+  <img alt="Coverity Scan Build Status"
+       src="https://scan.coverity.com/projects/13637/badge.svg"/>
+</a>
+
 étui : a multiple document library and viewer
 
 License:
