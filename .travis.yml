@@ -10,6 +10,8 @@ env:
   global:
     - secure: "xxxx"
 
+script: ./autogen.sh --disable-static --enable-gpl && make
+
 addons:
   coverity_scan:
     project:
