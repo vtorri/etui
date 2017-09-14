@@ -8,7 +8,7 @@ before_install:
 
 env:
   global:
-    - secure: "xxxx"
+    - secure: "Sz7KcTz5_vMsOzToV1HW3Q"
 
 script: ./autogen.sh --disable-static --enable-gpl && make
 
