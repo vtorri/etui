@@ -10,9 +10,6 @@ License:
 
 This library is released under the GPL v3 license
 
-The muPDF code distributed with this library is released under the
-AGPL v3 license
-
 Library:
 --------
 
