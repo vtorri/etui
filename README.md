@@ -2,7 +2,7 @@
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/13637/badge.svg"/>
 </a>
-<a href="https://travis-ci.org/vtorri/etui.svg?branch=master"></a>
+
 [![Build Status](https://travis-ci.org/vtorri/etui.svg?branch=master)](https://travis-ci.org/vtorri/etui)
 
 étui : a multiple document library and viewer
