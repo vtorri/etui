@@ -3,5 +3,5 @@ before_install:
   - sudo apt-get install -qq libdjvulibre-dev libtiff5-dev libarchive-dev libmupdf-dev
   - sudo add-apt-repository ppa:enlightenment-git/ppa -y
   - sudo apt-get -qq update
-  - sudo apt-get install -y e21-dev
+  - sudo apt-get install -y e20-dev
 script: ./autogen.sh --disable-static --enable-gpl

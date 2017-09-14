@@ -88,7 +88,7 @@ AC_SUBST([MODULE_ARCH])
 requirements_etui_libs=""
 AC_SUBST([requirements_etui_libs])
 
-efl_version="1.18.0"
+efl_version="1.17.0"
 
 requirements_etui_pc="eio >= ${efl_version} ecore >= ${efl_version} evas >= ${efl_version} eina >= ${efl_version}"
 AC_SUBST([requirements_etui_pc])
