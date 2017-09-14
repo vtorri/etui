@@ -1,4 +1,7 @@
 language: c
 before_install:
   - sudo apt-get install -qq libdjvulibre-dev libtiff5-dev libarchive-dev libmupdf-dev
+  - sudo add-apt-repository ppa:enlightenment-git/ppa
+  - sudo apt-get update
+  - sudo apt-get install e20-dev
 script: ./autogen.sh --disable-static --enable-gpl
