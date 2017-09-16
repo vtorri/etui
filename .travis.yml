@@ -11,7 +11,7 @@ before_install:
   - sudo apt-get -qq update
   - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
-install
+install:
   - sudo apt-get install -y libdjvulibre-dev libtiff5-dev libarchive-dev libmupdf-dev e20-dev
 
 script:
