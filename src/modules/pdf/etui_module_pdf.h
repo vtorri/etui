@@ -1,5 +1,5 @@
 /* Etui - Multi-document rendering library using the EFL
- * Copyright (C) 2013 Vincent Torri
+ * Copyright (C) 2013-2017 Vincent Torri
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
