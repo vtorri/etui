@@ -26,3 +26,4 @@ addons:
     notification_email: vincent.torri@gmail.com
     build_command_prepend: "./autogen.sh --disable-static --enable-gpl; make clean"
     build_command: "make -j 4"
+    branch_pattern: master
