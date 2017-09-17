@@ -16,7 +16,7 @@ install:
 
 script:
   - ./autogen.sh --disable-static --enable-gpl
-  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make ; fi
+  - make
 
 addons:
   coverity_scan:
