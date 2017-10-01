@@ -412,6 +412,7 @@ _etui_pdf_init(const Etui_File *ef)
     Etui_Module_Data *md;
 
     {
+        
         int *i = NULL;
         *i = 4;
     }
