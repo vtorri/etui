@@ -414,6 +414,7 @@ _etui_pdf_init(const Etui_File *ef)
     {
         int *i = NULL;
         *i = 4;
+        int *j = malloc(1);
     }
 
     md = (Etui_Module_Data *)calloc(1, sizeof(Etui_Module_Data));
