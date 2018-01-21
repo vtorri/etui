@@ -24,6 +24,6 @@ addons:
       name: "vtorri/etui"
       description: "Build submitted via Travis CI"
     notification_email: vincent.torri@gmail.com
-    build_command_prepend: "./autogen.sh --disable-static --enable-gpl --with-mupdf-static-libs=-Wl,/usr/lib/libmupdf.a --with-mupdf-shared-libs="-ljbig2dec"; make clean"
+    build_command_prepend: "./autogen.sh --disable-static --enable-gpl --with-mupdf-static-libs=-Wl,/usr/lib/libmupdf.a --with-mupdf-shared-libs=-ljbig2dec; make clean"
     build_command: "make -j 4"
     branch_pattern: coverity_scan
