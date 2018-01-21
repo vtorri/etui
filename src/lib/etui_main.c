@@ -56,10 +56,7 @@ int etui_log_dom_global = -1;
 EAPI int
 etui_init(void)
 {
-    {
-        int *i = NULL;
-        *i = 0;
-    }
+
     if (++_etui_init_count != 1)
         return _etui_init_count;
 
