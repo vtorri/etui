@@ -12,7 +12,7 @@ before_install:
   - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 install:
-  - sudo apt-get install -y libdjvulibre-dev libtiff5-dev libarchive-dev libmupdf-dev e20-dev
+  - sudo apt-get install -y libdjvulibre-dev libtiff5-dev libarchive-dev libmupdf-dev libjbig2dec-dev e20-dev
 
 script:
   - ./autogen.sh --disable-static --enable-gpl
@@ -24,6 +24,6 @@ addons:
       name: "vtorri/etui"
       description: "Build submitted via Travis CI"
     notification_email: vincent.torri@gmail.com
-    build_command_prepend: "./autogen.sh --disable-static --enable-gpl; make clean"
+    build_command_prepend: "./autogen.sh --disable-static --enable-gpl --with-mupdf-static-libs=-Wl,/usr/lib/libmupdf.a --with-mupdf-shared-libs="-ljbig2dec"; make clean"
     build_command: "make -j 4"
     branch_pattern: coverity_scan
