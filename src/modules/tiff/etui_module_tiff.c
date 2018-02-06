@@ -272,7 +272,6 @@ _etui_tiff_evas_object_add(void *d, Evas *evas)
         return NULL;
 
     ((Etui_Module_Data *)d)->efl.obj = evas_object_image_add(evas);
-    evas_object_move(((Etui_Module_Data *)d)->efl.obj, 0, 0);
 
     return ((Etui_Module_Data *)d)->efl.obj;
 }

@@ -56,6 +56,15 @@ typedef enum
     ETUI_ROTATION_270 = 270
 } Etui_Rotation;
 
+typedef enum
+{
+   ETUI_MODE_UNKNOWN = 0,
+   ETUI_MODE_FREE,
+   ETUI_MODE_FIT_WIDTH,
+   ETUI_MODE_FIT_HEIGHT,
+   ETUI_MODE_FIT_AUTO,
+} Etui_Mode;
+
 
 typedef struct Etui_File_s Etui_File;
 
@@ -87,6 +96,8 @@ EAPI void etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation
 EAPI Etui_Rotation etui_object_page_rotation_get(Evas_Object *obj);
 EAPI void etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale);
 EAPI void etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale);
+EAPI void etui_object_page_mode_set(Evas_Object *obj, Etui_Mode mode);
+EAPI Etui_Mode etui_object_page_mode_get(const Evas_Object *obj);
 
 EAPI const void *etui_object_api_get(Evas_Object *obj);
 
