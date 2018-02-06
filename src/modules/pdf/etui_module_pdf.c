@@ -826,7 +826,7 @@ _etui_pdf_page_render_pre(void *d)
     md->page.width = width;
     md->page.height = height;
 
-    evas_object_resize(md->efl.obj, width, height);
+//    evas_object_resize(md->efl.obj, width, height);
     printf(" pre 3 $$ %dx%d\n", width, height);
 }
 
@@ -898,6 +898,7 @@ _etui_pdf_page_render_end(void *d)
 
     evas_object_image_size_get(md->efl.obj, &width, &height);
     printf(" end $$ %dx%d\n", width, height);
+    evas_object_size_hint_min_set(md->efl.obj, width, height);
     evas_object_image_data_set(md->efl.obj, md->efl.m);
     evas_object_image_data_update_add(md->efl.obj, 0, 0, width, height);
     fz_drop_pixmap(md->doc.ctx, md->page.image);

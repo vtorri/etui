@@ -46,7 +46,10 @@ struct Etui_Smart_Data_
     Etui_Module *module;
 
     /* private */
+    Evas_Object *frame;
     Evas_Object *obj;
+    /* mode */
+    Etui_Mode mode;
 };
 
 static Evas_Smart *_etui_smart = NULL;
@@ -54,6 +57,7 @@ static Evas_Smart *_etui_smart = NULL;
 static void _etui_smart_page_render(void *data, Ecore_Thread *thread);
 static void _etui_smart_page_render_end(void *data, Ecore_Thread *thread);
 static void _etui_smart_page_render_cancel(void *data, Ecore_Thread *thread);
+static void _etui_smart_page_eval(Etui_Smart_Data *sd);
 
 /* internal smart object routines */
 
@@ -129,12 +133,20 @@ static void
 _etui_smart_add(Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
+    Evas_Object *frame;
 
     sd = calloc(1, sizeof(Etui_Smart_Data));
     EINA_SAFETY_ON_NULL_RETURN(sd);
 
     EINA_REFCOUNT_INIT(sd);
 
+    frame = evas_object_rectangle_add(evas_object_evas_get(obj));
+    evas_object_smart_member_add(frame, obj);
+    evas_object_color_set(frame, 0, 255, 64, 255);
+    evas_object_show(frame);
+    sd->frame = frame;
+
+    sd->mode = ETUI_MODE_FREE;
     evas_object_smart_data_set(obj, sd);
 }
 
@@ -163,7 +175,9 @@ _etui_smart_move(Evas_Object *obj, Evas_Coord x, Evas_Coord y)
 
     sd = evas_object_smart_data_get(obj);
     EINA_SAFETY_ON_NULL_RETURN(sd);
-    evas_object_move(sd->obj, x, y);
+    /* And here we go to be more smarter */
+    evas_object_move(sd->frame, x, y);
+    _etui_smart_page_eval(sd);
 }
 
 static void
@@ -175,6 +189,9 @@ _etui_smart_resize(Evas_Object *obj, Evas_Coord w, Evas_Coord h)
     EINA_SAFETY_ON_NULL_RETURN(sd);
 
     /* FIXME: should do something here ? */
+    /* YEAH now we do something */
+    evas_object_resize(sd->frame, w, h);
+    _etui_smart_page_eval(sd);
 
     fprintf(stderr, " %s 2 : %dx%d\n", __FUNCTION__, w, h);
 }
@@ -243,7 +260,7 @@ _etui_smart_calculate(Evas_Object *obj)
     sd->module->render = ecore_thread_run(_etui_smart_page_render,
                                           _etui_smart_page_render_end,
                                           _etui_smart_page_render_cancel,
-                                          sd->module);
+                                          sd);
 }
 
 static void
@@ -275,26 +292,27 @@ _etui_smart_init(void)
 static void
 _etui_smart_page_render(void *data, Ecore_Thread *thread EINA_UNUSED)
 {
-    Etui_Module *mod;
+    Etui_Smart_Data *sd;
 
-    mod = data;
-    if (!mod)
+    sd = data;
+    if (!sd)
         return;
 
-    mod->functions->page_render(mod->data);
+    sd->module->functions->page_render(sd->module->data);
 }
 
 static void
 _etui_smart_page_render_end(void *data, Ecore_Thread *thread EINA_UNUSED)
 {
-    Etui_Module *mod;
+    Etui_Smart_Data *sd;
 
-    mod = data;
-    if (!mod)
+    sd = data;
+    if (!sd)
         return;
 
-    mod->functions->page_render_end(mod->data);
-    mod->render = NULL;
+    sd->module->functions->page_render_end(sd->module->data);
+    sd->module->render = NULL;
+    _etui_smart_page_eval(sd);
 }
 
 static void
@@ -309,9 +327,51 @@ _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *e
     Evas_Coord w;
     Evas_Coord h;
 
-    evas_object_geometry_get(obj, NULL, NULL, &w, &h);
-    evas_object_resize((Evas_Object *)data, w, h);
+//    evas_object_geometry_get(obj, NULL, NULL, &w, &h);
+//    evas_object_resize((Evas_Object *)data, w, h);
+    _etui_smart_page_eval(data);
     fprintf(stderr, " $$$$ %s : data: %p   obj: %p  %dx%d\n", __FUNCTION__, data, obj, w, h);
+}
+
+
+static void
+_etui_smart_page_eval(Etui_Smart_Data *sd)
+{
+   Evas_Coord x, y, w, h;
+   Evas_Coord ox, oy, ow, oh;
+
+   evas_object_geometry_get(sd->frame, &x, &y, &w, &h);
+   sd->module->functions->page_size_get(sd->module->data, &ow, &oh);
+   evas_object_size_hint_min_set(sd->frame, ow, oh);
+   switch (sd->mode)
+     {
+#if 0
+      case ETUI_MODE_FIT_WIDTH:
+         ox = x;
+         oy = ((h - oh) / 2.0) + y;
+         ow = w;
+         break;
+      case ETUI_MODE_FIT_HEIGHT:
+         ox = ((w - ow) / 2.0) + x;
+         oy = y;
+         break;
+      case ETUI_MODE_FIT_AUTO:
+         ox = ((w - ow) / 2.0) + x;
+         oy = ((h - oh) / 2.0) + y;
+         break;
+#endif
+      default:
+      case ETUI_MODE_FREE:
+         ox = ((w - ow) / 2.0) + x;
+         oy = ((h - oh) / 2.0) + y;
+//         ow = w;
+//         oh = h;
+         break;
+     }
+   fprintf(stderr, "EVAL FRAME(%d, %d, %d, %d), OBJ(%d, %d, %d, %d)\n",
+           x, y, w, h, ox, oy, ow, oh);
+   evas_object_move(sd->obj, ox, oy);
+   evas_object_resize(sd->obj, ow, oh);
 }
 
 /**
@@ -351,9 +411,11 @@ etui_object_file_set(Evas_Object *obj, const Etui_File *ef)
     sd->module = (Etui_Module *)etui_file_module_get(ef);
     sd->obj = sd->module->functions->evas_object_add(sd->module->data,
                                                      evas_object_evas_get(obj));
-    evas_object_smart_member_add(sd->obj, obj);
+    evas_object_smart_member_add(obj, sd->obj);
+    /*
     evas_object_event_callback_add(sd->obj, EVAS_CALLBACK_RESIZE,
-                                   _etui_smart_resize_cb, obj);
+                                   _etui_smart_resize_cb, sd);
+                                   */
 
 }
 
@@ -535,6 +597,35 @@ etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale)
     if (hscale) *hscale = 1.0;
     if (vscale) *vscale = 1.0;
 }
+
+EAPI void
+etui_object_page_mode_set(Evas_Object *obj, Etui_Mode mode)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
+
+    fprintf(stderr, "Mode set %d\n", mode);
+    if (sd->mode == mode) return;
+    sd->mode = mode;
+
+  _err:
+    return;
+}
+
+EAPI Etui_Mode
+etui_object_page_mode_get(const Evas_Object *obj)
+{
+    Etui_Smart_Data *sd;
+
+    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
+
+    return sd->mode;
+
+  _err:
+    return ETUI_MODE_UNKNOWN;
+}
+
 
 EAPI const void *
 etui_object_api_get(Evas_Object *obj)
