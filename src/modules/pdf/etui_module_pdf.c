@@ -713,9 +713,7 @@ _etui_pdf_page_size_get(void *d, int *width, int *height)
         goto _err;
     }
 
-    fz_bound_page(md->doc.ctx, md->page.page, &rect);
-    if (width) *width = (int)(rect.x1 - rect.x0);
-    if (height) *height = (int)(rect.y1 - rect.y0);
+    evas_object_image_size_get(md->efl.obj, width, height);
 
     return;
 
