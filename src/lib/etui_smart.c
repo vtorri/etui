@@ -345,27 +345,36 @@ _etui_smart_page_eval(Etui_Smart_Data *sd)
    evas_object_size_hint_min_set(sd->frame, ow, oh);
    switch (sd->mode)
      {
-#if 0
       case ETUI_MODE_FIT_WIDTH:
          ox = x;
-         oy = ((h - oh) / 2.0) + y;
          ow = w;
+         oy = ((h - oh) / 2.0) + y;
          break;
       case ETUI_MODE_FIT_HEIGHT:
          ox = ((w - ow) / 2.0) + x;
          oy = y;
+         oh = h;
          break;
       case ETUI_MODE_FIT_AUTO:
-         ox = ((w - ow) / 2.0) + x;
-         oy = ((h - oh) / 2.0) + y;
+         if (((float)w / (float)h) > ((float)ow/(float)oh))
+           {
+              printf("VVVVVVVVVVVVV\n");
+              ox = ((w - ow) / 2.0) + x;
+              oy = y;
+              oh = h;
+           }
+         else
+           {
+              printf("HHHHHHHHHHHH\n");
+              ox = x;
+              ow = w;
+              oy = ((h - oh) / 2.0) + y;
+           }
          break;
-#endif
       default:
       case ETUI_MODE_FREE:
          ox = ((w - ow) / 2.0) + x;
          oy = ((h - oh) / 2.0) + y;
-//         ow = w;
-//         oh = h;
          break;
      }
    fprintf(stderr, "EVAL FRAME(%d, %d, %d, %d), OBJ(%d, %d, %d, %d)\n",
