@@ -220,6 +220,8 @@ int main(int argc, char *argv[])
     }
 
     o = etui_object_add(evas);
+    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
     etui_object_file_set(o, ef);
 
     etui_object_page_set(o, 0);

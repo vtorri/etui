@@ -375,6 +375,8 @@ etui_doc_init(Etui *etui)
     o = etui_object_add(evas_object_evas_get(etui->window.win));
     if (!o)
         goto del_objects;
+    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
 
     etui->doc.doc = o;
     etui->doc.scale = 1.0f;

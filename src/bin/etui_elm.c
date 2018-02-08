@@ -138,10 +138,8 @@ etui_win_main(const char *filename)
 
     etui_object_page_set(etui, 0);
     evas_object_geometry_get(etui, NULL, NULL, &w, &h);
-    evas_object_size_hint_min_set(etui, w, h);
-    evas_object_size_hint_max_set(etui, w, h);
-    evas_object_size_hint_weight_set(etui, 0.5, 0.5);
-    evas_object_size_hint_fill_set(etui, 0.5, 0.5);
+    evas_object_size_hint_weight_set(etui, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_align_set(etui, EVAS_HINT_FILL, EVAS_HINT_FILL);
     evas_object_focus_set(etui, EINA_TRUE);
     etui_object_page_use_display_list_set(etui, EINA_FALSE);
     elm_box_pack_end(box, etui);

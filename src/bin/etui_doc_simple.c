@@ -489,10 +489,8 @@ etui_doc_add(Etui *etui, Etui_File *ef)
     etui_object_file_set(doc->obj, doc->ef);
     etui_object_page_set(doc->obj, 0);
     evas_object_geometry_get(doc->obj, NULL, NULL, &width, &height);
-    evas_object_size_hint_min_set(doc->obj, width, height);
-    evas_object_size_hint_max_set(doc->obj, width, height);
-    evas_object_size_hint_weight_set(doc->obj, 0.5, 0.5);
-    evas_object_size_hint_fill_set(doc->obj, 0.5, 0.5);
+    evas_object_size_hint_weight_set(doc->obj, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_fill_set(doc->obj, EVAS_HINT_FILL, EVAS_HINT_FILL);
     elm_box_pack_end(doc->bx, doc->obj);
     evas_object_show(doc->obj);
 
