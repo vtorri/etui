@@ -65,12 +65,12 @@ static void _etui_smart_page_eval(Etui_Smart_Data *sd);
 {                                                      \
     char *_etui_smart_str;                             \
                                                        \
-    if (!o) return;                                    \
+    if (!o) goto _err;                                 \
     smart = evas_object_smart_data_get(o);             \
-    if (!smart) return;                                \
+    if (!smart) goto _err;                             \
     _etui_smart_str = (char *)evas_object_type_get(o); \
-    if (!_etui_smart_str) return;                      \
-    if (strcmp(_etui_smart_str, type)) return;         \
+    if (!_etui_smart_str) goto _err;                   \
+    if (strcmp(_etui_smart_str, type)) goto _err;      \
 }
 
 #define ETUI_SMART_OBJ_GET_ERROR(smart, o, type)          \
@@ -417,6 +417,8 @@ etui_object_file_set(Evas_Object *obj, const Etui_File *ef)
     evas_object_event_callback_add(sd->obj, EVAS_CALLBACK_RESIZE,
                                    _etui_smart_resize_cb, sd);
                                    */
+_err:
+    return;
 
 }
 
@@ -604,7 +606,7 @@ etui_object_page_mode_set(Evas_Object *obj, Etui_Mode mode)
 {
     Etui_Smart_Data *sd;
 
-    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
+    ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
     fprintf(stderr, "Mode set %d\n", mode);
     if (sd->mode == mode) return;
@@ -619,7 +621,7 @@ etui_object_page_mode_get(const Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
-    ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
+    ETUI_SMART_OBJ_GET(sd, obj, ETUI_OBJ_NAME);
 
     return sd->mode;
 
