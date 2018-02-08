@@ -142,7 +142,7 @@ _etui_smart_add(Evas_Object *obj)
 
     frame = evas_object_rectangle_add(evas_object_evas_get(obj));
     evas_object_smart_member_add(frame, obj);
-    evas_object_color_set(frame, 0, 255, 64, 255);
+    evas_object_color_set(frame, 255, 255, 255, 255);
     evas_object_show(frame);
     sd->frame = frame;
 
@@ -234,7 +234,7 @@ _etui_smart_clip_set(Evas_Object *obj, Evas_Object *clip)
 
     sd = evas_object_smart_data_get(obj);
     EINA_SAFETY_ON_NULL_RETURN(sd);
-    evas_object_clip_set(sd->obj, clip);
+    evas_object_clip_set(sd->frame, clip);
 }
 
 static void
@@ -412,6 +412,7 @@ etui_object_file_set(Evas_Object *obj, const Etui_File *ef)
     sd->obj = sd->module->functions->evas_object_add(sd->module->data,
                                                      evas_object_evas_get(obj));
     evas_object_smart_member_add(obj, sd->obj);
+    evas_object_clip_set(sd->obj, sd->frame);
     /*
     evas_object_event_callback_add(sd->obj, EVAS_CALLBACK_RESIZE,
                                    _etui_smart_resize_cb, sd);
