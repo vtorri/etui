@@ -498,7 +498,7 @@ _etui_djvu_page_render_pre(void *d)
     md->page.type = ddjvu_page_get_type(md->page.page);
 
     evas_object_image_size_set(md->efl.obj, md->page.width, md->page.height);
-    evas_object_image_fill_set(md->efl.obj, 0, 0, md->page.width, md->page.height);
+    evas_object_image_filled_set(md->efl.obj, EINA_TRUE);
     md->efl.m = evas_object_image_data_get(md->efl.obj, 1);
     evas_object_resize(md->efl.obj, md->page.width, md->page.height);
 }

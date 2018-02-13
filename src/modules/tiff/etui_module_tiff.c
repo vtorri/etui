@@ -517,7 +517,7 @@ _etui_tiff_page_render_pre(void *d)
             return;
 
         evas_object_image_size_set(md->efl.obj, width, height);
-        evas_object_image_fill_set(md->efl.obj, 0, 0, width, height);
+        evas_object_image_filled_set(md->efl.obj, EINA_TRUE);
         evas_object_resize(md->efl.obj, width, height);
         md->page.width = width;
         md->page.height = height;

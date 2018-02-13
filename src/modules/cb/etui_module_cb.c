@@ -572,7 +572,7 @@ _etui_cb_page_render_pre(void *d)
             evas_object_image_size_get(md->efl.obj, &width, &height);
 
             evas_object_image_size_set(md->efl.obj, width, height);
-            evas_object_image_fill_set(md->efl.obj, 0, 0, width, height);
+            evas_object_image_filled_set(md->efl.obj, EINA_TRUE);
             md->efl.m = evas_object_image_data_get(md->efl.obj, 1);
             md->page.width = width;
             md->page.height = height;

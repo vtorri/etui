@@ -777,7 +777,7 @@ _etui_ps_page_render_pre(void *d)
     height = (int)(((y0 - y1) * pd->page.vscale) + 0.5);
 
     evas_object_image_size_set(pd->efl.obj, width, height);
-    evas_object_image_fill_set(pd->efl.obj, 0, 0, width, height);
+    evas_object_image_filled_set(md->efl.obj, EINA_TRUE);
     pd->efl.m = evas_object_image_data_get(pd->efl.obj, 1);
     pd->page.width = width;
     pd->page.height = height;
