@@ -486,6 +486,8 @@ etui_doc_add(Etui *etui, Etui_File *ef)
     evas_object_show(doc->bx);
 
     doc->obj = etui_object_add(evas_object_evas_get(etui->window.win));
+    printf("Mode set lolollol\n");
+    etui_object_page_mode_set(doc->obj, ETUI_MODE_FIT_AUTO);
     etui_object_file_set(doc->obj, doc->ef);
     etui_object_page_set(doc->obj, 0);
     evas_object_geometry_get(doc->obj, NULL, NULL, &width, &height);
