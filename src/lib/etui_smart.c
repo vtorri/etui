@@ -339,46 +339,51 @@ _etui_smart_page_eval(Etui_Smart_Data *sd)
 {
    Evas_Coord x, y, w, h;
    Evas_Coord ox, oy, ow, oh;
+   double scale = 1.0;
 
    evas_object_geometry_get(sd->frame, &x, &y, &w, &h);
    sd->module->functions->page_size_get(sd->module->data, &ow, &oh);
-   evas_object_size_hint_min_set(sd->frame, ow, oh);
    switch (sd->mode)
      {
       case ETUI_MODE_FIT_WIDTH:
-         ox = x;
+         if (ow) scale = w / (double)ow;
          ow = w;
-         oy = ((h - oh) / 2.0) + y;
+         oh = scale * oh;
          break;
       case ETUI_MODE_FIT_HEIGHT:
-         ox = ((w - ow) / 2.0) + x;
-         oy = y;
+         if (oh) scale = h / (double)oh;
          oh = h;
+         ow = scale * oh;
          break;
       case ETUI_MODE_FIT_AUTO:
          if (((float)w / (float)h) > ((float)ow/(float)oh))
            {
               printf("VVVVVVVVVVVVV\n");
-              ox = ((w - ow) / 2.0) + x;
-              oy = y;
+              if (oh) scale = h / (double)oh;
               oh = h;
+              ow = scale * ow;
            }
          else
            {
               printf("HHHHHHHHHHHH\n");
-              ox = x;
+              if (ow) scale = w / (double)ow;
               ow = w;
-              oy = ((h - oh) / 2.0) + y;
+              oh = scale * oh;
            }
          break;
       default:
       case ETUI_MODE_FREE:
-         ox = ((w - ow) / 2.0) + x;
-         oy = ((h - oh) / 2.0) + y;
+         sd->module->functions->page_scale_get(sd->module->data, &scale, &scale);
+         ow = scale * oh;
+         oh = scale * oh;
          break;
      }
-   fprintf(stderr, "EVAL FRAME(%d, %d, %d, %d), OBJ(%d, %d, %d, %d)\n",
-           x, y, w, h, ox, oy, ow, oh);
+//   evas_object_size_hint_min_set(sd->frame, ow, oh);
+   ox = ((w - ow) / 2.0) + (double)x + 0.5;
+   oy = ((h - oh) / 2.0) + (double)y + 0.5;
+   fprintf(stderr, "EVAL FRAME(%d, %d, %d, %d), OBJ(%d, %d, %d, %d) scaling %f\n",
+           x, y, w, h, ox, oy, ow, oh, scale);
+   //   sd->module->functions->page_scale_set(sd->module->data, scale, scale);
    evas_object_move(sd->obj, ox, oy);
    evas_object_resize(sd->obj, ow, oh);
 }
