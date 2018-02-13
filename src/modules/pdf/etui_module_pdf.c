@@ -820,7 +820,7 @@ _etui_pdf_page_render_pre(void *d)
 
     evas_object_image_size_set(md->efl.obj, width, height);
     printf(" pre 1 $$ %dx%d\n", width, height);
-    evas_object_image_fill_set(md->efl.obj, 0, 0, width, height);
+    evas_object_image_filled_set(md->efl.obj, EINA_TRUE);
     printf(" pre 2 $$ %dx%d\n", width, height);
     md->efl.m = evas_object_image_data_get(md->efl.obj, 1);
     md->page.width = width;
