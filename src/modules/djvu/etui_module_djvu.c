@@ -96,8 +96,7 @@ typedef struct
         int height;
         int page_num;
         Etui_Rotation rotation;
-        float hscale;
-        float vscale;
+        double scale;
         /* information values */
         int dpi;
         double gamma;
@@ -182,8 +181,7 @@ _etui_djvu_init(const Etui_File *ef)
     md->doc.page_nbr = ddjvu_document_get_pagenum(md->doc.doc);
     md->page.page_num = -1;
     md->page.rotation = ETUI_ROTATION_0;
-    md->page.hscale = 1.0f;
-    md->page.vscale = 1.0f;
+    md->page.scale = 1.0f;
 
     printf("%d %d\n", ddjvu_document_get_pagenum(md->doc.doc), ddjvu_document_get_filenum(md->doc.doc));
 
@@ -355,8 +353,7 @@ _etui_djvu_page_set(void *d, int page_num)
     md->page.page = page;
     md->page.page_num = page_num;
     md->page.rotation = ETUI_ROTATION_0;
-    md->page.hscale = 1.0f;
-    md->page.vscale = 1.0f;
+    md->page.scale = 1.0f;
 
     md->page.dpi = 72;
     md->page.gamma = 2.2;
@@ -437,7 +434,7 @@ _etui_djvu_page_rotation_get(void *d)
 }
 
 static Eina_Bool
-_etui_djvu_page_scale_set(void *d, float hscale, float vscale)
+_etui_djvu_page_scale_set(void *d, double scale)
 {
     Etui_Module_Data *md;
 
@@ -446,31 +443,25 @@ _etui_djvu_page_scale_set(void *d, float hscale, float vscale)
 
     md = (Etui_Module_Data *)d;
 
-    if ((md->page.hscale == hscale) && (md->page.vscale == vscale))
-        return EINA_TRUE;
-
-    md->page.hscale = hscale;
-    md->page.vscale = vscale;
+    if (md->page.scale != scale)
+      md->page.scale = scale;
 
     return EINA_TRUE;
 }
 
-static void
-_etui_djvu_page_scale_get(void *d, float *hscale, float *vscale)
+static double
+_etui_djvu_page_scale_get(void *d)
 {
     Etui_Module_Data *md;
 
     if (!d)
     {
-        if (hscale) *hscale = 1.0f;
-        if (vscale) *vscale = 1.0f;
-        return;
+        return -1.0;
     }
 
     md = (Etui_Module_Data *)d;
 
-    if (hscale) *hscale = md->page.hscale;
-    if (vscale) *vscale = md->page.vscale;
+    return md->page.scale;
 }
 
 static void

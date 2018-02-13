@@ -255,12 +255,11 @@ _etui_smart_calculate(Evas_Object *obj)
 
     sd = evas_object_smart_data_get(obj);
     EINA_SAFETY_ON_NULL_RETURN(sd);
-    if (sd->module->render)
-        ecore_thread_cancel(sd->module->render);
-    sd->module->render = ecore_thread_run(_etui_smart_page_render,
-                                          _etui_smart_page_render_end,
-                                          _etui_smart_page_render_cancel,
-                                          sd);
+    if (!sd->module->render)
+      sd->module->render = ecore_thread_run(_etui_smart_page_render,
+                                            _etui_smart_page_render_end,
+                                            _etui_smart_page_render_cancel,
+                                            sd);
 }
 
 static void
@@ -320,7 +319,7 @@ _etui_smart_page_render_cancel(void *data EINA_UNUSED, Ecore_Thread *thread EINA
 {
 
 }
-
+#if 0
 static void
 _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *event_info EINA_UNUSED)
 {
@@ -332,6 +331,7 @@ _etui_smart_resize_cb(void *data, Evas *e EINA_UNUSED, Evas_Object *obj, void *e
     _etui_smart_page_eval(data);
     fprintf(stderr, " $$$$ %s : data: %p   obj: %p  %dx%d\n", __FUNCTION__, data, obj, w, h);
 }
+#endif
 
 
 static void
@@ -353,7 +353,7 @@ _etui_smart_page_eval(Etui_Smart_Data *sd)
       case ETUI_MODE_FIT_HEIGHT:
          if (oh) scale = h / (double)oh;
          oh = h;
-         ow = scale * oh;
+         ow = scale * ow;
          break;
       case ETUI_MODE_FIT_AUTO:
          if (((float)w / (float)h) > ((float)ow/(float)oh))
@@ -373,8 +373,8 @@ _etui_smart_page_eval(Etui_Smart_Data *sd)
          break;
       default:
       case ETUI_MODE_FREE:
-         sd->module->functions->page_scale_get(sd->module->data, &scale, &scale);
-         ow = scale * oh;
+         scale = sd->module->functions->page_scale_get(sd->module->data);
+         ow = scale * ow;
          oh = scale * oh;
          break;
      }
@@ -581,14 +581,14 @@ etui_object_page_rotation_get(Evas_Object *obj)
 }
 
 EAPI void
-etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale)
+etui_object_page_scale_set(Evas_Object *obj, double scale)
 {
     Etui_Smart_Data *sd;
 
     ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
     fprintf(stderr, " %s 1\n", __FUNCTION__);
-    if (sd->module->functions->page_scale_set(sd->module->data, hscale, vscale))
+    if (sd->module->functions->page_scale_set(sd->module->data, scale))
     {
         sd->module->functions->page_render_pre(sd->module->data);
         evas_object_smart_changed(obj);
@@ -599,20 +599,17 @@ etui_object_page_scale_set(Evas_Object *obj, float hscale, float vscale)
     return;
 }
 
-EAPI void
-etui_object_page_scale_get(Evas_Object *obj, float *hscale, float *vscale)
+EAPI double
+etui_object_page_scale_get(const Evas_Object *obj)
 {
     Etui_Smart_Data *sd;
 
     ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
-    sd->module->functions->page_scale_get(sd->module->data, hscale, vscale);
-
-    return;
+    return sd->module->functions->page_scale_get(sd->module->data);
 
   _err:
-    if (hscale) *hscale = 1.0;
-    if (vscale) *vscale = 1.0;
+    return -1.0;
 }
 
 EAPI void

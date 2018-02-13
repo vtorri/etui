@@ -51,13 +51,13 @@ _etui_key_down(void *data, int type EINA_UNUSED, void *event)
         else if (!strcmp(ev->key, "Up"))
         {
             cfg->scale *= M_SQRT2;
-            etui_object_page_scale_set(cfg->o, cfg->scale, cfg->scale);
+            etui_object_page_scale_set(cfg->o, cfg->scale);
         }
         else if (!strcmp(ev->key, "Down"))
         {
             int w,h;
             cfg->scale *= M_SQRT1_2;
-            etui_object_page_scale_set(cfg->o, cfg->scale, cfg->scale);
+            etui_object_page_scale_set(cfg->o, cfg->scale);
             elm_scroller_child_size_get(cfg->sc, &w, &h);
             printf(" bin 0 ** %dx%d\n", w, h);
             evas_object_geometry_get(cfg->o, NULL, NULL, &w, &h);

@@ -81,13 +81,13 @@ _etui_key_down(void *data, int type EINA_UNUSED, void *event)
         else if (!strcmp(ev->key, "Up"))
         {
             scale *= M_SQRT2;
-            etui_object_page_scale_set(data, scale, scale);
+            etui_object_page_scale_set(data, scale);
         }
         else if (!strcmp(ev->key, "Down"))
         {
             int w,h;
             scale *= M_SQRT1_2;
-            etui_object_page_scale_set(data, scale, scale);
+            etui_object_page_scale_set(data, scale);
             evas_object_geometry_get(data, NULL, NULL, &w, &h);
             printf(" bin ** %dx%d\n", w, h);
         }

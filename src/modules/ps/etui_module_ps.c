@@ -103,8 +103,7 @@ struct _Etui_Provider_Data
         int height;
         int page_num;
         Etui_Rotation rotation;
-        float hscale;
-        float vscale;
+        double scale;
         float hdpi;
         float vdpi;
         int text_alpha_bits;
@@ -579,8 +578,7 @@ _etui_ps_page_set(void *d, int page_num)
 
     pd->page.page_num = idx;
     pd->page.rotation = ETUI_ROTATION_0;
-    pd->page.hscale = 1.0f;
-    pd->page.vscale = 1.0f;
+    pd->page.scale = 1.0f;
     pd->page.hdpi = 72.0f;
     pd->page.vdpi = 72.0f;
     pd->page.text_alpha_bits = 4;
@@ -674,7 +672,7 @@ _etui_ps_page_rotation_get(void *d)
 }
 
 static Eina_Bool
-_etui_ps_page_scale_set(void *d, float hscale, float vscale)
+_etui_ps_page_scale_set(void *d, double scale)
 {
     Etui_Provider_Data *pd;
 
@@ -683,31 +681,25 @@ _etui_ps_page_scale_set(void *d, float hscale, float vscale)
 
     pd = (Etui_Provider_Data *)d;
 
-    if ((pd->page.hscale == hscale) && (pd->page.vscale == vscale))
-        return EINA_TRUE;
-
-    pd->page.hscale = hscale;
-    pd->page.vscale = vscale;
+    if (pd->page.scale != scale)
+      pd->page.scale = scale;
 
     return EINA_TRUE;
 }
 
-static void
-_etui_ps_page_scale_get(void *d, float *hscale, float *vscale)
+static double
+_etui_ps_page_scale_get(void *d)
 {
     Etui_Provider_Data *pd;
 
     if (!d)
     {
-        if (hscale) *hscale = 1.0f;
-        if (vscale) *vscale = 1.0f;
-        return;
+        return -1.0;
     }
 
     pd = (Etui_Provider_Data *)d;
 
-    if (hscale) *hscale = pd->page.hscale;
-    if (vscale) *vscale = pd->page.vscale;
+    return pd->page.scale;
 }
 
 static Eina_Bool
@@ -773,8 +765,8 @@ _etui_ps_page_render_pre(void *d)
 
     psgetpagebox(pd->doc.doc, pd->page.page_num,
                  &x0, &y0, &x1, &y1);
-    width = (int)(((x0 - x1) * pd->page.hscale) + 0.5);
-    height = (int)(((y0 - y1) * pd->page.vscale) + 0.5);
+    width = (int)(((x0 - x1) * pd->page.scale) + 0.5);
+    height = (int)(((y0 - y1) * pd->page.scale) + 0.5);
 
     evas_object_image_size_set(pd->efl.obj, width, height);
     evas_object_image_filled_set(md->efl.obj, EINA_TRUE);
@@ -871,8 +863,8 @@ _etui_ps_page_render(void *d)
     snprintf(size, sizeof(size), "-g%dx%d", pd->page.width, pd->page.height);
     args[arg++] = size;
     snprintf(resolution, sizeof(resolution), "-r%fx%f",
-             pd->page.hscale * pd->page.hdpi,
-             pd->page.vscale * pd->page.vdpi);
+             pd->page.scale * pd->page.hdpi,
+             pd->page.scale * pd->page.vdpi);
     args[arg++] = resolution;
     snprintf(display_format, sizeof(display_format),
              "-dDisplayFormat=%d",

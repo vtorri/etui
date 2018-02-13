@@ -160,8 +160,7 @@ struct _Etui_Provider_Data
         int height;
         int page_num;
         Etui_Rotation rotation;
-        float hscale;
-        float vscale;
+        double scale;
     } page;
 };
 
@@ -1248,8 +1247,7 @@ _etui_epub_page_set(void *d, int page_num)
 
     pd->page.page_num = page_num;
     pd->page.rotation = ETUI_ROTATION_0;
-    pd->page.hscale = 1.0f;
-    pd->page.vscale = 1.0f;
+    pd->page.scale = 1.0f;
 
     return EINA_TRUE;
 }
@@ -1298,7 +1296,7 @@ _etui_epub_page_rotation_get(void *d)
 }
 
 static Eina_Bool
-_etui_epub_page_scale_set(void *d, float hscale, float vscale)
+_etui_epub_page_scale_set(void *d, double scale)
 {
     Etui_Provider_Data *pd;
 
@@ -1307,31 +1305,25 @@ _etui_epub_page_scale_set(void *d, float hscale, float vscale)
 
     pd = (Etui_Provider_Data *)d;
 
-    if ((pd->page.hscale == hscale) && (pd->page.vscale == vscale))
-        return EINA_TRUE;
-
-    pd->page.hscale = hscale;
-    pd->page.vscale = vscale;
+    if (pd->page.scale != scale)
+      pd->page.scale = scale;
 
     return EINA_TRUE;
 }
 
-static void
-_etui_epub_page_scale_get(void *d, float *hscale, float *vscale)
+static double
+_etui_epub_page_scale_get(void *d)
 {
     Etui_Provider_Data *pd;
 
     if (!d)
     {
-        if (hscale) *hscale = 1.0f;
-        if (vscale) *vscale = 1.0f;
-        return;
+        return -1.0;
     }
 
     pd = (Etui_Provider_Data *)d;
 
-    if (hscale) *hscale = pd->page.hscale;
-    if (vscale) *vscale = pd->page.vscale;
+    return pd->page.scale;
 }
 
 static Etui_Provider_Descriptor _etui_provider_descriptor_epub =
