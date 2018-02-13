@@ -105,8 +105,7 @@ struct _Etui_Module_Data
         Eina_Array links;
         int page_num;
         Etui_Rotation rotation;
-        float hscale;
-        float vscale;
+        double scale;
         float duration;
         fz_transition *transition;
         unsigned int use_display_list :1;
@@ -498,8 +497,7 @@ _etui_pdf_init(const Etui_File *ef)
     md->doc.page_nbr = fz_count_pages(md->doc.ctx, md->doc.doc);
     md->page.page_num = -1;
     md->page.rotation = ETUI_ROTATION_0;
-    md->page.hscale = 1.0f;
-    md->page.vscale = 1.0f;
+    md->page.scale = 1.0f;
 
     return md;
 
@@ -672,8 +670,7 @@ _etui_pdf_page_set(void *d, int page_num)
     md->page.page = page;
     md->page.page_num = page_num;
     md->page.rotation = ETUI_ROTATION_0;
-    md->page.hscale = 1.0f;
-    md->page.vscale = 1.0f;
+    md->page.scale = 1.0f;
     md->page.duration = 0.0;
     /* md->page.transition = fz_page_presentation(md->doc.ctx, md->page.page, &md->page.duration); */
 
@@ -751,7 +748,7 @@ _etui_pdf_page_rotation_get(void *d)
 }
 
 static Eina_Bool
-_etui_pdf_page_scale_set(void *d, float hscale, float vscale)
+_etui_pdf_page_scale_set(void *d, double scale)
 {
     Etui_Module_Data *md;
 
@@ -760,31 +757,25 @@ _etui_pdf_page_scale_set(void *d, float hscale, float vscale)
 
     md = (Etui_Module_Data *)d;
 
-    if ((md->page.hscale == hscale) && (md->page.vscale == vscale))
-        return EINA_TRUE;
-
-    md->page.hscale = hscale;
-    md->page.vscale = vscale;
+    if (md->page.scale != scale)
+      md->page.scale = scale;
 
     return EINA_TRUE;
 }
 
-static void
-_etui_pdf_page_scale_get(void *d, float *hscale, float *vscale)
+static double
+_etui_pdf_page_scale_get(void *d)
 {
     Etui_Module_Data *md;
 
     if (!d)
     {
-        if (hscale) *hscale = 1.0f;
-        if (vscale) *vscale = 1.0f;
-        return;
+        return -1.0;
     }
 
     md = (Etui_Module_Data *)d;
 
-    if (hscale) *hscale = md->page.hscale;
-    if (vscale) *vscale = md->page.vscale;
+    return md->page.scale;
 }
 
 static void
@@ -811,7 +802,7 @@ _etui_pdf_page_render_pre(void *d)
     }
 
     fz_bound_page(md->doc.ctx, md->page.page, &bounds);
-    fz_pre_scale(fz_rotate(&ctm, md->page.rotation), md->page.hscale, md->page.vscale);
+    fz_pre_scale(fz_rotate(&ctm, md->page.rotation), md->page.scale, md->page.scale);
     fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
 
     width = ibounds.x1 - ibounds.x0;
@@ -862,7 +853,7 @@ _etui_pdf_page_render(void *d)
     }
     fz_bound_page(md->doc.ctx, md->page.page, &bounds);
     fz_pre_scale(fz_rotate(&ctm, md->page.rotation),
-                 md->page.hscale, md->page.vscale);
+                 md->page.scale, md->page.scale);
     fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
     width = ibounds.x1 - ibounds.x0;
     height = ibounds.y1 - ibounds.y0;

@@ -141,13 +141,13 @@ _etui_doc_fullscreen_set(const Etui *etui, Eina_Bool on)
         int hs;
 
         /* we save the scale before going fullscreen */
-        etui_object_page_scale_get(doc->obj, &doc->scale, &doc->scale);
+        doc->scale = etui_object_page_scale_get(doc->obj);
 
         /* we set the new scale to fit the entire screen */
         etui_object_page_size_get(doc->obj, &w, &h);
         elm_win_screen_size_get(etui->window.win, NULL, NULL, &ws, &hs);
         scale = (w < h) ? (float)(hs) / (float)h : (float)(ws) / (float)w;
-        etui_object_page_scale_set(doc->obj, scale, scale);
+        etui_object_page_scale_set(doc->obj, scale);
 
         /* no more scrollbar */
         elm_scroller_policy_set(doc->sc,
@@ -161,7 +161,7 @@ _etui_doc_fullscreen_set(const Etui *etui, Eina_Bool on)
                                 ELM_SCROLLER_POLICY_AUTO);
 
         /* we restore the scale */
-        etui_object_page_scale_set(doc->obj, doc->scale, doc->scale);
+        etui_object_page_scale_set(doc->obj, doc->scale);
     }
 
     /* FIXME: is it necessary ? */
@@ -497,7 +497,7 @@ etui_doc_add(Etui *etui, Etui_File *ef)
     elm_box_pack_end(doc->bx, doc->obj);
     evas_object_show(doc->obj);
 
-    etui_object_page_scale_get(doc->obj, &doc->scale, NULL);
+    doc->scale = etui_object_page_scale_get(doc->obj);
 
     elm_object_focus_set(doc->sc, EINA_TRUE);
 

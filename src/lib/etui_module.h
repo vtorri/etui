@@ -55,8 +55,8 @@ struct _Etui_Module_Func
     void              (*page_size_get)(void *d, int *width, int *height);
     Eina_Bool         (*page_rotation_set)(void *d, Etui_Rotation rotation);
     Etui_Rotation     (*page_rotation_get)(void *d);
-    Eina_Bool         (*page_scale_set)(void *d, float hscale, float vscale);
-    void              (*page_scale_get)(void *d, float *hscale, float *vscale);
+    Eina_Bool         (*page_scale_set)(void *d, double scale);
+    double            (*page_scale_get)(void *d);
     void              (*page_render_pre)(void *d);
     void              (*page_render)(void *d);
     void              (*page_render_end)(void *d);
