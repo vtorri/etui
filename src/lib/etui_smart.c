@@ -376,14 +376,14 @@ _etui_smart_page_eval(Etui_Smart_Data *sd)
          scale = sd->module->functions->page_scale_get(sd->module->data);
          ow = scale * ow;
          oh = scale * oh;
+         evas_object_size_hint_min_set(sd->frame, ow, oh);
          break;
      }
-//   evas_object_size_hint_min_set(sd->frame, ow, oh);
    ox = ((w - ow) / 2.0) + (double)x + 0.5;
    oy = ((h - oh) / 2.0) + (double)y + 0.5;
    fprintf(stderr, "EVAL FRAME(%d, %d, %d, %d), OBJ(%d, %d, %d, %d) scaling %f\n",
            x, y, w, h, ox, oy, ow, oh, scale);
-   //   sd->module->functions->page_scale_set(sd->module->data, scale, scale);
+  // sd->module->functions->page_scale_set(sd->module->data, scale);
    evas_object_move(sd->obj, ox, oy);
    evas_object_resize(sd->obj, ow, oh);
 }
