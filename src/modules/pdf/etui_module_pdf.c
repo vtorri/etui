@@ -651,6 +651,7 @@ _etui_pdf_page_set(void *d, int page_num)
         return EINA_FALSE;
     }
 
+    /* TODO SEGV HERE !!!! */
     if (md->page.page)
         fz_drop_page(md->doc.ctx, md->page.page);
 
