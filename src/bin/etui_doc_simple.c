@@ -115,14 +115,8 @@ _etui_doc_search_add(Etui *etui)
 static void
 _etui_doc_zoom(const Etui_Doc_Simple *doc)
 {
-    int w;
-    int h;
-
-    etui_object_page_scale_set(doc->obj, doc->scale);
     etui_object_page_mode_set(doc->obj, ETUI_MODE_FREE);
-    evas_object_geometry_get(doc->obj, NULL, NULL, &w, &h);
-    evas_object_size_hint_min_set(doc->obj, w, h);
-    evas_object_size_hint_max_set(doc->obj, w, h);
+    etui_object_page_scale_set(doc->obj, doc->scale);
 }
 
 static void
