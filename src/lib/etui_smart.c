@@ -141,7 +141,7 @@ _etui_smart_add(Evas_Object *obj)
     EINA_REFCOUNT_INIT(sd);
 
     frame = evas_object_rectangle_add(evas_object_evas_get(obj));
-    evas_object_smart_member_add(frame, obj);
+    evas_object_smart_member_add(obj, frame);
     evas_object_color_set(frame, 255, 255, 255, 255);
     evas_object_show(frame);
     sd->frame = frame;
@@ -376,14 +376,13 @@ _etui_smart_page_eval(Etui_Smart_Data *sd)
          scale = sd->module->functions->page_scale_get(sd->module->data);
          ow = scale * ow;
          oh = scale * oh;
-         evas_object_size_hint_min_set(sd->frame, ow, oh);
          break;
      }
    ox = ((w - ow) / 2.0) + (double)x + 0.5;
    oy = ((h - oh) / 2.0) + (double)y + 0.5;
    fprintf(stderr, "EVAL FRAME(%d, %d, %d, %d), OBJ(%d, %d, %d, %d) scaling %f\n",
            x, y, w, h, ox, oy, ow, oh, scale);
-  // sd->module->functions->page_scale_set(sd->module->data, scale);
+   // sd->module->functions->page_scale_set(sd->module->data, scale);
    evas_object_move(sd->obj, ox, oy);
    evas_object_resize(sd->obj, ow, oh);
 }
@@ -584,6 +583,7 @@ EAPI void
 etui_object_page_scale_set(Evas_Object *obj, double scale)
 {
     Etui_Smart_Data *sd;
+    Evas_Coord w, h;
 
     ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
@@ -591,6 +591,24 @@ etui_object_page_scale_set(Evas_Object *obj, double scale)
     if (sd->module->functions->page_scale_set(sd->module->data, scale))
     {
         sd->module->functions->page_render_pre(sd->module->data);
+        _etui_smart_page_eval(sd);
+        evas_object_geometry_get(sd->obj, NULL, NULL, &w, &h);
+        switch (sd->mode)
+        {
+           case ETUI_MODE_FREE:
+              evas_object_size_hint_min_set(obj, w, h);
+              break;
+           case ETUI_MODE_FIT_WIDTH:
+              evas_object_size_hint_min_set(obj, 0, h);
+              break;
+           case ETUI_MODE_FIT_HEIGHT:
+              evas_object_size_hint_min_set(obj, w, 0);
+              break;
+           case ETUI_MODE_FIT_AUTO:
+           case ETUI_MODE_UNKNOWN:
+              evas_object_size_hint_min_set(obj, 0, 0);
+              break;
+        }
         evas_object_smart_changed(obj);
     }
     fprintf(stderr, " %s 2\n", __FUNCTION__);
