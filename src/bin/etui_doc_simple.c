@@ -115,8 +115,16 @@ _etui_doc_search_add(Etui *etui)
 static void
 _etui_doc_zoom(const Etui_Doc_Simple *doc)
 {
+    double rx, ry;
+    Evas_Coord w, h;
+
+    elm_scroller_page_relative_get(doc->sc, &rx, &ry);
     etui_object_page_mode_set(doc->obj, ETUI_MODE_FREE);
     etui_object_page_scale_set(doc->obj, doc->scale);
+    etui_object_page_size_get(doc->obj, &w, &h);
+    elm_scroller_page_size_set(doc->sc, w, h);
+    elm_scroller_page_relative_set(doc->sc, rx, ry);
+    printf("RELATIVE %f %f\n", rx, ry);
 }
 
 static void
@@ -127,7 +135,7 @@ _etui_doc_fullscreen_set(const Etui *etui, Eina_Bool on)
     int h;
 
     doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
-
+#if 0
     if (on)
     {
         float scale;
@@ -157,11 +165,7 @@ _etui_doc_fullscreen_set(const Etui *etui, Eina_Bool on)
         /* we restore the scale */
         etui_object_page_scale_set(doc->obj, doc->scale);
     }
-
-    /* FIXME: is it necessary ? */
-    evas_object_geometry_get(doc->obj, NULL, NULL, &w, &h);
-    evas_object_size_hint_min_set(doc->obj, w, h);
-    evas_object_size_hint_max_set(doc->obj, w, h);
+#endif
 
     elm_win_fullscreen_set(etui->window.win, on);
 }
@@ -481,11 +485,9 @@ etui_doc_add(Etui *etui, Etui_File *ef)
     evas_object_show(doc->bx);
 
     doc->obj = etui_object_add(evas_object_evas_get(etui->window.win));
-    printf("Mode set lolollol\n");
     etui_object_page_mode_set(doc->obj, ETUI_MODE_FIT_AUTO);
     etui_object_file_set(doc->obj, doc->ef);
     etui_object_page_set(doc->obj, 0);
-    evas_object_geometry_get(doc->obj, NULL, NULL, &width, &height);
     evas_object_size_hint_weight_set(doc->obj, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_fill_set(doc->obj, EVAS_HINT_FILL, EVAS_HINT_FILL);
     elm_box_pack_end(doc->bx, doc->obj);
