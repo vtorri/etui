@@ -858,10 +858,18 @@ _etui_pdf_page_render(void *d)
     fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
     width = ibounds.x1 - ibounds.x0;
     height = ibounds.y1 - ibounds.y0;
+#ifdef HAVE_MUPDF_1_11
     image = fz_new_pixmap_with_bbox_and_data(md->doc.ctx,
                                              fz_device_bgr(md->doc.ctx),
                                              &ibounds, 1,
                                              (unsigned char *)md->efl.m);
+#endif
+#ifdef HAVE_MUPDF_1_12
+    image = fz_new_pixmap_with_bbox_and_data(md->doc.ctx,
+                                             fz_device_bgr(md->doc.ctx),
+                                             &ibounds, NULL, 1,
+                                             (unsigned char *)md->efl.m);
+#endif
 
     fz_clear_pixmap_with_value(md->doc.ctx, image, 0xff);
     dev = fz_new_draw_device(md->doc.ctx, NULL, image);
