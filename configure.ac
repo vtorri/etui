@@ -184,7 +184,7 @@ else
 echo "    DjVu...............: ${enable_djvu}"
 fi
 echo "    Epub...............: ${enable_epub}"
-echo "    PDF................: ${enable_pdf}"
+echo "    PDF................: ${enable_pdf} ${mupdf_version}"
 echo "    Postscript.........: ${enable_ps}"
 echo "    Tiff...............: ${enable_tiff}"
 echo "    Txt................: ${enable_txt}"
