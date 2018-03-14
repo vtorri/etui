@@ -96,8 +96,8 @@ see pkgbuild/PKGBUILD
 Gentoo:
 ./configure --enable-gpl --with-mupdf-shared-libs="-lmupdf"
 
-OpenBSD:
-./configure --enable-gpl --with-mupdf-shared-libs="-L/usr/local/lib -lmupdf -lmupdfthird"
+OpenBSD or FreeBsd:
+./configure --enable-gpl --with-mupdf-includedir=-I/usr/local/include --with-mupdf-shared-libs="-L/usr/local/lib -lmupdf -lmupdfthird"
 
 
 Key bindings: ([C] means can be configured)
