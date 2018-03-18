@@ -521,10 +521,9 @@ _etui_djvu_page_render(void *d)
     stride = ddjvu_page_get_width(md->page.page) * 4;
 
     if (!ddjvu_page_render(md->page.page, DDJVU_RENDER_COLOR, &prect, &rrect, format, stride, md->efl.m))
-    {
         ERR("could not render page");
-        ddjvu_format_release(format);
-    }
+
+    ddjvu_format_release(format);
 }
 
 static void
