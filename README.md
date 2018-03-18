@@ -79,7 +79,7 @@ CHM:
 Compilation:
 ------------
 
-Common usage of configure. Here are some example to compile with PDF and DJVU support:
+Common usage of configure (created by autogen.sh). Here are some example to compile with PDF and DJVU support:
 
 Windows (MinGW 32bits):
 ./configure --host=i686-w64-mingw32 --disable-static --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs="-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a"
@@ -96,8 +96,8 @@ see pkgbuild/PKGBUILD
 Gentoo:
 ./configure --enable-gpl --with-mupdf-shared-libs="-lmupdf"
 
-OpenBSD:
-./configure --enable-gpl --with-mupdf-shared-libs="-L/usr/local/lib -lmupdf -lmupdfthird"
+OpenBSD or FreeBsd:
+./configure --enable-gpl --with-mupdf-includedir=-I/usr/local/include --with-mupdf-shared-libs="-L/usr/local/lib -lmupdf -lmupdfthird"
 
 
 Key bindings: ([C] means can be configured)

@@ -125,6 +125,7 @@ dnl use: ETUI_CHECK_DEP_PDF(want_static[, ACTION-IF-FOUND[, ACTION-IF-NOT-FOUND]
 AC_DEFUN([ETUI_CHECK_DEP_PDF],
 [
 
+mupdf_version=""
 MUPDF_DEPS_CFLAGS=""
 MUPDF_DEPS_LIBS=""
 
@@ -250,17 +251,65 @@ if test "x${have_mupdf_dep}" = "xyes" ; then
    LIBS_save="$LIBS"
    CFLAGS="${MUPDF_CFLAGS} $CFLAGS"
    LIBS="${MUPDF_STATIC_LIBS} ${MUPDF_SHARED_LIBS} ${MUPDF_DEPS_LIBS} $LIBS -lm"
-   AC_LINK_IFELSE(
+   AC_RUN_IFELSE(
       [AC_LANG_PROGRAM(
           [[
-#include <mupdf/fitz.h>
+#include <stdlib.h>
+#include <string.h>
+#include <mupdf/fitz/version.h>
           ]],
           [[
-   fz_context *ctx;
-   ctx = fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
+   size_t sz = strlen(FZ_VERSION);
+   return !((sz >= 4) &&
+            (FZ_VERSION[0] == '1') &&
+            (FZ_VERSION[1] == '.') &&
+            (FZ_VERSION[2] == '1') &&
+            (FZ_VERSION[3] == '2'));
           ]])],
-      [have_dep="yes"],
-      [have_dep="no"])
+      [
+       have_dep="yes"
+       have_mupdf_dep="yes"
+       mupdf_version="(mupdf 1.12)"
+       AC_DEFINE([HAVE_MUPDF_1_12], [1], [Set to 1 if mupdf 1.12 is found])
+      ],
+      [
+       have_dep="no"
+       have_mupdf_dep="no"
+      ])
+   CFLAGS="$CFLAGS_save"
+   LIBS="$LIBS_save"
+fi
+
+if test "x${have_mupdf_dep}" = "xno" ; then
+   CFLAGS_save="$CFLAGS"
+   LIBS_save="$LIBS"
+   CFLAGS="${MUPDF_CFLAGS} $CFLAGS"
+   LIBS="${MUPDF_STATIC_LIBS} ${MUPDF_SHARED_LIBS} ${MUPDF_DEPS_LIBS} $LIBS -lm"
+   AC_RUN_IFELSE(
+      [AC_LANG_PROGRAM(
+          [[
+#include <stdlib.h>
+#include <string.h>
+#include <mupdf/fitz/version.h>
+          ]],
+          [[
+   size_t sz = strlen(FZ_VERSION);
+   return !((sz >= 4) &&
+            (FZ_VERSION[0] == '1') &&
+            (FZ_VERSION[1] == '.') &&
+            (FZ_VERSION[2] == '1') &&
+            (FZ_VERSION[3] == '1'));
+          ]])],
+      [
+       have_dep="yes"
+       have_mupdf_dep="yes"
+       mupdf_version="(mupdf 1.11)"
+       AC_DEFINE([HAVE_MUPDF_1_11], [1], [Set to 1 if mupdf 1.11 is found])
+      ],
+      [
+       have_dep="no"
+       have_mupdf_dep="no"
+      ])
    CFLAGS="$CFLAGS_save"
    LIBS="$LIBS_save"
 fi

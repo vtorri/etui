@@ -190,7 +190,7 @@ etui_file_is_epub(const char *filename EINA_UNUSED,
 {
     Eina_Bool res = EINA_FALSE;
 
-    if ((sz >= 48) && /* first local file header should be large enough */
+    if ((size >= 48) && /* first local file header should be large enough */
         (_uint32_get(base) == 0x04034b50) && /* ZIP file */
         ((_uint16_get(base + 4) == 10) || /* version needed to extract */
          (_uint16_get(base + 4) == 20) || /* version needed to extract */
