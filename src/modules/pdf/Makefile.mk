@@ -6,10 +6,15 @@ src/modules/pdf/etui_module_pdf.c \
 src/modules/pdf/etui_module_pdf.h
 
 src_lib_libetui_la_CPPFLAGS += \
+-I$(top_srcdir)/src/lib \
 @MUPDF_CFLAGS@
 
 src_lib_libetui_la_LIBADD += \
-@MUPDF_LIBS@
+@MUPDF_DEPS_LIBS@ \
+@MUPDF_SHARED_LIBS@
+
+src_lib_libetui_la_LDFLAGS += \
+@MUPDF_STATIC_LIBS@
 
 else
 

@@ -6,6 +6,7 @@ src/modules/djvu/etui_module_djvu.c \
 src/modules/djvu/etui_module_djvu.h
 
 src_lib_libetui_la_CPPFLAGS += \
+-I$(top_srcdir)/src/lib \
 @DJVU_CFLAGS@
 
 src_lib_libetui_la_CFLAGS += \

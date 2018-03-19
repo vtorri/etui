@@ -6,6 +6,7 @@ src/modules/cb/etui_module_cb.c \
 src/modules/cb/etui_module_cb.h
 
 src_lib_libetui_la_CPPFLAGS += \
+-I$(top_srcdir)/src/lib \
 @CB_CFLAGS@
 
 src_lib_libetui_la_CFLAGS += \

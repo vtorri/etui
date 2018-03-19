@@ -6,6 +6,7 @@ src/modules/tiff/etui_module_tiff.c \
 src/modules/tiff/etui_module_tiff.h
 
 src_lib_libetui_la_CPPFLAGS += \
+-I$(top_srcdir)/src/lib \
 @TIFF_CFLAGS@
 
 src_lib_libetui_la_CFLAGS += \

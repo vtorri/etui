@@ -662,7 +662,7 @@ static Etui_Module_Api _etui_modapi =
 
 ETUI_MODULE_DEFINE(tiff)
 
-#ifndef ETUI_STATIC_BUILD_TIFF
+#ifndef ETUI_BUILD_STATIC_TIFF
 ETUI_EINA_MODULE_DEFINE(tiff);
 #endif
 

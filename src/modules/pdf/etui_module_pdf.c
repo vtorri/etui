@@ -1018,7 +1018,7 @@ static Etui_Module_Api _etui_modapi =
 
 ETUI_MODULE_DEFINE(pdf)
 
-#ifndef ETUI_STATIC_BUILD_PDF
+#ifndef ETUI_BUILD_STATIC_PDF
 ETUI_EINA_MODULE_DEFINE(pdf);
 #endif
 

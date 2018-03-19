@@ -711,7 +711,7 @@ static Etui_Module_Api _etui_modapi =
 
 ETUI_MODULE_DEFINE(cb)
 
-#ifndef ETUI_STATIC_BUILD_CB
+#ifndef ETUI_BUILD_STATIC_CB
 ETUI_EINA_MODULE_DEFINE(cb);
 #endif
 

@@ -21,11 +21,13 @@
 
 /* Used at the end of module source file for static linking */
 #define ETUI_MODULE_DEFINE(Name) \
-    static Eina_Bool etui_##Name##_init(void) \
+    Eina_Bool etui_##Name##_init(void);  \
+    Eina_Bool etui_##Name##_init(void) \
     { \
         return etui_module_register(&_etui_modapi); \
     } \
-    static void etui_##Name##_shutdown(void) \
+    void etui_##Name##_shutdown(void); \
+    void etui_##Name##_shutdown(void) \
     { \
         etui_module_unregister(&_etui_modapi); \
     }

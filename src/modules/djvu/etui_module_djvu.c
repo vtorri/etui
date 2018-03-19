@@ -648,7 +648,7 @@ static Etui_Module_Api _etui_modapi =
 
 ETUI_MODULE_DEFINE(djvu)
 
-#ifndef ETUI_STATIC_BUILD_DJVU
+#ifndef ETUI_BUILD_STATIC_DJVU
 ETUI_EINA_MODULE_DEFINE(djvu);
 #endif
 
