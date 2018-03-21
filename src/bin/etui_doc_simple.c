@@ -501,7 +501,7 @@ etui_doc_add(Etui *etui, Etui_File *ef)
 
     elm_object_part_content_set(etui->window.base, "doc:etui.content", doc->sc);
 
-    evas_object_event_callback_add(etui->window.win, EVAS_CALLBACK_KEY_DOWN,
+    evas_object_event_callback_add(doc->sc, EVAS_CALLBACK_KEY_DOWN,
                                    _etui_doc_key_down_cb, etui);
     evas_object_event_callback_add(doc->sc, EVAS_CALLBACK_MOUSE_DOWN,
                                    _etui_doc_mouse_down_cb, etui);
