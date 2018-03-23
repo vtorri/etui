@@ -50,7 +50,7 @@ struct Etui_File_s
 
 static Eina_Bool
 etui_file_is_cb(const char *filename,
-                unsigned char *base, size_t size)
+                const unsigned char *base, size_t size)
 {
     /* check the file name extension and the signatures if any */
 
@@ -115,7 +115,8 @@ etui_file_is_cb(const char *filename,
 
 static Eina_Bool
 etui_file_is_cb(const char *filename EINA_UNUSED,
-                unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
+                const unsigned char *base EINA_UNUSED,
+                size_t size EINA_UNUSED)
 {
     INF("Comic Book files not supported (check if libarchive is installed and correctly found");
     return EINA_FALSE;
@@ -129,7 +130,7 @@ etui_file_is_cb(const char *filename EINA_UNUSED,
 
 static Eina_Bool
 etui_file_is_djvu(const char *filename EINA_UNUSED,
-                  unsigned char *base, size_t size)
+                  const unsigned char *base, size_t size)
 {
     if (size < 4)
     {
@@ -160,7 +161,8 @@ etui_file_is_djvu(const char *filename EINA_UNUSED,
 
 static Eina_Bool
 etui_file_is_djvu(const char *filename EINA_UNUSED,
-                  unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
+                  const unsigned char *base EINA_UNUSED,
+                  size_t size EINA_UNUSED)
 {
     INF("DJVU files not supported (check if djvulibre is installed and correctly found");
     return EINA_FALSE;
@@ -173,20 +175,20 @@ etui_file_is_djvu(const char *filename EINA_UNUSED,
 #ifdef ETUI_BUILD_EPUB
 
 static inline unsigned int
-_uint32_get(unsigned char *ptr)
+_uint32_get(const unsigned char *ptr)
 {
   return ptr[0] | (ptr[1] << 8) | (ptr[2] << 16) | (ptr[3] << 24);
 }
 
 static inline unsigned short
-_uint16_get(unsigned char *ptr)
+_uint16_get(const unsigned char *ptr)
 {
   return ptr[0] | (ptr[1] << 8);
 }
 
 static Eina_Bool
 etui_file_is_epub(const char *filename EINA_UNUSED,
-                  unsigned char *base, size_t size)
+                  const unsigned char *base, size_t size)
 {
     Eina_Bool res = EINA_FALSE;
 
@@ -213,7 +215,8 @@ etui_file_is_epub(const char *filename EINA_UNUSED,
 
 static Eina_Bool
 etui_file_is_epub(const char *filename EINA_UNUSED,
-                  unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
+                  const unsigned char *base EINA_UNUSED,
+                  size_t size EINA_UNUSED)
 {
     return EINA_FALSE;
 }
@@ -225,48 +228,74 @@ etui_file_is_epub(const char *filename EINA_UNUSED,
 #ifdef ETUI_BUILD_PDF
 
 static Eina_Bool
-etui_file_is_pdf(const char *filename EINA_UNUSED,
-                 unsigned char *base, size_t size)
+_pdf_has_sig(const unsigned char *ptr)
 {
+    return ((ptr[0] == '%') &&
+            (ptr[1] == 'P') &&
+            (ptr[2] == 'D') &&
+            (ptr[3] == 'F') &&
+            (ptr[4] == '-') &&
+            (ptr[5] == '1') &&
+            (ptr[6] == '.') &&
+            (ptr[7] >= '0') &&
+            (ptr[7] <= '7'));
+}
+
+static Eina_Bool
+etui_file_is_pdf(const char *filename EINA_UNUSED,
+                 const unsigned char *base, size_t size)
+{
+    const unsigned char *iter;
+
     if (size < 8)
     {
         INF("File %s too smal to be a PDF file", filename);
         return EINA_FALSE;
     }
 
-    if (!((base[0] == '%') &&
-          (base[1] == 'P') &&
-          (base[2] == 'D') &&
-          (base[3] == 'F') &&
-          (base[4] == '-') &&
-          (base[5] == '1') &&
-          (base[6] == '.') &&
-          (base[7] >= '0') &&
-          (base[7] <= '7')))
+    /*
+     * ISO specifications of PDF indicates that a PDF file must
+     * begin with %PDF-1.n ...
+     */
+    if (_pdf_has_sig(base))
     {
-        INF("File %s has magic number %c%c%c%c%c%c%c%c but is not a valid PDF one",
-            filename,
-            base[0],
-            base[1],
-            base[2],
-            base[3],
-            base[4],
-            base[5],
-            base[6],
-            base[7]);
-        return EINA_FALSE;
+        INF("%s is a PDF file", filename);
+        return EINA_TRUE;
     }
 
-    INF("%s is a PDF file", filename);
+    /*
+     * ... but Acrobat(r) one indicates that a PDF file must
+     * have %PDF-1.n whitin the first 1024 bytes.
+     */
+    iter = base;
+    INF("%s does not begin with %%PDF-1.m, trying to find it in its first KB",
+        filename);
 
-    return EINA_TRUE;
+    while ((size_t)(iter - base) < size)
+    {
+        /* %PDF-1.n not in the first 1024 bytes, so not a PDF file */
+        if ((iter - base) > 1024 - 8)
+            break;
+
+        if (_pdf_has_sig(iter))
+        {
+            INF("%s is a PDF file", filename);
+            return EINA_TRUE;
+        }
+
+        iter++;
+    }
+
+    INF("%%PDF-1.m not found in the first 1KB of %s", filename);
+    return EINA_FALSE;
 }
 
 #else
 
 static Eina_Bool
 etui_file_is_pdf(const char *filename EINA_UNUSED,
-                 unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
+                 const unsigned char *base EINA_UNUSED,
+                 size_t size EINA_UNUSED)
 {
     INF("PDF files not supported (check if muPDF is installed and correctly found");
     return EINA_FALSE;
@@ -280,7 +309,7 @@ etui_file_is_pdf(const char *filename EINA_UNUSED,
 
 static Eina_Bool
 etui_file_is_ps(const char *filename EINA_UNUSED,
-                unsigned char *base, size_t size)
+                const unsigned char *base, size_t size)
 {
     Eina_Bool res = EINA_FALSE;
 
@@ -293,7 +322,7 @@ etui_file_is_ps(const char *filename EINA_UNUSED,
      * 2.1
      * 3.0
      * but we check only intervals {1,2,3} for major version
-     * and {0, 1, 2} or minor version
+     * and {0, 1, 2} for minor version
      */
 
     if ((size >= 14) &&
@@ -324,7 +353,8 @@ etui_file_is_ps(const char *filename EINA_UNUSED,
 
 static Eina_Bool
 etui_file_is_ps(const char *filename EINA_UNUSED,
-                unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
+                const unsigned char *base EINA_UNUSED,
+                size_t size EINA_UNUSED)
 {
     return EINA_FALSE;
 }
@@ -343,7 +373,7 @@ typedef struct
 
 static Eina_Bool
 etui_file_is_tiff(const char *filename EINA_UNUSED,
-                  unsigned char *base, size_t size)
+                  const unsigned char *base, size_t size)
 {
     Tiff_Header *hdr;
 
@@ -370,10 +400,10 @@ etui_file_is_tiff(const char *filename EINA_UNUSED,
 
 # if WORDS_BIGENDIAN == 1
     {
-        unsigned char *s;
+        const unsigned char *s;
         unsigned char tmp;
 
-        s = (unsigned char *)(hdr + 2);
+        s = (const unsigned char *)(hdr + 2);
         tmp = *s;
         *s = *(s + 1);
         *(s + 1) = tmp;
@@ -411,7 +441,8 @@ etui_file_is_tiff(const char *filename EINA_UNUSED,
 
 static Eina_Bool
 etui_file_is_tiff(const char *filename EINA_UNUSED,
-                  unsigned char *base EINA_UNUSED, size_t size EINA_UNUSED)
+                  const unsigned char *base EINA_UNUSED,
+                  size_t size EINA_UNUSED)
 {
     INF("TIFF files not supported (check if tifflib is installed and correctly found");
     return EINA_FALSE;
