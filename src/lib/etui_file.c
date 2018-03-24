@@ -485,6 +485,7 @@ etui_file_new (const char *filename)
     char file[PATH_MAX];
     Etui_File *ef;
     Etui_Module *module;
+    void *module_data;
     const char *module_name = NULL;
     char *res;
 
@@ -533,9 +534,19 @@ etui_file_new (const char *filename)
 
     /* FIXME: XPS, txt, DVI */
 
-    INF("module name: %s", module_name);
+    INF("automagic module name: %s", module_name);
 
     module = etui_module_find(module_name);
+    if (module)
+    {
+        module_data = module->functions->init(ef);
+        if (!module_data)
+        {
+            etui_module_unload(module);
+            module = NULL;
+        }
+    }
+
     if (!module)
     {
         Eina_List *l;
@@ -544,9 +555,19 @@ etui_file_new (const char *filename)
         l = etui_module_list();
         EINA_LIST_FOREACH(l, ll, module_name)
         {
+            INF("searching module name: %s", module_name);
             module = etui_module_find(module_name);
             if (module)
-                break;
+            {
+                module_data = module->functions->init(ef);
+                if (!module_data)
+                {
+                    etui_module_unload(module);
+                    module = NULL;
+                }
+                else
+                    break;
+            }
         }
     }
 
@@ -556,19 +577,12 @@ etui_file_new (const char *filename)
         goto close_file;
     }
 
-    module->data = module->functions->init(ef);
-    if (!module->data)
-    {
-        ERR("can not initialize file object");
-        goto unload_module;
-    }
+    module->data = module_data;
 
     ef->module = module;
 
     return ef;
 
-  unload_module:
-    etui_module_unload(ef->module);
   close_file:
     eina_file_close(ef->file);
   free_filename:
