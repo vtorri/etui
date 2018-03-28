@@ -314,6 +314,41 @@ if test "x${have_mupdf_dep}" = "xno" ; then
    LIBS="$LIBS_save"
 fi
 
+if test "x${have_mupdf_dep}" = "xno" ; then
+   CFLAGS_save="$CFLAGS"
+   LIBS_save="$LIBS"
+   CFLAGS="${MUPDF_CFLAGS} $CFLAGS"
+   LIBS="${MUPDF_STATIC_LIBS} ${MUPDF_SHARED_LIBS} ${MUPDF_DEPS_LIBS} $LIBS -lm"
+   AC_RUN_IFELSE(
+      [AC_LANG_PROGRAM(
+          [[
+#include <stdlib.h>
+#include <string.h>
+#include <mupdf/fitz/version.h>
+          ]],
+          [[
+   size_t sz = strlen(FZ_VERSION);
+   return !((sz >= 5) &&
+            (FZ_VERSION[0] == '1') &&
+            (FZ_VERSION[1] == '.') &&
+            (FZ_VERSION[2] == '1') &&
+            (FZ_VERSION[3] == '0') &&
+            (FZ_VERSION[4] == 'a'));
+          ]])],
+      [
+       have_dep="yes"
+       have_mupdf_dep="yes"
+       mupdf_version="(mupdf 1.10a)"
+       AC_DEFINE([HAVE_MUPDF_1_11], [1], [Set to 1 if mupdf 1.11 is found])
+      ],
+      [
+       have_dep="no"
+       have_mupdf_dep="no"
+      ])
+   CFLAGS="$CFLAGS_save"
+   LIBS="$LIBS_save"
+fi
+
 if test "x$1" = "xstatic" ; then
    requirements_etui_pc="${requirements_pc} ${requirements_etui_pc}"
    requirements_etui_libs="${requirements_libs} ${requirements_etui_libs}"
