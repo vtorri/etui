@@ -342,7 +342,7 @@ _etui_doc_key_down_cb(void *data,
                 Eina_Rectangle *r;
                 const Etui_Module_Pdf_Api *api;
                 Eina_Inarray *a;
-                int page;
+                int page = 0;
                 int num_pages;
                 int i;
 
