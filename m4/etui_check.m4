@@ -248,6 +248,35 @@ fi
 dnl muPDF
 if test "x${have_mupdf_dep}" = "xyes" ; then
    CFLAGS_save="$CFLAGS"
+   CFLAGS="${MUPDF_CFLAGS} $CFLAGS"
+   AC_COMPILE_IFELSE(
+      [AC_LANG_PROGRAM(
+          [[
+#include <mupdf/fitz/version.h>
+          ]],
+          [[
+#if !((FZ_VERSION_MAJOR >= 1) && (FZ_VERSION_MINOR >= 13))
+#error mupdf < 1.13
+#endif
+          ]])],
+      [
+       have_dep="yes"
+       have_mupdf_dep="yes"
+       mupdf_version="(mupdf 1.13)"
+       AC_DEFINE([HAVE_MUPDF_1_12], [1], [Set to 1 if mupdf 1.13 is found])
+      ],
+      [
+       have_dep="no"
+       have_mupdf_dep="no"
+      ])
+   CFLAGS="$CFLAGS_save"
+
+   AC_MSG_CHECKING([mupdf 1.13 is available])
+   AC_MSG_RESULT([${have_mupdf_dep}])
+fi
+
+if test "x${have_mupdf_dep}" = "xno" ; then
+   CFLAGS_save="$CFLAGS"
    LIBS_save="$LIBS"
    CFLAGS="${MUPDF_CFLAGS} $CFLAGS"
    LIBS="${MUPDF_STATIC_LIBS} ${MUPDF_SHARED_LIBS} ${MUPDF_DEPS_LIBS} $LIBS -lm"
@@ -278,6 +307,9 @@ if test "x${have_mupdf_dep}" = "xyes" ; then
       ])
    CFLAGS="$CFLAGS_save"
    LIBS="$LIBS_save"
+
+   AC_MSG_CHECKING([mupdf 1.12 is available])
+   AC_MSG_RESULT([${have_mupdf_dep}])
 fi
 
 if test "x${have_mupdf_dep}" = "xno" ; then
@@ -312,6 +344,9 @@ if test "x${have_mupdf_dep}" = "xno" ; then
       ])
    CFLAGS="$CFLAGS_save"
    LIBS="$LIBS_save"
+
+   AC_MSG_CHECKING([mupdf 1.11 is available])
+   AC_MSG_RESULT([${have_mupdf_dep}])
 fi
 
 if test "x${have_mupdf_dep}" = "xno" ; then
@@ -339,7 +374,7 @@ if test "x${have_mupdf_dep}" = "xno" ; then
        have_dep="yes"
        have_mupdf_dep="yes"
        mupdf_version="(mupdf 1.10a)"
-       AC_DEFINE([HAVE_MUPDF_1_11], [1], [Set to 1 if mupdf 1.11 is found])
+       AC_DEFINE([HAVE_MUPDF_1_11], [1], [Set to 1 if mupdf 1.10a is found])
       ],
       [
        have_dep="no"
@@ -347,6 +382,9 @@ if test "x${have_mupdf_dep}" = "xno" ; then
       ])
    CFLAGS="$CFLAGS_save"
    LIBS="$LIBS_save"
+
+   AC_MSG_CHECKING([mupdf 1.10a is available])
+   AC_MSG_RESULT([${have_mupdf_dep}])
 fi
 
 if test "x$1" = "xstatic" ; then
