@@ -3,105 +3,95 @@
        src="https://scan.coverity.com/projects/13637/badge.svg"/>
 </a>
 
-étui : a multiple document library and viewer
+### Ã‰tui 
+##### A multiple document library and viewer
 
-License:
---------
+### License:
 
 This library is released under the GPL v3 license
 
-Library:
---------
+### Library:
 
- Requirements:
-  Evil (on Windows)
-  Eina
-  Eet
-  Ecore
-  Evas
-  Eio
+ **Requirements** :
+ 
+  * Evil (on Windows)
+  * Eina
+  * Eet
+  * Ecore
+  * Evas
+  * Eio
 
-Binary:
--------
+### Binary:
 
- Requirements:
-  Evil (Windows)
-  Eina
-  Eet
-  Evas
-  Ecore
-  Ecore_Input
-  Elementary
+ **Requirements**:
+  * Evil (Windows)
+  * Eina
+  * Eet
+  * Evas
+  * Ecore
+  * Ecore_Input
+  * Elementary
 
-Supported backends:
--------------------
+### Supported backends (actual and planned):
 
-PDF and XPS
- Requirements:
-  zlib
-  freetype2
-  libopenjp2
-  muPDF 1.11
+- [x]**PDF** and **XPS**, 
+	- Requires *zlib, freetype2, libopenjp2, muPDF 1.11*.
 
-Comic Book (cbz, cbr, cb7, cbt, cba)
- Requirements:
-  libarchive
+- [x]**COMIC BOOK** (cbz, cbr, cb7, cbt, cba)
+	- Requires *libarchive*.
 
-DjVu:
- Requirements:
-  libdjvu (DjVuLibre)
+- [x]**DjVu**: 
+	- Requires *libdjvu (DjVuLibre)*
 
-TIFF:
- Requirements:
-  libtiff
+- [x]**TIFF**
+	- Requires *libtiff*.
 
-Future supported backends:
--------------------
+- [ ]**Postscript**
+	- ***Requirements***: *libgs*
+	- ***compilation***: *make so (debug mode: make sodebug)*
+	- ***installation***: *make soinstall (debug mode: make sodebuginstall)*
 
-Postscript
- Requirements:
-  libgs
-   compilation: make so (debug mode: make sodebug)
-   installation: make soinstall (debug mode: make sodebuginstall)
+- [ ]DVI
+	- Requires *libdvi*
 
-DVI
- Requirements:
-  libdvi
+- [ ]EPUB:
+	- Requires *libarchive*
 
-EPUB:
- Requirements:
-  libarchive
+- [ ]CHM:
+	- Requires *libarchive*
 
-CHM:
- Requirements:
-  libarchive
-
-Compilation:
-------------
+### Compilation:
 
 Common usage of configure (created by autogen.sh). Here are some example to compile with PDF and DJVU support:
 
-Windows (MinGW 32bits):
-./configure --host=i686-w64-mingw32 --disable-static --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs="-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a"
+- **Windows** (MinGW 32bits):
+```
+./configure --host=i686-w64-mingw32 --disable-static --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs="-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a
+```
 
-Windows (MinGW 64bits):
-./configure --host=x86_64-w64-mingw32 --disable-static --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs="-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a"
 
-Fedora:
-./configure --enable-gpl --with-mupdf-static-libs=-Wl,/usr/lib64/libmupdf.a --with-mupdf-shared-libs="-ljbig2dec"
+- **Windows** (MinGW 64bits):
+```
+./configure --host=x86_64-w64-mingw32 --disable-static --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs="-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a
+```
 
-ArchLinux:
-see pkgbuild/PKGBUILD
+- **Fedora**:
+```
+./configure --enable-gpl --with-mupdf-static-libs=-Wl,/usr/lib64/libmupdf.a --with-mupdf-shared-libs="-ljbig2dec
+```
+- **ArchLinux**: *See pkgbuild/PKGBUILD*
 
-Gentoo:
+- **Gentoo**:
+```
 ./configure --enable-gpl --with-mupdf-shared-libs="-lmupdf"
+```
 
-OpenBSD or FreeBsd:
+- **OpenBSD** or **FreeBsd**:
+```
 ./configure --enable-gpl --with-mupdf-includedir=-I/usr/local/include --with-mupdf-shared-libs="-L/usr/local/lib -lmupdf -lmupdfthird"
+```
 
-
-Key bindings: ([C] means can be configured)
--------------
+### Key bindings: ([C] means can be configureey bindings: ([C] means can be configured)
 
 Ctrl-q : quit
 Ctrl-o : open file
