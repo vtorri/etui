@@ -4,7 +4,7 @@
 </a>
 
 ### Étui 
-##### A multiple document library and viewer
+##### A Multiple Document Library and Viewer
 
 ### License:
 
@@ -14,37 +14,37 @@ This library is released under the GPL v3 license
 
  **Requirements** :
  
-  * Evil (on Windows)
-  * Eina
-  * Eet
-  * Ecore
-  * Evas
-  * Eio
+  - Evil (on Windows)
+  - Eina
+  - Eet
+  - Ecore
+  - Evas
+  - Eio
 
 ### Binary:
 
  **Requirements**:
-  * Evil (Windows)
-  * Eina
-  * Eet
-  * Evas
-  * Ecore
-  * Ecore_Input
-  * Elementary
+  - Evil (Windows)
+  - Eina
+  - Eet
+  - Evas
+  - Ecore
+  - Ecore_Input
+  - Elementary
 
 ### Supported backends (actual and planned):
 
-- [x]**PDF** and **XPS**, Requires *zlib, freetype2, libopenjp2, muPDF 1.11*.
-- [x]**COMIC BOOK** (cbz, cbr, cb7, cbt, cba), Requires *libarchive*.
-- [x]**DjVu**: Requires *libdjvu (DjVuLibre)*
-- [x]**TIFF**, Requires *libtiff*.
-- [ ]**Postscript**
+- [x] **PDF** and **XPS**, Requires *zlib, freetype2, libopenjp2, muPDF 1.11*.
+- [x] **COMIC BOOK** (cbz, cbr, cb7, cbt, cba), Requires *libarchive*.
+- [x] **DjVu**: Requires *libdjvu (DjVuLibre)*
+- [x] **TIFF**, Requires *libtiff*.
+- [ ] **Postscript**
 	- ***Requirements***: *libgs*
 	- ***compilation***: *make so (debug mode: make sodebug)*
 	- ***installation***: *make soinstall (debug mode: make sodebuginstall)*
-- [ ]**DVI**: Requires *libdvi*
-- [ ]**EPUB**: Requires *libarchive*
-- [ ]**CHM**: Requires *libarchive*
+- [ ] **DVI**: Requires *libdvi*
+- [ ] **EPUB**: Requires *libarchive*
+- [ ] **CHM**: Requires *libarchive*
 
 ### Compilation:
 
