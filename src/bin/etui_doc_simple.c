@@ -54,6 +54,11 @@ struct Etui_Doc_Simple_
     } search;
 };
 
+static void _etui_doc_key_down_cb(void *data,
+                                  Evas *_e EINA_UNUSED,
+                                  Evas_Object *_obj EINA_UNUSED,
+                                  void *event);
+
 static void
 _etui_doc_search_add(Etui *etui)
 {
@@ -85,6 +90,8 @@ _etui_doc_search_add(Etui *etui)
     elm_box_pack_end(doc->search.hbox, o);
     evas_object_show(o);
     doc->search.entry = o;
+    evas_object_event_callback_add(doc->search.entry, EVAS_CALLBACK_KEY_DOWN,
+                                   _etui_doc_key_down_cb, etui);
 
     o = elm_button_add(doc->sc);
     elm_object_style_set(o, "spinner/decrease/vertical");
@@ -135,7 +142,6 @@ _etui_doc_fullscreen_set(const Etui *etui, Eina_Bool on)
     int h;
 
     doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
-#if 0
     if (on)
     {
         float scale;
@@ -165,7 +171,6 @@ _etui_doc_fullscreen_set(const Etui *etui, Eina_Bool on)
         /* we restore the scale */
         etui_object_page_scale_set(doc->obj, doc->scale);
     }
-#endif
 
     elm_win_fullscreen_set(etui->window.win, on);
 }
