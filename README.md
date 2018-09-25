@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/vtorri/etui.svg?branch=master)](https://travis-ci.org/vtorri/etui)<a href="https://scan.coverity.com/projects/vtorri-etui">
   <img alt="Coverity Scan Build Status"
-       src="https://scan.coverity.com/projects/13637/badge.svg"/>
+​       src="https://scan.coverity.com/projects/13637/badge.svg"/>
 </a>
 
 ### Étui 
@@ -13,7 +13,7 @@ This library is released under the GPL v3 license
 ### Library:
 
  **Requirements** :
- 
+
   - Evil (on Windows)
   - Eina
   - Eet
@@ -79,25 +79,27 @@ Common usage of configure (created by autogen.sh). Here are some example to comp
 
 ### Key bindings: ([C] means can be configureey bindings: ([C] means can be configured)
 
-- Ctrl-q : quit
-- Ctrl-o : open file
-- [C] F1: help
-- [C] right arrow or space : next page
-- [C] left arrow or backspace : previous page
-- [C] page up : page + 10
-- [C] page down : page - 10
-- [C] F11: toggle fullscreen esc : exit fullscreen
-- [C] Ctrl-+ : scale * sqrt(2)
-- [C] Ctrl-- : scale / sqrt(2)
-- [C] Ctrl-0 : zoom to fit height (not done yet)
-- [C] Ctrl-1 : zoom to original size
-- [C] Ctrl-2 : zoom to fit width (not done yet)
-- [C] Ctrl-home : go to first page
-- [C] Ctrl-end : go to last page
+- **Ctrl + Q**: Quit
+- **Ctrl + O**: Open File
+- **[C] F1**: Help
+- **[C] Right Arrow** or **Space** : Next page
+- **[C] Left Arrow** or **Backspace** : Previous Page
+- **[C] Page Up** : Page + 10
+- **[C] Page Down** : Page - 10
+- **[C] F11**: Toggle Fullscreen Esc: Exit Fullscreen
+- **[C] Ctrl + +** : Scale * sqrt(2)
+- **[C] Ctrl + -** : Scale / sqrt(2)
+- **[C] Ctrl + 0** : Zoom to Fit Height (not done yet)
+- **[C] Ctrl + 1** : Zoom to Original Size
+- **[C] Ctrl + 2** : Zoom to Fit Width (not done yet)
+- **[C] Ctrl + Home** : Go To First Page
+- **[C] Ctrl + End** : Go To Last Page
 
 Mouse bindings:
 ---------------
 
-- double left click : toggle fullscreen
-- Ctrl-wheel up : scale * sqrt(2)
-- Ctrl-wheel down : scale / sqrt(2)
+- **Double Left Click** : Toggle Fullscreen
+
+- **Ctrl + Wheel Up** : Scale * sqrt(2)
+
+- **Ctrl - Wheel Down** : Scale / sqrt(2)
