@@ -1,7 +1,5 @@
-[![Build Status](https://travis-ci.org/vtorri/etui.svg?branch=master)](https://travis-ci.org/vtorri/etui)<a href="https://scan.coverity.com/projects/vtorri-etui">
-  <img alt="Coverity Scan Build Status"
-​       src="https://scan.coverity.com/projects/13637/badge.svg"/>
-</a>
+[![Build Status](https://travis-ci.org/vtorri/etui.svg?branch=master)](https://travis-ci.org/vtorri/etui)<a href="https://scan.coverity.com/projects/vtorri-etui"><img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/13637/badge.svg"/></a>
+
 
 ### Étui 
 ##### A Multiple Document Library and Viewer
