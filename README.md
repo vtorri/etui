@@ -51,26 +51,31 @@ This library is released under the GPL v3 license
 Common usage of configure (created by autogen.sh). Here are some example to compile with PDF and DJVU support:
 
 - **Windows** (MinGW 32bits):
+
 `
 ./configure --host=i686-w64-mingw32 --disable-static --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs="-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a
 `
 - **Windows** (MinGW 64bits):
+
 `
 ./configure --host=x86_64-w64-mingw32 --disable-static --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs="-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a
 `
 
 - **Fedora**:
+
 `
 ./configure --enable-gpl --with-mupdf-static-libs=-Wl,/usr/lib64/libmupdf.a --with-mupdf-shared-libs="-ljbig2dec
 `
 - **ArchLinux**: *See pkgbuild/PKGBUILD*
 
 - **Gentoo**:
+
 `
 ./configure --enable-gpl --with-mupdf-shared-libs="-lmupdf"
 `
 
 - **OpenBSD** or **FreeBsd**:
+
 `
 ./configure --enable-gpl --with-mupdf-includedir=-I/usr/local/include --with-mupdf-shared-libs="-L/usr/local/lib -lmupdf -lmupdfthird"
 `
