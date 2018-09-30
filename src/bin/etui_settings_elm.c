@@ -73,7 +73,7 @@ etui_settings_elm(Evas_Object *stbox, Evas_Object *_term EINA_UNUSED)
     elm_entry_context_menu_disabled_set(o, EINA_TRUE);
     elm_entry_editable_set(o, EINA_FALSE);
     elm_entry_line_wrap_set(o, ELM_WRAP_MIXED);
-    elm_object_text_set(o, "<em>Terminology</em> uses the <hilight>elementary</hilight> toolkit.<br>"
+    elm_object_text_set(o, "<em>Etui</em> uses the <hilight>elementary</hilight> toolkit.<br>"
                               "The toolkit configuration settings can be accessed by running <keyword>elementary_config</keyword>.");
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, 0);
     evas_object_size_hint_align_set(o, EVAS_HINT_FILL, 0.5);
