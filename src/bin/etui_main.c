@@ -158,7 +158,7 @@ etui_del(Etui *etui)
     free(etui);
 }
 
-EAPI_MAIN int
+static EAPI_MAIN int
 elm_main(int argc, char **argv)
 {
     Etui *etui;
