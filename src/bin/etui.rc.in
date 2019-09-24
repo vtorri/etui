@@ -1,0 +1,32 @@
+#include <winver.h>
+
+101  ICON DISCARDABLE "@SOURCEDIR@/data/icons/ico/etui.ico"
+
+VS_VERSION_INFO VERSIONINFO
+  FILEVERSION @VMAJ@,@VMIN@,@VMIC@,0
+  PRODUCTVERSION @VMAJ@,@VMIN@,@VMIC@,0
+  FILEFLAGSMASK 0
+  FILEFLAGS 0
+  FILEOS VOS__WINDOWS32
+  FILETYPE VFT_DLL
+  FILESUBTYPE VFT2_UNKNOWN
+  BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+      BLOCK "040904B0"
+      BEGIN
+	VALUE "CompanyName", "The Enlightenment developer community"
+	VALUE "FileDescription", "Etui - a multi-document viewer"
+	VALUE "FileVersion", "@VERSION@"
+	VALUE "InternalName", "etui"
+	VALUE "LegalCopyright", "Copyright 2013-2019 Vincent Torri, Michael Bouchaud Thierry Huchard."
+	VALUE "OriginalFilename", "etui.exe"
+	VALUE "ProductName", "Etui"
+	VALUE "ProductVersion", "@VERSION@"
+      END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+      VALUE "Translation", 0x409, 1200
+    END
+  END

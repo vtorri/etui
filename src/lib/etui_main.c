@@ -68,7 +68,7 @@ etui_init(void)
 
     eina_log_threads_enable();
 
-    etui_log_dom_global = eina_log_domain_register(PACKAGE,
+    etui_log_dom_global = eina_log_domain_register(PACKAGE_NAME,
                                                    ETUI_DEFAULT_LOG_COLOR);
     if (etui_log_dom_global < 0)
     {

@@ -35,6 +35,14 @@
  *============================================================================*/
 
 
+#ifdef _WIN32
+#include <windows.h>
+static inline char *realpath(const char *file, char *resolved)
+{
+    return _fullpath(resolved, file, _MAX_PATH);
+}
+#endif
+
 struct Etui_File_s
 {
     char *filename;
@@ -485,7 +493,7 @@ etui_file_new (const char *filename)
     char file[PATH_MAX];
     Etui_File *ef;
     Etui_Module *module;
-    void *module_data;
+    void *module_data = NULL;
     const char *module_name = NULL;
     char *res;
 
@@ -571,7 +579,7 @@ etui_file_new (const char *filename)
         }
     }
 
-    if (!module)
+    if (!module || !module_data)
     {
         ERR("Can not find an appropriate module for file %s", filename);
         goto close_file;

@@ -118,7 +118,12 @@ static int _etui_module_pdf_log_domain = -1;
 static Eina_Inarray *
 _etui_pdf_search(void *mod, int page_num, const char *needle)
 {
+#if FZ_VERSION_MINOR >= 16
+    fz_quad r[5000];
+    fz_rect hit;
+#else
     fz_rect r[512];
+#endif
     Etui_Module_Data *md;
     int nbr;
 
@@ -141,10 +146,18 @@ _etui_pdf_search(void *mod, int page_num, const char *needle)
         {
             Eina_Rectangle box;
 
+#if FZ_VERSION_MINOR >= 16
+            hit = fz_rect_from_quad(r[i]);
+            box.x = floor(hit.x0);
+            box.y = floor(hit.y0);
+            box.w = ceil(hit.x1 - hit.x0);
+            box.h = ceil(hit.y1 - hit.y0);
+#else
             box.x = floor(r[i].x0);
             box.y = floor(r[i].y0);
             box.w = ceil(r[i].x1 - r[i].x0);
             box.h = ceil(r[i].y1 - r[i].y0);
+#endif
             eina_inarray_push(boxes, &box);
         }
 
@@ -433,6 +446,13 @@ _etui_pdf_init(const Etui_File *ef)
         fz_stream *stream;
         fz_page *page;
         fz_outline *outline;
+
+        /* FIXME: add alpha as option ? */
+        fz_set_text_aa_level(md->doc.ctx, 8);
+        fz_set_graphics_aa_level(md->doc.ctx, 8);
+        /* FIXME: add min line width as option ? */
+        fz_set_graphics_min_line_width(md->doc.ctx, 0);
+        fz_disable_icc(md->doc.ctx);
 
 		fz_register_document_handlers(md->doc.ctx);
         stream = fz_open_memory(md->doc.ctx,
@@ -802,9 +822,16 @@ _etui_pdf_page_render_pre(void *d)
         return;
     }
 
+#if FZ_VERSION_MINOR >= 16
+    bounds = fz_bound_page(md->doc.ctx, md->page.page);
+    ctm = fz_rotate(md->page.rotation);
+    ctm = fz_pre_scale(ctm, md->page.scale, md->page.scale);
+    ibounds = fz_round_rect(fz_transform_rect(bounds, ctm));
+#else
     fz_bound_page(md->doc.ctx, md->page.page, &bounds);
     fz_pre_scale(fz_rotate(&ctm, md->page.rotation), md->page.scale, md->page.scale);
     fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
+#endif
 
     width = ibounds.x1 - ibounds.x0;
     height = ibounds.y1 - ibounds.y0;
@@ -849,34 +876,57 @@ _etui_pdf_page_render(void *d)
         md->page.list = fz_new_display_list_from_page(md->doc.ctx, md->page.page);
 
         dev = fz_new_list_device(md->doc.ctx, md->page.list);
+#if FZ_VERSION_MINOR >= 16
+        fz_run_page(md->doc.ctx, md->page.page, dev, fz_identity, &cookie);
+#else
         fz_run_page(md->doc.ctx, md->page.page, dev, &fz_identity, &cookie);
+#endif
         fz_close_device(md->doc.ctx, dev);
     }
+#if FZ_VERSION_MINOR >= 16
+    bounds = fz_bound_page(md->doc.ctx, md->page.page);
+    ctm = fz_rotate(md->page.rotation);
+    ctm = fz_pre_scale(ctm, md->page.scale, md->page.scale);
+    ibounds = fz_round_rect(fz_transform_rect(bounds, ctm));
+#else
     fz_bound_page(md->doc.ctx, md->page.page, &bounds);
     fz_pre_scale(fz_rotate(&ctm, md->page.rotation),
                  md->page.scale, md->page.scale);
     fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
+#endif
     width = ibounds.x1 - ibounds.x0;
     height = ibounds.y1 - ibounds.y0;
-#ifdef HAVE_MUPDF_1_11
+#if FZ_VERSION_MINOR == 11
     image = fz_new_pixmap_with_bbox_and_data(md->doc.ctx,
                                              fz_device_bgr(md->doc.ctx),
                                              &ibounds, 1,
                                              (unsigned char *)md->efl.m);
-#endif
-#ifdef HAVE_MUPDF_1_12
+#elif FZ_VERSION_MINOR == 12
     image = fz_new_pixmap_with_bbox_and_data(md->doc.ctx,
                                              fz_device_bgr(md->doc.ctx),
                                              &ibounds, NULL, 1,
                                              (unsigned char *)md->efl.m);
+#else
+    image = fz_new_pixmap_with_bbox_and_data(md->doc.ctx,
+                                             fz_device_bgr(md->doc.ctx),
+                                             ibounds, NULL, 1,
+                                             (unsigned char *)md->efl.m);
 #endif
 
     fz_clear_pixmap_with_value(md->doc.ctx, image, 0xff);
-    dev = fz_new_draw_device(md->doc.ctx, NULL, image);
+    dev = fz_new_draw_device(md->doc.ctx, fz_identity, image);
     if (md->page.use_display_list)
+#if FZ_VERSION_MINOR >= 16
+        fz_run_display_list(md->doc.ctx, md->page.list, dev, ctm, bounds, &cookie);
+#else
         fz_run_display_list(md->doc.ctx, md->page.list, dev, &ctm, &bounds, &cookie);
+#endif
     else
+#if FZ_VERSION_MINOR >= 16
+        fz_run_page(md->doc.ctx, md->page.page, dev, ctm, &cookie);
+#else
         fz_run_page(md->doc.ctx, md->page.page, dev, &ctm, &cookie);
+#endif
     fz_close_device(md->doc.ctx, dev);
     dev = NULL;
     md->page.image = image;

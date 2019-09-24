@@ -1,0 +1,65 @@
+option('cb',
+  type : 'boolean',
+  value : true,
+  description : 'ComicBook support in Etui'
+)
+
+option('djvu',
+  type : 'boolean',
+  value : true,
+  description : 'DJvu support in Etui'
+)
+
+option('tiff',
+  type : 'boolean',
+  value : true,
+  description : 'Tiff support in Etui'
+)
+
+option('license',
+  type : 'string',
+  value : 'lgplv2',
+  description : 'License of Etui (pass gplv2 for djvu and agplv3 for mupdf and djvu)'
+)
+
+option('mupdf',
+  type : 'boolean',
+  value : true,
+  description : 'MuPDF support in Etui'
+)
+
+option('mupdf-path',
+  type : 'string',
+  value : '/usr/lib',
+  description : 'path to the shared library of mupdf'
+)
+
+option('mupdf-include-path',
+  type : 'string',
+  value : '/usr/include',
+  description : 'path to the header files of mupdf'
+)
+
+option('mupdf-shared-lib',
+  type : 'string',
+  value : 'mupdf',
+  description : 'name of the shared library of mupdf (passed to -l)'
+)
+
+option('mupdf-shared-third',
+  type : 'string',
+  value : 'mupdf-third',
+  description : 'name of the third-party shared library of mupdf (passed to -l)'
+)
+
+option('mupdf-static-lib',
+  type : 'string',
+  value : 'mupdf',
+  description : 'full path name of the static library of mupdf'
+)
+
+option('mupdf-static-third',
+  type : 'string',
+  value : 'mupdf-third',
+  description : 'full path name of the third-party static library of mupdf'
+)

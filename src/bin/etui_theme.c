@@ -55,13 +55,13 @@ etui_theme_default_get(Etui *etui)
         return etui->theme.file;
 
     size = snprintf(NULL, 0,
-                    "%s/themes/default.edj", elm_app_data_dir_get());
+                    "%s/etui/themes/default.edj", elm_app_data_dir_get());
     etui->theme.file = (char *)malloc(size + 2);
     if (!etui->theme.file)
         return NULL;
 
     snprintf(etui->theme.file, size + 1,
-             "%s/themes/default.edj", elm_app_data_dir_get());
+             "%s/etui/themes/default.edj", elm_app_data_dir_get());
 
     return etui->theme.file;
 }

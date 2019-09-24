@@ -38,12 +38,6 @@
  * @cond LOCAL
  */
 
-#ifdef _WIN32
-# define ETUI_MODULE_NAME "module.dll"
-#else
-# define ETUI_MODULE_NAME "module.so"
-#endif
-
 #define ETUI_EINA_STATIC_MODULE_DEFINE(name) \
     Eina_Bool etui_##name##_init(void); \
     void etui_##name##_shutdown(void)
@@ -370,7 +364,7 @@ etui_module_find(const char *name)
         Eina_Module *mod;
 
         snprintf(buffer, sizeof(buffer), "%s/%s/%s/%s",
-                 path, name, MODULE_ARCH, ETUI_MODULE_NAME);
+                 path, name, MODULE_ARCH, "libmodule." MODULE_EXT);
 
         if (!_etui_path_is_file(buffer))
             continue;

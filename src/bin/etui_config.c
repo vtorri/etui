@@ -86,7 +86,7 @@ _etui_config_theme_path_get(const char *name)
              eina_environment_home_get(), name);
     if (stat(path2, &s) == 0)
         return path2;
-    snprintf(path1, sizeof(path1) - 1, "%s/themes/%s",
+    snprintf(path1, sizeof(path1) - 1, "%s/etui/themes/%s",
              elm_app_data_dir_get(), name);
     return path1;
 }
@@ -245,7 +245,7 @@ etui_config_theme_path_default_get(const Etui_Config *config)
    *path = '\0';
    if (path[0]) return path;
 
-   snprintf(path, sizeof(path), "%s/themes/default.edj",
+   snprintf(path, sizeof(path), "%s/etui/themes/default.edj",
             elm_app_data_dir_get());
 
    return path;
