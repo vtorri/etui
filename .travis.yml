@@ -1,3 +1,5 @@
+dist: bionic
+
 language: c
 
 env:
@@ -12,11 +14,12 @@ before_install:
   - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 install:
-  - sudo apt-get install -y libdjvulibre-dev libtiff5-dev libarchive-dev libmupdf-dev libjbig2dec-dev e20-dev
+  - sudo apt-get install -y libdjvulibre-dev libtiff5-dev libarchive-dev libmupdf-dev libjbig2dec-dev e20-dev ninja-build meson python3-pip
+  - pip3 install --upgrade meson
 
 script:
-  - ./autogen.sh --disable-static --enable-gpl
-  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make ; fi
+  - mkdir builddir && cd builddir && meson .. --buildtype=debug --default-library shared -Dlicense=agplv3 -Dmupdf-path=/usr/lib -Dmupdf-include-path=/usr/include
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ninja ; fi
 
 addons:
   coverity_scan:
@@ -24,6 +27,6 @@ addons:
       name: "vtorri/etui"
       description: "Build submitted via Travis CI"
     notification_email: vincent.torri@gmail.com
-    build_command_prepend: "./autogen.sh --disable-static --enable-gpl --with-mupdf-static-libs=-Wl,/usr/lib/libmupdf.a --with-mupdf-shared-libs=-ljbig2dec; make clean"
-    build_command: "make -j 4"
+    build_command_prepend: "mkdir builddir && cd builddir && meson .. --buildtype=debug --default-library shared -Dlicense=agplv3 -Dmupdf-path=/usr/lib -Dmupdf-include-path=/usr/include"
+    build_command: "ninja"
     branch_pattern: coverity_scan
