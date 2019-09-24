@@ -59,6 +59,11 @@ struct Etui_Doc_Simple_
     } search;
 };
 
+static void _etui_doc_key_down_cb(void *data,
+                                  Evas *_e EINA_UNUSED,
+                                  Evas_Object *_obj EINA_UNUSED,
+                                  void *event);
+
 static void
 _etui_doc_search_add(Etui *etui)
 {
@@ -90,6 +95,8 @@ _etui_doc_search_add(Etui *etui)
     elm_box_pack_end(doc->search.hbox, o);
     evas_object_show(o);
     doc->search.entry = o;
+    evas_object_event_callback_add(doc->search.entry, EVAS_CALLBACK_KEY_DOWN,
+                                   _etui_doc_key_down_cb, etui);
 
     o = elm_button_add(doc->sc);
     elm_object_style_set(o, "spinner/decrease/vertical");
@@ -140,7 +147,6 @@ _etui_doc_fullscreen_set(const Etui *etui, Eina_Bool on)
     int h;
 
     doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
-#if 0
     if (on)
     {
         float scale;
@@ -170,7 +176,6 @@ _etui_doc_fullscreen_set(const Etui *etui, Eina_Bool on)
         /* we restore the scale */
         etui_object_page_scale_set(doc->obj, doc->scale);
     }
-#endif
 
     elm_win_fullscreen_set(etui->window.win, on);
 }
@@ -287,7 +292,6 @@ _etui_doc_key_down_cb(void *data,
                 elm_object_signal_emit(etui->window.base,
                                        "doc:search,hide", "etui");
                 doc->search.searching = EINA_FALSE;
-                elm_object_focus_set(doc->sc, EINA_TRUE);
             }
         }
     }
@@ -334,7 +338,6 @@ _etui_doc_key_down_cb(void *data,
                 elm_object_signal_emit(etui->window.base,
                                        "doc:search,show", "etui");
                 doc->search.searching = EINA_TRUE;
-                elm_object_focus_set(doc->search.entry, EINA_TRUE);
             }
         }
         else if (!strcmp(ev->key, "g"))
@@ -499,8 +502,6 @@ etui_doc_add(Etui *etui, Etui_File *ef)
     evas_object_show(doc->obj);
 
     doc->scale = etui_object_page_scale_get(doc->obj);
-
-    elm_object_focus_set(doc->sc, EINA_TRUE);
 
     etui->docs = eina_list_append(etui->docs, doc);
 
