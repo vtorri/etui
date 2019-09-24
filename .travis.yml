@@ -13,6 +13,7 @@ before_install:
 
 install:
   - sudo apt-get install -y libdjvulibre-dev libtiff5-dev libarchive-dev libmupdf-dev libjbig2dec-dev e20-dev ninja-build meson python3-pip
+  - pip3 install --upgrade pip
   - pip3 install --upgrade meson
 
 script:
