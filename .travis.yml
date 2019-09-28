@@ -14,8 +14,9 @@ before_install:
   - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 install:
-  - sudo apt-get install -y libefl-dev libdjvulibre-dev libtiff5-dev libarchive-dev libmupdf-dev libjbig2dec-dev ninja-build meson python3-pip
+  - sudo apt-get install -y libefl-dev libdjvulibre-dev libtiff5-dev libarchive-dev libmupdf-dev libjbig2dec-dev ninja-build python3-pip
   - pip3 install --upgrade pip
+  - pip3 install meson
 
 script:
   - mkdir builddir && cd builddir && meson .. --buildtype=debug --default-library shared -Dlicense=agplv3 -Dmupdf-path=/usr/lib -Dmupdf-include-path=/usr/include
