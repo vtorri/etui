@@ -84,7 +84,7 @@ windows = import('windows')
 
 config_dir = [include_directories('.')]
 
-efl_req = '>= 1.22'
+efl_req = '>= 1.20'
 etui_deps = [
   dependency('eina', version : efl_req),
   dependency('ecore', version : efl_req),
