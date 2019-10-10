@@ -9,7 +9,7 @@ if get_option('djvu') == true and enable_djvu == true
     have_djvu = 'yes'
     config_h.set('ETUI_BUILD_DJVU', 1)
     shared_module('module', djvu_src,
-      c_arg : etui_args,
+      c_args : [ etui_args, '-DECRIN_ETUI_BUILD' ],
       include_directories : config_dir,
       dependencies : [ etui, djvu_deps],
       install : true,

@@ -27,7 +27,7 @@ if get_option('mupdf') == true and enable_mupdf == true
       have_pdf = 'yes'
       config_h.set('ETUI_BUILD_PDF', 1)
       shared_module('module', pdf_src,
-        c_args : etui_args,
+        c_args : [ etui_args, '-DECRIN_ETUI_BUILD' ],
         include_directories : [ config_dir, get_option('mupdf-include-path') ],
         dependencies : [ etui, mupdf_deps, mupdf_so, mupdf_third_so],
         install : true,
@@ -52,7 +52,7 @@ if get_option('mupdf') == true and enable_mupdf == true
         have_pdf = 'yes'
         config_h.set('ETUI_BUILD_PDF', 1)
         shared_module('module', pdf_src,
-          c_arg : etui_args,
+          c_args : [ etui_args, '-DECRIN_ETUI_BUILD' ],
           include_directories : [ config_dir, get_option('mupdf-include-path') ],
           dependencies : [ etui, mupdf_deps, mupdf_a, mupdf_third_a],
           install : true,

@@ -12,7 +12,7 @@ etui_src = [
 ]
 
 etui_lib = library('etui', etui_src,
-  c_args : [ etui_args ],
+  c_args : [ etui_args, '-DECRIN_ETUI_BUILD' ],
   dependencies : etui_deps,
   include_directories : config_dir,
   install : true,

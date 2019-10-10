@@ -9,7 +9,7 @@ if get_option('cb') == true
     have_cb = 'yes'
     config_h.set('ETUI_BUILD_CB', 1)
     shared_module('module', cb_src,
-      c_arg : etui_args,
+      c_args : [ etui_args, '-DECRIN_ETUI_BUILD' ],
       include_directories : config_dir,
       dependencies : [ etui, cb_deps],
       install : true,

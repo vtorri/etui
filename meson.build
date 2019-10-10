@@ -92,7 +92,7 @@ etui_deps = [
   dependency('eio', version : efl_req)
 ]
 
-etui_args = [ '-DHAVE_CONFIG_H', '-DECRIN_ETUI_BUILD', '-DDLL_EXPORT' ]
+etui_args = [ '-DHAVE_CONFIG_H', '-DDLL_EXPORT', '-D_POSIX_C_SOURCE=200809L' ]
 
 # configuration
 

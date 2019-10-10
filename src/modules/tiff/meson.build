@@ -9,7 +9,7 @@ if get_option('tiff') == true
     have_tiff = 'yes'
     config_h.set('ETUI_BUILD_TIFF', 1)
     shared_module('module', tiff_src,
-      c_args : [ etui_args ],
+      c_args : [ etui_args, '-DECRIN_ETUI_BUILD' ],
       include_directories : config_dir,
       dependencies : [ etui, tiff_deps],
       install : true,
