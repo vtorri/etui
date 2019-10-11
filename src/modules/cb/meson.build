@@ -4,7 +4,7 @@ mod_install_dir = join_paths(etui_package_module, 'cb', module_arch)
 
 have_cb = 'no'
 if get_option('cb') == true
-  cb_deps = dependency('libarchive', version : ' >= 3', required : false)
+  cb_deps = dependency('libarchive', version : '>=3.0.0', required : false)
   if cb_deps.found()
     have_cb = 'yes'
     config_h.set('ETUI_BUILD_CB', 1)
