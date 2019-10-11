@@ -60,7 +60,6 @@ etui_cflags_try = [
   '-Wextra',
   '-Wshadow',
   '-Wstrict-prototypes',
-  '-Werror=declaration-after-statement',
   '-Werror=missing-prototypes',
   '-Werror=pointer-arith',
   '-Wno-missing-field-initializers']
