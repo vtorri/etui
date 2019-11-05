@@ -34,7 +34,7 @@ This library is released under the GPL v3 license
 
 ## Supported backends (Current and Future):
 
-- [x] **PDF** and **XPS**: Requires *zlib, freetype2, libopenjp2, muPDF 1.11*.
+- [x] **PDF** and **XPS**: Requires *zlib, freetype2, libopenjp2, muPDF 1.12*.
 - [x] **COMIC BOOK** (cbz, cbr, cb7, cbt, cba): Requires *libarchive*.
 - [x] **DjVu**: Requires *libdjvu (DjVuLibre)*
 - [x] **TIFF**: Requires *libtiff*.
