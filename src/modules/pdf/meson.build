@@ -10,56 +10,31 @@ if get_option('mupdf') == true and enable_mupdf == true
     dependency('harfbuzz'),
     dependency('libjpeg'),
     dependency('libopenjp2'),
-    dependency('zlib')
+    dependency('zlib'),
+    cc.find_library('jbig2dec')
   ]
 
-# test if shared library is available
-  mupdf_so = cc.find_library(get_option('mupdf-shared-lib'),
-    required : false,
-    dirs : get_option('mupdf-path')
+# test if static library is available
+  mupdf_a = cc.find_library(get_option('mupdf-static-lib'),
+    required : true,
+    dirs : get_option('mupdf-libdir')
   )
-  if mupdf_so.found() == true
-    mupdf_third_so = cc.find_library(get_option('mupdf-shared-third'),
-      required : false,
-    dirs : get_option('mupdf-path')
-      )
-    if mupdf_third_so.found() == true
+  if mupdf_a.found() == true
+    mupdf_third_a = cc.find_library(get_option('mupdf-static-third'),
+      required : true,
+      dirs : get_option('mupdf-libdir')
+    )
+    if mupdf_third_a.found() == true
       have_pdf = 'yes'
       config_h.set('ETUI_BUILD_PDF', 1)
       shared_module('module', pdf_src,
         c_args : [ etui_args, '-DECRIN_ETUI_BUILD' ],
-        include_directories : [ config_dir, get_option('mupdf-include-path') ],
-        dependencies : [ etui, mupdf_deps, mupdf_so, mupdf_third_so],
+        include_directories : [ config_dir, get_option('mupdf-includedir') ],
+        dependencies : [ etui, mupdf_deps, mupdf_a, mupdf_third_a],
         install : true,
         install_dir : mod_install_dir,
         name_suffix : sys_lib_ext
       )
-    endif
-  else
-# test if static library is available
-    mupdf_a = cc.find_library(get_option('mupdf-static-lib'),
-      required : false,
-      static : true,
-      dirs : get_option('mupdf-path')
-    )
-    if mupdf_a.found() == true
-      mupdf_third_a = cc.find_library(get_option('mupdf-static-third'),
-        required : false,
-        static : true,
-        dirs : get_option('mupdf-path')
-      )
-      if mupdf_third_a.found() == true
-        have_pdf = 'yes'
-        config_h.set('ETUI_BUILD_PDF', 1)
-        shared_module('module', pdf_src,
-          c_args : [ etui_args, '-DECRIN_ETUI_BUILD' ],
-          include_directories : [ config_dir, get_option('mupdf-include-path') ],
-          dependencies : [ etui, mupdf_deps, mupdf_a, mupdf_third_a],
-          install : true,
-          install_dir : mod_install_dir,
-          name_suffix : sys_lib_ext
-        )
-      endif
     endif
   endif
 

@@ -28,38 +28,26 @@ option('mupdf',
   description : 'MuPDF support in Etui'
 )
 
-option('mupdf-path',
+option('mupdf-libdir',
   type : 'string',
   value : '/usr/lib',
-  description : 'path to the shared library of mupdf'
+  description : 'path to the static library of mupdf'
 )
 
-option('mupdf-include-path',
+option('mupdf-includedir',
   type : 'string',
   value : '/usr/include',
-  description : 'path to the header files of mupdf'
-)
-
-option('mupdf-shared-lib',
-  type : 'string',
-  value : 'mupdf',
-  description : 'name of the shared library of mupdf (passed to -l)'
-)
-
-option('mupdf-shared-third',
-  type : 'string',
-  value : 'mupdf-third',
-  description : 'name of the third-party shared library of mupdf (passed to -l)'
+  description : 'path to the header files of mupdf, must contain mupdf/ subdir'
 )
 
 option('mupdf-static-lib',
   type : 'string',
   value : 'mupdf',
-  description : 'full path name of the static library of mupdf'
+  description : 'name of the static library of mupdf without extension'
 )
 
 option('mupdf-static-third',
   type : 'string',
   value : 'mupdf-third',
-  description : 'full path name of the third-party static library of mupdf'
+  description : 'name of the third-party static library of mupdf without extension'
 )
