@@ -73,6 +73,9 @@ compilation:
 
 `
 mkdir builddir && cd builddir
+`
+
+`
 meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3
 `
 
@@ -89,6 +92,7 @@ compilation:
 `
 mkdir builddir && cd builddir
 `
+
 `
 meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3
 `
