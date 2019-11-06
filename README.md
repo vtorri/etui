@@ -70,10 +70,10 @@ apt-get install libmupdf-dev libarchive-dev libjbig2dec0-dev libopenjp2-7-dev li
 `
 
 `
-mkdir builddir && ce builddir
-meson .. \
-    --default-library shared \
-    --prefix=$HOME/etui \
+mkdir builddir && cd builddir
+meson .. \\
+    --default-library shared \\
+    --prefix=$HOME/etui \\
     -Dlicense=agplv3
 
 `
@@ -87,7 +87,7 @@ dnf install mupdf-devel libarchive-devel jbig2dec-devel openjpeg2-devel freetype
 `
 
 `
-mkdir builddir && ce builddir
+mkdir builddir && cd builddir
 meson .. \
     --default-library shared \
     --prefix=$HOME/etui \
