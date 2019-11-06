@@ -71,13 +71,10 @@ apt-get install libmupdf-dev libarchive-dev libjbig2dec0-dev libopenjp2-7-dev li
 
 compilation:
 
-`
+```
 mkdir builddir && cd builddir
-`
-
-`
 meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3
-`
+```
 
 - **Fedora**:
 
@@ -89,13 +86,10 @@ dnf install mupdf-devel libarchive-devel jbig2dec-devel openjpeg2-devel freetype
 
 compilation:
 
-`
+```
 mkdir builddir && cd builddir
-`
-
-`
 meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3
-`
+```
 
 - **ArchLinux**: *See pkgbuild/PKGBUILD*
 
