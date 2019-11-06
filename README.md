@@ -86,10 +86,10 @@ prerequisites:
 dnf install mupdf-devel libarchive-devel jbig2dec-devel openjpeg2-devel freetype-devel harfbuzz-devel libjpeg-devel zlib-devel
 `
 
+compilation:
+
 `
 mkdir builddir && cd builddir
-`
-`
 meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3
 `
 
