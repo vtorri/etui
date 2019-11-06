@@ -88,10 +88,7 @@ dnf install mupdf-devel libarchive-devel jbig2dec-devel openjpeg2-devel freetype
 
 `
 mkdir builddir && cd builddir
-meson .. \
-    --default-library shared \
-    --prefix=$HOME/etui \
-    -Dlicense=agplv3
+meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3
 
 `
 
