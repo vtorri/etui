@@ -61,11 +61,40 @@ Common usage of configure (created by autogen.sh). Here are some example to comp
 ./configure --host=x86_64-w64-mingw32 --disable-static --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs="-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a
 `
 
-- **Fedora**:
+- **Ubuntu**:
+
+prerequisites:
 
 `
-./configure --enable-gpl --with-mupdf-static-libs=-Wl,/usr/lib64/libmupdf.a --with-mupdf-shared-libs="-ljbig2dec
+apt-get install libmupdf-dev libarchive-dev libjbig2dec0-dev libopenjp2-7-dev libfreetype6-dev libharfbuzz-dev libjpeg-dev zlib1g-dev
 `
+
+`
+mkdir builddir && ce builddir
+meson .. \
+    --default-library shared \
+    --prefix=$HOME/etui \
+    -Dlicense=agplv3
+
+`
+
+- **Fedora**:
+
+prerequisites:
+
+`
+dnf install mupdf-devel libarchive-devel jbig2dec-devel openjpeg2-devel freetype-devel harfbuzz-devel libjpeg-devel zlib-devel
+`
+
+`
+mkdir builddir && ce builddir
+meson .. \
+    --default-library shared \
+    --prefix=$HOME/etui \
+    -Dlicense=agplv3
+
+`
+
 - **ArchLinux**: *See pkgbuild/PKGBUILD*
 
 - **Gentoo**:
