@@ -69,13 +69,11 @@ prerequisites:
 apt-get install libmupdf-dev libarchive-dev libjbig2dec0-dev libopenjp2-7-dev libfreetype6-dev libharfbuzz-dev libjpeg-dev zlib1g-dev
 `
 
+compilation:
+
 `
 mkdir builddir && cd builddir
-meson .. \\
-    --default-library shared \\
-    --prefix=$HOME/etui \\
-    -Dlicense=agplv3
-
+meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3
 `
 
 - **Fedora**:
@@ -90,6 +88,8 @@ compilation:
 
 `
 mkdir builddir && cd builddir
+`
+`
 meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3
 `
 
