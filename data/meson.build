@@ -31,5 +31,5 @@ install_data('icons/scalable/etui.svg',
 # desktop
 
 install_data('desktop/etui.desktop',
-  install_dir : join_paths(get_option('datadir'), 'desktop')
+  install_dir : join_paths(get_option('datadir'), 'applications')
 )
