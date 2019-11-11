@@ -18,6 +18,6 @@ Exec=etui %U
 Terminal=false
 Type=Application
 Icon=etui
-Categories=Office;Viewer;Application;Graphics;2DGraphics;VectorGraphics;
+Categories=Office;Viewer;Application;
 StartupWMClass=etui
 MimeType=application/pdf;application/vnd.ms-xpsdocument;application/postscript;application/x-cba;application/x-cbr;application/x-cbt;application/x-cbz;application/x-cb7;image/bmp;image/gif;image/vnd.microsoft.icon;image/x-icon;image/ico;image/icon;txt/ico;application/ico;image/jpeg;image/pjpeg;image/x-portable-pixmap;image/x-p;image/x-ppm;application/ppm;application/x-ppm;image/x-portable-greymap;image/x-pgm;image/x-portable-bitmap;image/portable-bitmap;image/pbm;image/x-pbm;image/x-portable-anymap;image/x-portable/anymap;image/pbm;image/png;image/x-png;image/x-photoshop;image/photoshop;image/psd;application/photoshop;application/psd;zz-application/zz-winassoc-psd;image/svg+xml;image/x-tga;image/tiff;image/vnd.wap.wbmp;image/webp;image/xcf;image/x-xpixmap;image/vnd.djvu;image/x-djvu;image/psd;
