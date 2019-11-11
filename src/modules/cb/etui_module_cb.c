@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#include <strings.h> /* strcasecmp() */
+
 #include <Eina.h>
 #include <Ecore.h> /* for Ecore_Thread in Etui_Module */
 #include <Evas.h>
