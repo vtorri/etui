@@ -52,20 +52,26 @@ Common usage of configure (created by autogen.sh). Here are some example to comp
 
 - **Windows** (MinGW 32bits):
 
-prerequisites: install [Ewpi](https://github.com/vtorri/etui). If ewpi is installed in /opt/ewpi:
+prerequisites: install [Ewpi](https://github.com/vtorri/ewpi) and then the EFL. If ewpi is installed in /opt/ewpi:
 
 ```
 mkdir builddir && cd builddir
-meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3 -Dmupdf-libdir=/opt/ewpi/lib -Dmupdf-includedir=/opt/ewpi/include
+meson .. --default-library shared --prefix=$HOME/etui \
+    -Dlicense=agplv3 \
+    -Dmupdf-libdir=/opt/ewpi/lib \
+    -Dmupdf-includedir=/opt/ewpi/include
 ```
 
 - **Windows** (MinGW 64bits):
 
-prerequisites: install [Ewpi](https://github.com/vtorri/etui). If ewpi is installed in /opt/ewpi:
+prerequisites: install [Ewpi](https://github.com/vtorri/ewpi) and then the EFL. If ewpi is installed in /opt/ewpi:
 
 ```
 mkdir builddir && cd builddir
-meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3 -Dmupdf-libdir=/opt/ewpi/lib -Dmupdf-includedir=/opt/ewpi/include
+meson .. --default-library shared --prefix=$HOME/etui \
+    -Dlicense=agplv3 \
+    -Dmupdf-libdir=/opt/ewpi/lib \
+    -Dmupdf-includedir=/opt/ewpi/include
 ```
 
 - **Ubuntu**:
