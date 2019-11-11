@@ -52,14 +52,21 @@ Common usage of configure (created by autogen.sh). Here are some example to comp
 
 - **Windows** (MinGW 32bits):
 
-`
-./configure --host=i686-w64-mingw32 --disable-static --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs="-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a
-`
+prerequisites: install [Ewpi](https://github.com/vtorri/etui). If ewpi is installed in /opt/ewpi:
+
+```
+mkdir builddir && cd builddir
+meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3 -Dmupdf-libdir=/opt/ewpi/lib -Dmupdf-includedir=/opt/ewpi/include
+```
+
 - **Windows** (MinGW 64bits):
 
-`
-./configure --host=x86_64-w64-mingw32 --disable-static --enable-gpl --with-mupdf-includedir=/home/vtorri/tmp/mupdf-1.11-source/include --with-mupdf-static-libs="-Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdf.a -Wl,/home/vtorri/tmp/mupdf-1.11-source/build/release/libmupdfthird.a
-`
+prerequisites: install [Ewpi](https://github.com/vtorri/etui). If ewpi is installed in /opt/ewpi:
+
+```
+mkdir builddir && cd builddir
+meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3 -Dmupdf-libdir=/opt/ewpi/lib -Dmupdf-includedir=/opt/ewpi/include
+```
 
 - **Ubuntu**:
 
