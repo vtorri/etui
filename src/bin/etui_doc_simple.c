@@ -40,6 +40,12 @@
  *============================================================================*/
 
 
+#define ETUI_ZOOM_IN 1.2
+#define ETUI_ZOOM_OUT (1.0 / ETUI_ZOOM_IN)
+
+#define ETUI_MIN_SCALE 0.25
+#define ETUI_MAX_SCALE 5.0
+
 struct Etui_Doc_Simple_
 {
     Etui_File *ef;
@@ -299,15 +305,21 @@ _etui_doc_key_down_cb(void *data,
     /* Ctrl modifier */
     if (ctrl && !alt && !shift && !win && !meta && !hyper)
     {
-        if (!strcmp(ev->key, "KP_Add"))
+        if (!strcmp(ev->key, "KP_Add") || !strcmp(ev->key, "plus"))
         {
-            doc->scale *= M_SQRT2;
-            _etui_doc_zoom(doc);
+            if ((doc->scale * ETUI_ZOOM_IN) <= ETUI_MAX_SCALE)
+            {
+                doc->scale *= ETUI_ZOOM_IN;
+                _etui_doc_zoom(doc);
+            }
         }
-        else if (!strcmp(ev->key, "KP_Subtract"))
+        else if (!strcmp(ev->key, "KP_Subtract") || !strcmp(ev->key, "minus"))
         {
-            doc->scale *= M_SQRT1_2;
-            _etui_doc_zoom(doc);
+            if ((doc->scale * ETUI_ZOOM_OUT) >= ETUI_MIN_SCALE)
+            {
+                doc->scale *= ETUI_ZOOM_OUT;
+                _etui_doc_zoom(doc);
+            }
         }
         else if (!strcmp(ev->key, "KP_1"))
         {
@@ -443,10 +455,21 @@ _etui_doc_mouse_wheel_cb(void *data,
     if (ctrl && !alt && !shift && !win && !meta && !hyper)
     {
         if (ev->z == 1)
-            doc->scale *= M_SQRT2;
+        {
+            if ((doc->scale * ETUI_ZOOM_IN) <= ETUI_MAX_SCALE)
+            {
+                doc->scale *= ETUI_ZOOM_IN;
+                _etui_doc_zoom(doc);
+            }
+        }
         else
-            doc->scale *= M_SQRT1_2;
-        _etui_doc_zoom(doc);
+        {
+            if ((doc->scale * ETUI_ZOOM_OUT) >= ETUI_MIN_SCALE)
+            {
+                doc->scale *= ETUI_ZOOM_OUT;
+                _etui_doc_zoom(doc);
+            }
+        }
     }
 }
 

@@ -128,8 +128,8 @@ meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3
 - **[C] Page Up** : Page + 10
 - **[C] Page Down** : Page - 10
 - **[C] F11**: Toggle Fullscreen Esc: Exit Fullscreen
-- **[C] Ctrl + +** : Scale * Sqrt(2)
-- **[C] Ctrl + -** : Scale / Sqrt(2)
+- **[C] Ctrl + +** : Scale * 1.2
+- **[C] Ctrl + -** : Scale / 1.2
 - ***[C] Ctrl + 0** : Zoom to Fit Height (not done yet)*
 - **[C] Ctrl + 1** : Zoom to Original Size
 - ***[C] Ctrl + 2** : Zoom to Fit Width (not done yet)*
@@ -139,5 +139,5 @@ meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3
 ## Mouse bindings:
 
 - **Double Left Click** : Toggle Fullscreen
-- **Ctrl + Wheel Up** : Scale * sqrt(2)
-- **Ctrl - Wheel Down** : Scale / sqrt(2)
+- **Ctrl + Wheel Up** : Scale * 1.2
+- **Ctrl - Wheel Down** : Scale / 1.2
