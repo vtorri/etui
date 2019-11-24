@@ -456,7 +456,7 @@ _etui_pdf_init(const Etui_File *ef)
         fz_disable_icc(md->doc.ctx);
 #endif
 
-		fz_register_document_handlers(md->doc.ctx);
+        fz_register_document_handlers(md->doc.ctx);
         stream = fz_open_memory(md->doc.ctx,
                                 (unsigned char *)etui_file_base_get(ef),
                                 etui_file_size_get(ef));
@@ -861,8 +861,6 @@ _etui_pdf_page_render(void *d)
     fz_matrix ctm;
     fz_rect bounds;
     fz_irect ibounds;
-    int width;
-    int height;
 
     if (!d)
         return;
@@ -896,8 +894,6 @@ _etui_pdf_page_render(void *d)
                  md->page.scale, md->page.scale);
     fz_round_rect(&ibounds, fz_transform_rect(&bounds, &ctm));
 #endif
-    width = ibounds.x1 - ibounds.x0;
-    height = ibounds.y1 - ibounds.y0;
 #if FZ_VERSION_MINOR == 11
     image = fz_new_pixmap_with_bbox_and_data(md->doc.ctx,
                                              fz_device_bgr(md->doc.ctx),

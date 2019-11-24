@@ -483,8 +483,6 @@ Eina_Bool
 etui_doc_add(Etui *etui, Etui_File *ef)
 {
     Etui_Doc_Simple *doc;
-    int width;
-    int height;
 
     if (!ef)
         return EINA_FALSE;

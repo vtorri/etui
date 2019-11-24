@@ -475,8 +475,6 @@ static void
 _etui_cb_page_render_pre(void *d)
 {
     Etui_Module_Data *md;
-    int width;
-    int height;
 
     if (!d)
         return;
