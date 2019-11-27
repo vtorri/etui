@@ -79,7 +79,7 @@ meson .. --default-library shared --prefix=$HOME/etui \
 prerequisites:
 
 `
-apt-get install libmupdf-dev libarchive-dev libjbig2dec0-dev libopenjp2-7-dev libfreetype6-dev libharfbuzz-dev libjpeg-dev zlib1g-dev
+apt-get install libmupdf-dev libarchive-dev libjbig2dec0-dev libopenjp2-7-dev libfreetype6-dev libharfbuzz-dev libjpeg-dev zlib1g-dev libtiff-dev
 `
 
 compilation:
@@ -94,7 +94,7 @@ meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3
 prerequisites:
 
 `
-dnf install mupdf-devel libarchive-devel jbig2dec-devel openjpeg2-devel freetype-devel harfbuzz-devel libjpeg-devel zlib-devel
+dnf install mupdf-devel libarchive-devel jbig2dec-devel openjpeg2-devel freetype-devel harfbuzz-devel libjpeg-devel zlib-devel libtiff-devel
 `
 
 compilation:
