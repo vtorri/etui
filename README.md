@@ -2,7 +2,7 @@
 <a href="https://scan.coverity.com/projects/vtorri-etui">
 <img alt="Coverity Scan Build Status" src="https://scan.coverity.com/projects/13637/badge.svg"/></a>
 
-### Étui 
+### Étui
 ##### A Multiple Document Library and Viewer
 
 ### License:
@@ -48,21 +48,9 @@ This library is released under the GPL v3 license
 
 ## Compilation:
 
-Common usage of configure (created by autogen.sh). Here are some example to compile with PDF and DJVU support:
+Common usage of meson. Here are some example to compile with PDF and DJVU support:
 
-- **Windows** (MinGW 32bits):
-
-prerequisites: install [Ewpi](https://github.com/vtorri/ewpi) and then the EFL. If ewpi is installed in /opt/ewpi:
-
-```
-mkdir builddir && cd builddir
-meson .. --default-library shared --prefix=$HOME/etui \
-    -Dlicense=agplv3 \
-    -Dmupdf-libdir=/opt/ewpi/lib \
-    -Dmupdf-includedir=/opt/ewpi/include
-```
-
-- **Windows** (MinGW 64bits):
+- **Windows** (MSYS2 + mingw-w64):
 
 prerequisites: install [Ewpi](https://github.com/vtorri/ewpi) and then the EFL. If ewpi is installed in /opt/ewpi:
 
@@ -79,7 +67,7 @@ meson .. --default-library shared --prefix=$HOME/etui \
 prerequisites:
 
 `
-apt-get install libmupdf-dev libarchive-dev libjbig2dec0-dev libopenjp2-7-dev libfreetype6-dev libharfbuzz-dev libjpeg-dev zlib1g-dev libtiff-dev
+apt-get install libmupdf-dev libarchive-dev libjbig2dec0-dev libopenjp2-7-dev libfreetype6-dev libharfbuzz-dev libjpeg-dev zlib1g-dev libtiff-dev libdjvulibre-dev
 `
 
 compilation:
@@ -94,7 +82,7 @@ meson .. --default-library shared --prefix=$HOME/etui -Dlicense=agplv3
 prerequisites:
 
 `
-dnf install mupdf-devel libarchive-devel jbig2dec-devel openjpeg2-devel freetype-devel harfbuzz-devel libjpeg-devel zlib-devel libtiff-devel
+dnf install mupdf-devel libarchive-devel jbig2dec-devel openjpeg2-devel freetype-devel harfbuzz-devel libjpeg-devel zlib-devel libtiff-devel djvulibre-devel
 `
 
 compilation:
