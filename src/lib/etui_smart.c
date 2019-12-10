@@ -508,6 +508,7 @@ etui_object_page_set(Evas_Object *obj, int page_num)
     ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
     INF("page set %d", page_num);
+    if (!sd->module->render)
     if (sd->module->functions->page_set(sd->module->data, page_num))
     {
         sd->module->functions->page_render_pre(sd->module->data);
@@ -556,6 +557,7 @@ etui_object_page_rotation_set(Evas_Object *obj, Etui_Rotation rotation)
 
     ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
+    if (!sd->module->render)
     if (sd->module->functions->page_rotation_set(sd->module->data, rotation))
     {
         sd->module->functions->page_render_pre(sd->module->data);
@@ -588,6 +590,7 @@ etui_object_page_scale_set(Evas_Object *obj, double scale)
     ETUI_SMART_OBJ_GET_ERROR(sd, obj, ETUI_OBJ_NAME);
 
     fprintf(stderr, " %s 1\n", __FUNCTION__);
+    if (!sd->module->render)
     if (sd->module->functions->page_scale_set(sd->module->data, scale))
     {
         sd->module->functions->page_render_pre(sd->module->data);
