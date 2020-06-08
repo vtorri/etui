@@ -80,7 +80,7 @@ struct _Etui_Module_Data
         void *m;
     } efl;
 
-    Etui_File *ef;
+    const Etui_File *ef;
 
     /* specific PDF stuff for the module */
 
@@ -276,10 +276,21 @@ _etui_pdf_toc_fill(const Etui_Module_Data *md, Eina_Array *items, fz_outline *ou
         else
         {
             Etui_Link_Goto l;
+#if FZ_VERSION_MINOR >= 17
+            fz_location loc;
+#endif
 
             item->kind = ETUI_LINK_KIND_GOTO;
+#if FZ_VERSION_MINOR >= 17
+            loc = fz_resolve_link(md->doc.ctx, md->doc.doc,
+                                  outline->uri, &l.page_x, &l.page_y);
+            l.chapter = loc.chapter;
+            l.page = loc.page;
+#else
+            l.chapter = 0;
             l.page = fz_resolve_link(md->doc.ctx, md->doc.doc,
                                      outline->uri, &l.page_x, &l.page_y);
+#endif
             item->dest.goto_ = l;
         }
 
@@ -875,28 +886,27 @@ _etui_pdf_page_render(void *d)
 
     md = (Etui_Module_Data *)d;
     md->doc.th_ctx = fz_new_context(NULL, NULL, FZ_STORE_DEFAULT);
-        /* FIXME: add alpha as option ? */
-        fz_set_text_aa_level(md->doc.th_ctx, 8);
-        fz_set_graphics_aa_level(md->doc.th_ctx, 8);
-        /* FIXME: add min line width as option ? */
-        fz_set_graphics_min_line_width(md->doc.th_ctx, 0);
+    /* FIXME: add alpha as option ? */
+    fz_set_text_aa_level(md->doc.th_ctx, 8);
+    fz_set_graphics_aa_level(md->doc.th_ctx, 8);
+    /* FIXME: add min line width as option ? */
+    fz_set_graphics_min_line_width(md->doc.th_ctx, 0);
 #if FZ_VERSION_MINOR >= 16
-        fz_disable_icc(md->doc.th_ctx);
+    fz_disable_icc(md->doc.th_ctx);
 #endif
 
-        fz_register_document_handlers(md->doc.th_ctx);
- 
+    fz_register_document_handlers(md->doc.th_ctx);
     stream = fz_open_memory(md->doc.th_ctx,
                             (unsigned char *)etui_file_base_get(md->ef),
                             etui_file_size_get(md->ef));
     md->doc.th_doc = fz_open_document_with_stream(md->doc.th_ctx,
-                                               "pdf", stream);
+                                                  "pdf", stream);
 
     if (md->page.use_display_list)
-      {
-         if (md->page.list)
-           fz_drop_display_list(md->doc.th_ctx, md->page.list);
-         md->page.list = fz_new_display_list_from_page(md->doc.th_ctx, md->page.page);
+    {
+        if (md->page.list)
+            fz_drop_display_list(md->doc.th_ctx, md->page.list);
+        md->page.list = fz_new_display_list_from_page(md->doc.th_ctx, md->page.page);
 
         dev = fz_new_list_device(md->doc.th_ctx, md->page.list);
 #if FZ_VERSION_MINOR >= 14
@@ -937,18 +947,22 @@ _etui_pdf_page_render(void *d)
     fz_clear_pixmap_with_value(md->doc.th_ctx, image, 0xff);
     dev = fz_new_draw_device(md->doc.th_ctx, fz_identity, image);
     if (md->page.use_display_list)
+    {
 #if FZ_VERSION_MINOR >= 14
         fz_run_display_list(md->doc.th_ctx, md->page.list, dev, ctm, bounds, &cookie);
 #else
         fz_run_display_list(md->doc.th_ctx, md->page.list, dev, &ctm, &bounds, &cookie);
 #endif
+    }
     else
+    {
 #if FZ_VERSION_MINOR >= 14
-    page = fz_load_page(md->doc.th_ctx, md->doc.th_doc, md->page.page_num);
+        page = fz_load_page(md->doc.th_ctx, md->doc.th_doc, md->page.page_num);
         fz_run_page(md->doc.th_ctx, page, dev, ctm, &cookie);
 #else
         fz_run_page(md->doc.th_ctx, page, dev, &ctm, &cookie);
 #endif
+    }
     fz_close_device(md->doc.th_ctx, dev);
     dev = NULL;
     md->page.image = image;

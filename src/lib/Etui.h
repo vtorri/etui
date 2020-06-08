@@ -162,6 +162,7 @@ typedef enum
 
 typedef struct
 {
+    int chapter;
     int page;
     float page_x;
     float page_y;
