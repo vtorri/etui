@@ -272,10 +272,21 @@ _etui_pdf_toc_fill(const Etui_Module_Data *md, Eina_Array *items, fz_outline *ou
         else
         {
             Etui_Link_Goto l;
+#if FZ_VERSION_MINOR >= 17
+            fz_location loc;
+#endif
 
             item->kind = ETUI_LINK_KIND_GOTO;
+#if FZ_VERSION_MINOR >= 17
+            loc = fz_resolve_link(md->doc.ctx, md->doc.doc,
+                                  outline->uri, &l.page_x, &l.page_y);
+            l.chapter = loc.chapter;
+            l.page = loc.page;
+#else
+            l.chapter = 0;
             l.page = fz_resolve_link(md->doc.ctx, md->doc.doc,
                                      outline->uri, &l.page_x, &l.page_y);
+#endif
             item->dest.goto_ = l;
         }
 
