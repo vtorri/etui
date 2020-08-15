@@ -910,7 +910,7 @@ _etui_pdf_page_render(void *d)
                                              fz_device_bgr(md->doc.ctx),
                                              &ibounds, 1,
                                              (unsigned char *)md->efl.m);
-#elif FZ_VERSION_MINOR == 12
+#elif FZ_VERSION_MINOR == 12 || FZ_VERSION_MINOR == 13
     image = fz_new_pixmap_with_bbox_and_data(md->doc.ctx,
                                              fz_device_bgr(md->doc.ctx),
                                              &ibounds, NULL, 1,
@@ -923,7 +923,11 @@ _etui_pdf_page_render(void *d)
 #endif
 
     fz_clear_pixmap_with_value(md->doc.ctx, image, 0xff);
+#if FZ_VERSION_MINOR >= 14
     dev = fz_new_draw_device(md->doc.ctx, fz_identity, image);
+#else
+    dev = fz_new_draw_device(md->doc.ctx, &fz_identity, image);
+#endif
     if (md->page.use_display_list)
 #if FZ_VERSION_MINOR >= 14
         fz_run_display_list(md->doc.ctx, md->page.list, dev, ctm, bounds, &cookie);
