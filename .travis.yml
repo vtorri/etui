@@ -21,10 +21,11 @@ install:
 
 before_script:
   - wget https://mupdf.com/downloads/archive/mupdf-1.17.0-source.tar.xz -O /tmp/mupdf-1.17.0-source.tar.xz
-  - tar Jxvf /tmp/mupdf-1.17.0-source.tar.xz
+  - tar Jxf /tmp/mupdf-1.17.0-source.tar.xz
   - cd mupdf-1.17.0-source
   - make -j prefix=/tmp/mupdf-1.17 HAVE_GLUT=no USE_SYSTEM_FREETYPE=yes USE_SYSTEM_HARFBUZZ=yes USE_SYSTEM_LIBJPEG=yes USE_SYSTEM_OPENJPEG=yes USE_SYSTEM_ZLIB=yes USE_SYSTEM_CURL=yes USE_SYSTEM_JBIG2DEC=yes SYS_JBIG2DEC_CFLAGS="-I/opt/ewpi_64/include" SYS_JBIG2DEC_LIBS="-L/opt/ewpi_64/jbig2dec/lib -ljbig2dec" SYS_FREETYPE_CFLAGS="`pkg-config --cflags freetype2`" SYS_FREETYPE_LIBS="`pkg-config --libs freetype2`" SYS_HARFBUZZ_CFLAGS="`pkg-config --cflags harfbuzz`" SYS_HARFBUZZ_LIBS="`pkg-config --libs harfbuzz`" SYS_OPENJPEG_CFLAGS="`pkg-config --cflags libopenjp2`" SYS_OPENJPEG_LIBS="`pkg-config --libs libopenjp2`" HAVE_GLFW=no XLIBS=-fPIC
   - sudo make -j prefix=/tmp/mupdf-1.17 HAVE_GLUT=no USE_SYSTEM_FREETYPE=yes USE_SYSTEM_HARFBUZZ=yes USE_SYSTEM_LIBJPEG=yes USE_SYSTEM_OPENJPEG=yes USE_SYSTEM_ZLIB=yes USE_SYSTEM_CURL=yes USE_SYSTEM_JBIG2DEC=yes SYS_JBIG2DEC_CFLAGS="-I/opt/ewpi_64/include" SYS_JBIG2DEC_LIBS="-L/opt/ewpi_64/jbig2dec/lib -ljbig2dec" SYS_FREETYPE_CFLAGS="`pkg-config --cflags freetype2`" SYS_FREETYPE_LIBS="`pkg-config --libs freetype2`" SYS_HARFBUZZ_CFLAGS="`pkg-config --cflags harfbuzz`" SYS_HARFBUZZ_LIBS="`pkg-config --libs harfbuzz`" SYS_OPENJPEG_CFLAGS="`pkg-config --cflags libopenjp2`" SYS_OPENJPEG_LIBS="`pkg-config --libs libopenjp2`" HAVE_GLFW=no XLIBS=-fPIC install
+  - cd ..
 
 script:
   - rm -rf builddir && mkdir builddir && cd builddir && meson .. --buildtype=debug --default-library shared -Dlicense=agplv3 -Dmupdf-libdir=/tmp/mupdf-1.17/lib -Dmupdf-includedir=/tmp/mupdf-1.17/include -Dmupdf-static-third=mupdf-third
