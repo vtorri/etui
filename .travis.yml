@@ -20,7 +20,7 @@ install:
   - pip3 install meson --user
 
 script:
-  - mkdir builddir && cd builddir && meson .. --buildtype=debug --default-library shared -Dlicense=agplv3
+  - rm -rf builddir && mkdir builddir && cd builddir && meson .. --buildtype=debug --default-library shared -Dlicense=agplv3
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ninja ; fi
 
 addons:
