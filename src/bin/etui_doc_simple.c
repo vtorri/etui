@@ -195,7 +195,7 @@ _etui_doc_key_down_cb(void *data,
     Evas_Event_Key_Down *ev;
     Etui *etui;
     Etui_Doc_Simple *doc;
-    int ctrl, alt, shift, win, meta, hyper;
+    Eina_Bool ctrl, alt, shift, win, meta, hyper;
 
     EINA_SAFETY_ON_NULL_RETURN(data);
     EINA_SAFETY_ON_NULL_RETURN(event);
