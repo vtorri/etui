@@ -2,7 +2,7 @@ project('etui', 'c',
   version : '0.0.4',
   meson_version : '>= 0.51',
   default_options : [
-    'warning_level=1',
+    'warning_level=2',
     'buildtype=debugoptimized',
     'c_std=c99'
   ]
@@ -56,8 +56,6 @@ cc = meson.get_compiler('c')
 
 etui_cflags = []
 etui_cflags_try = [
-  '-Wall',
-  '-Wextra',
   '-Wshadow',
   '-Wstrict-prototypes',
   '-Werror=missing-prototypes',
