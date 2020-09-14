@@ -37,6 +37,6 @@ addons:
       name: "vtorri/etui"
       description: "Multi-document viewer based on the EFL"
     notification_email: vincent.torri@gmail.com
-    build_command_prepend: "mkdir builddir && cd builddir && meson .. --buildtype=debug --default-library shared -Dlicense=agplv3 -Dmupdf-path=/usr/lib -Dmupdf-include-path=/usr/include"
+    build_command_prepend: "mkdir builddir && cd builddir && meson .. --buildtype=debug --default-library shared -Dlicense=agplv3 -Dmupdf-libdir=/tmp/mupdf-1.17/lib -Dmupdf-includedir=/tmp/mupdf-1.17/include -Dmupdf-static-third=mupdf-third
     build_command: "ninja"
     branch_pattern: coverity_scan
