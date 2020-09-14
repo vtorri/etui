@@ -272,10 +272,21 @@ _etui_pdf_toc_fill(const Etui_Module_Data *md, Eina_Array *items, fz_outline *ou
         else
         {
             Etui_Link_Goto l;
+#if FZ_VERSION_MINOR >= 17
+            fz_location loc;
+#endif
 
             item->kind = ETUI_LINK_KIND_GOTO;
+#if FZ_VERSION_MINOR >= 17
+            loc = fz_resolve_link(md->doc.ctx, md->doc.doc,
+                                  outline->uri, &l.page_x, &l.page_y);
+            l.chapter = loc.chapter;
+            l.page = loc.page;
+#else
+            l.chapter = 0;
             l.page = fz_resolve_link(md->doc.ctx, md->doc.doc,
                                      outline->uri, &l.page_x, &l.page_y);
+#endif
             item->dest.goto_ = l;
         }
 
@@ -899,7 +910,7 @@ _etui_pdf_page_render(void *d)
                                              fz_device_bgr(md->doc.ctx),
                                              &ibounds, 1,
                                              (unsigned char *)md->efl.m);
-#elif FZ_VERSION_MINOR == 12
+#elif FZ_VERSION_MINOR == 12 || FZ_VERSION_MINOR == 13
     image = fz_new_pixmap_with_bbox_and_data(md->doc.ctx,
                                              fz_device_bgr(md->doc.ctx),
                                              &ibounds, NULL, 1,
@@ -912,7 +923,11 @@ _etui_pdf_page_render(void *d)
 #endif
 
     fz_clear_pixmap_with_value(md->doc.ctx, image, 0xff);
+#if FZ_VERSION_MINOR >= 14
     dev = fz_new_draw_device(md->doc.ctx, fz_identity, image);
+#else
+    dev = fz_new_draw_device(md->doc.ctx, &fz_identity, image);
+#endif
     if (md->page.use_display_list)
 #if FZ_VERSION_MINOR >= 14
         fz_run_display_list(md->doc.ctx, md->page.list, dev, ctm, bounds, &cookie);

@@ -10,24 +10,32 @@ env:
     - secure: "sxjZVZUGqfRkD3J5V+xHnCbrxrPV+ZuNkjCRfQ+Qh82s5TeJTm/HHrBuKub8xaRVRRESp1wYR+Y3/ExX57c8oTxkQWODDZ2ZZi+a50QjA/PPp2XViOfA8bWcY4wm/ME2GkBjVX/X11ZXS7jm24pY4P0GOfKgTvXyaJFBYker+mH1i8dD2RTEuNS7+rrUoKC67B94GvvikHhegKq4Z+Az6tV6E6V/IDrk4cKeWGWlsfhPrGHswnvcRpzksNlSTZV0VSHdlZBdMp3cmb064GybZgQ3O1vfrI4vdRx+qwP+4FxjFmJzsx96ssrlEX4iBS5wxlVfxjXOs4kHEcTxqS9+R3PuELOEy19+Fw48jmf06BdQRG9PgdgMX6PcT/Hssr2/iYfT/j/S3F3vAW60tK/+SJouwQBdGYFRO7iAPFKnoK9cYxtwJrCusZWrRGO7mMfzAp0X8TYX+O4jP8u4EWKpqO32pvk8q65GgBaduq5K3kLQWaYETKKvCEFtCi/dkd9tG3IoW4g4soPaokesSdo516bbpYM/SGTzwZPcBWGERLq9znaYm8UB7JDhiLYVMaA0gfAMxyv0Nh8twcki4dn6ixrv82ZGrxsiGZLLUnDQFDntwrf29iOf4Gf/wAeyAVd6V2++itU4BziUGgWRYtDtbLVwOxNR5vYbrQ0oAs5N8Yk="
 
 before_install:
-  - sudo add-apt-repository -y ppa:niko2040/e19
-  - sudo apt-get -qq update
   - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 install:
-  - sudo apt-get install -y libefl-dev libdjvulibre-dev libtiff5-dev libarchive-dev libopenjp2-7-dev libmupdf-dev libjbig2dec-dev ninja-build python3-pip python3-setuptools
+  - sudo add-apt-repository -y ppa:niko2040/e19
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libefl-dev libdjvulibre-dev libtiff5-dev libarchive-dev libopenjp2-7-dev libjbig2dec-dev ninja-build python3-pip python3-setuptools
   - pip3 install --upgrade pip
   - pip3 install meson --user
 
+before_script:
+  - wget https://mupdf.com/downloads/archive/mupdf-1.17.0-source.tar.xz -O /tmp/mupdf-1.17.0-source.tar.xz
+  - tar Jxf /tmp/mupdf-1.17.0-source.tar.xz
+  - cd mupdf-1.17.0-source
+  - make -j prefix=/tmp/mupdf-1.17 HAVE_GLUT=no USE_SYSTEM_FREETYPE=yes USE_SYSTEM_HARFBUZZ=yes USE_SYSTEM_LIBJPEG=yes USE_SYSTEM_OPENJPEG=yes USE_SYSTEM_ZLIB=yes USE_SYSTEM_CURL=yes USE_SYSTEM_JBIG2DEC=yes SYS_JBIG2DEC_CFLAGS="-I/opt/ewpi_64/include" SYS_JBIG2DEC_LIBS="-L/opt/ewpi_64/jbig2dec/lib -ljbig2dec" SYS_FREETYPE_CFLAGS="`pkg-config --cflags freetype2`" SYS_FREETYPE_LIBS="`pkg-config --libs freetype2`" SYS_HARFBUZZ_CFLAGS="`pkg-config --cflags harfbuzz`" SYS_HARFBUZZ_LIBS="`pkg-config --libs harfbuzz`" SYS_OPENJPEG_CFLAGS="`pkg-config --cflags libopenjp2`" SYS_OPENJPEG_LIBS="`pkg-config --libs libopenjp2`" HAVE_GLFW=no XLIBS=-fPIC XCFLAGS=-fPIC
+  - sudo make -j prefix=/tmp/mupdf-1.17 HAVE_GLUT=no USE_SYSTEM_FREETYPE=yes USE_SYSTEM_HARFBUZZ=yes USE_SYSTEM_LIBJPEG=yes USE_SYSTEM_OPENJPEG=yes USE_SYSTEM_ZLIB=yes USE_SYSTEM_CURL=yes USE_SYSTEM_JBIG2DEC=yes SYS_JBIG2DEC_CFLAGS="-I/opt/ewpi_64/include" SYS_JBIG2DEC_LIBS="-L/opt/ewpi_64/jbig2dec/lib -ljbig2dec" SYS_FREETYPE_CFLAGS="`pkg-config --cflags freetype2`" SYS_FREETYPE_LIBS="`pkg-config --libs freetype2`" SYS_HARFBUZZ_CFLAGS="`pkg-config --cflags harfbuzz`" SYS_HARFBUZZ_LIBS="`pkg-config --libs harfbuzz`" SYS_OPENJPEG_CFLAGS="`pkg-config --cflags libopenjp2`" SYS_OPENJPEG_LIBS="`pkg-config --libs libopenjp2`" HAVE_GLFW=no XLIBS=-fPIC XCFLAGS=-fPIC install
+  - cd ..
+
 script:
-  - mkdir builddir && cd builddir && meson .. --buildtype=debug --default-library shared -Dlicense=agplv3
+  - rm -rf builddir && mkdir builddir && cd builddir && meson .. --buildtype=debug --default-library shared -Dlicense=agplv3 -Dmupdf-libdir=/tmp/mupdf-1.17/lib -Dmupdf-includedir=/tmp/mupdf-1.17/include -Dmupdf-static-third=mupdf-third
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ninja ; fi
 
 addons:
   coverity_scan:
     project:
       name: "vtorri/etui"
-      description: "Build submitted via Travis CI"
+      description: "Multi-document viewer based on the EFL"
     notification_email: vincent.torri@gmail.com
     build_command_prepend: "mkdir builddir && cd builddir && meson .. --buildtype=debug --default-library shared -Dlicense=agplv3 -Dmupdf-path=/usr/lib -Dmupdf-include-path=/usr/include"
     build_command: "ninja"
