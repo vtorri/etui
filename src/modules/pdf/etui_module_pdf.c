@@ -119,10 +119,10 @@ static Eina_Inarray *
 _etui_pdf_search(void *mod, int page_num, const char *needle)
 {
 #if FZ_VERSION_MINOR >= 14
-    fz_quad r[5000];
+    fz_quad r[1024];
     fz_rect hit;
 #else
-    fz_rect r[512];
+    fz_rect r[1024];
 #endif
     Etui_Module_Data *md;
     int nbr;
