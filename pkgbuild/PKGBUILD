@@ -2,13 +2,13 @@
 
 _pkgname=etui
 pkgname=$_pkgname-git
-pkgver=@VERSION@
+pkgver=0.0.4
 pkgrel=1
 pkgdesc="Multi-document rendering application and library using the EFL"
 arch=('i686' 'x86_64')
 url="http://www.enlightenment.org"
 license=('GPL3' 'AGPL3')
-depends=('efl-git' 'libarchive' 'djvulibre' 'ghostscript' 'libmupdf' 'libtiff')
+depends=('efl-git' 'libarchive' 'djvulibre' 'ghostscript' 'freetype2' 'harfbuzz' 'libjpeg-turbo' 'openjpeg2' 'jbig2dec' 'libmupdf' 'libtiff')
 makedepends=('git')
 provides=("$_pkgname=$pkgver")
 conflicts=("$_pkgname")
@@ -33,17 +33,20 @@ build() {
 
   export CFLAGS="$CFLAGS -fvisibility=hidden -I/usr/include/ghostscript"
 
-  ./autogen.sh \
+  mkdir builddir && cd builddir
+  meson .. \
     --prefix=/usr \
-    --enable-gpl \
-    --with-mupdf-static-libs="-Wl,/usr/lib/libmupdf.a -Wl,/usr/lib/libmupdfthird.a" --with-mupdf-shared-libs="-ljbig2dec"
-  make
+    --default-library shared \
+    --buildtype=release \
+    --strip \
+    -Dlicense=agplv3
+  ninja
 }
 
 package() {
   cd "$srcdir/$_pkgname"
 
-  make DESTDIR="$pkgdir" install
+  ninja DESTDIR="$pkgdir" install
 
 # install text files
   install -d "$pkgdir/usr/share/doc/$_pkgname/"
