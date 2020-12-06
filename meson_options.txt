@@ -48,6 +48,6 @@ option('mupdf-static-lib',
 
 option('mupdf-static-third',
   type : 'string',
-  value : 'mupdfthird',
+  value : 'mupdf-third',
   description : 'name of the third-party static library of mupdf without extension'
 )
