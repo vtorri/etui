@@ -486,7 +486,7 @@ _etui_djvu_page_render_pre(void *d)
     md->page.height = ddjvu_page_get_height(md->page.page);
     md->page.dpi = ddjvu_page_get_resolution(md->page.page);
     md->page.gamma = ddjvu_page_get_gamma(md->page.page);
-    md->page.type = ddjvu_page_get_type(md->page.page);
+    md->page.type = (Etui_Djvu_Page_Type)ddjvu_page_get_type(md->page.page);
 
     evas_object_image_size_set(md->efl.obj, md->page.width, md->page.height);
     evas_object_image_filled_set(md->efl.obj, EINA_TRUE);
