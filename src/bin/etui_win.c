@@ -92,7 +92,7 @@ _etui_win_del_cb(void *data,
 
 
 Eina_Bool
-etui_win_new(Etui *etui, const char *role,
+etui_win_new(Etui *etui,
              Eina_Bool fullscreen, Etui_Config *config)
 {
     Evas_Object *o;
@@ -103,8 +103,6 @@ etui_win_new(Etui *etui, const char *role,
     o = elm_win_add(NULL, PACKAGE_NAME, ELM_WIN_BASIC);
     elm_win_title_set(o, "Etui");
     /* TODO: icon name */
-    if (role)
-        elm_win_role_set(o, role);
     if (fullscreen)
         elm_win_fullscreen_set(o, EINA_TRUE);
     elm_win_focus_highlight_enabled_set(o, EINA_TRUE);

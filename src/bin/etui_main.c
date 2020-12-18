@@ -39,10 +39,6 @@ static const Ecore_Getopt options = {
     gettext_noop("Multi-document rendering application written with Enlightenment Foundation Libraries."),
     EINA_TRUE,
     {
-        ECORE_GETOPT_STORE_STR ('g', "geometry",
-                                gettext_noop("Window geometry to use (eg 80x24 or 80x24+50+20 etc.).")),
-        ECORE_GETOPT_STORE_STR ('r', "role",
-                                gettext_noop("Set window role.")),
         ECORE_GETOPT_STORE_TRUE('f', "fullscreen",
                                 gettext_noop("Go into the fullscreen mode from start.")),
 
@@ -164,14 +160,10 @@ elm_main(int argc, char **argv)
     Etui *etui;
     Etui_Config *config;
     const char *filename = NULL;
-    char *geometry = NULL;
-    char *role = NULL;
     int args;
     Eina_Bool fullscreen = EINA_FALSE;
     Eina_Bool quit_option = EINA_FALSE;
     Ecore_Getopt_Value values[] = {
-        ECORE_GETOPT_VALUE_STR(geometry),
-        ECORE_GETOPT_VALUE_STR(role),
         ECORE_GETOPT_VALUE_BOOL(fullscreen),
 
         ECORE_GETOPT_VALUE_BOOL(quit_option),
@@ -241,7 +233,7 @@ elm_main(int argc, char **argv)
     if (!etui)
         goto del_config;
 
-    if (!etui_win_new(etui, role, fullscreen, config))
+    if (!etui_win_new(etui, fullscreen, config))
         goto del_etui;
     evas_object_resize(etui->window.win,
                        562 * elm_config_scale_get(),
