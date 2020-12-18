@@ -1,6 +1,6 @@
 project('etui', 'c',
   version : '0.0.4',
-  meson_version : '>= 0.51',
+  meson_version : '>= 0.53',
   default_options : [
     'warning_level=2',
     'buildtype=debugoptimized',
@@ -132,30 +132,34 @@ configure_file(
   install_dir : pkg_install_dir
 )
 
-message('')
-message(meson.project_name() + ' ' + meson.project_version())
-message('')
-message('Configuration Options Summary:')
-message('')
-message('  OS...................: ' + host_os)
-message('')
-message('  Modules..............:')
-message('    Comic Book.........: ' + have_cb)
 if enable_djvu == true
-  message('    DjVu...............: ' + have_djvu)
+  djvu_msg = have_djvu
 else
-  message('    DjVu...............: no (pass -Dlicense=gplv2 or -Dlicense=agplv3 to enable Djvu module)')
+  djvu_msg = 'no (pass -Dlicense=gplv2 or -Dlicense=agplv3 to enable Djvu module)'
 endif
+
 if enable_mupdf == true
-  message('    PDF................: ' + have_pdf)
+  pdf_msg = have_pdf
 else
-  message('    PDF................: no (pass -Dlicense=agplv3 to enable PDF module and flags for MuPDF)')
+  pdf_msg = 'no (pass -Dlicense=agplv3 to enable PDF module and flags for MuPDF'
 endif
-message('    Tiff...............: ' + have_tiff)
-message('')
-message('Compilation............: ninja')
-message('')
-message('Installation...........: ninja install (as root if needed, with "su" or "sudo")')
-message('')
-message('  prefix...............: ' + dir_prefix)
-message('')
+
+summary({'OS': host_os,
+         'Comic Book': have_cb,
+         'Djvu': djvu_msg,
+         'PDF': pdf_msg,
+         'Tiff': have_tiff,
+        }, section: 'Configuration Options Summary:')
+
+summary({'prefix': dir_prefix,
+         'bindir': dir_bin,
+         'libdir': dir_lib,
+         'incdir': dir_include,
+         'pkgincdir': dir_pkginclude,
+         'datadir': dir_data,
+         'pkgdatadir': dir_pkgdata,
+        }, section: 'Directories:')
+
+summary({'compilation': 'ninja',
+         'installation': 'ninja install',
+        }, section: 'Compilation')
