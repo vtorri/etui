@@ -132,6 +132,8 @@ configure_file(
   install_dir : pkg_install_dir
 )
 
+# output
+
 if enable_djvu == true
   djvu_msg = have_djvu
 else
