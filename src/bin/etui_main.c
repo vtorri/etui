@@ -167,14 +167,8 @@ elm_main(int argc, char **argv)
     char *geometry = NULL;
     char *role = NULL;
     int args;
-    int pos_x = 0;
-    int pos_y = 0;
-    int size_w = 1;
-    int size_h = 1;
     Eina_Bool fullscreen = EINA_FALSE;
     Eina_Bool quit_option = EINA_FALSE;
-    Eina_Bool pos_set = EINA_FALSE;
-    Eina_Bool size_set = EINA_FALSE;
     Ecore_Getopt_Value values[] = {
         ECORE_GETOPT_VALUE_STR(geometry),
         ECORE_GETOPT_VALUE_STR(role),
@@ -237,74 +231,8 @@ elm_main(int argc, char **argv)
     if (quit_option)
         goto del_config;
 
-    if (geometry)
-    {
-        if (sscanf(geometry,"%ix%i+%i+%i", &size_w, &size_h, &pos_x, &pos_y) == 4)
-        {
-            pos_set = EINA_TRUE;
-            size_set = EINA_TRUE;
-        }
-        else if (sscanf(geometry,"%ix%i-%i+%i", &size_w, &size_h, &pos_x, &pos_y) == 4)
-        {
-            pos_x = -pos_x;
-            pos_set = EINA_TRUE;
-            size_set = EINA_TRUE;
-        }
-        else if (sscanf(geometry,"%ix%i-%i-%i", &size_w, &size_h, &pos_x, &pos_y) == 4)
-        {
-            pos_x = -pos_x;
-            pos_y = -pos_y;
-            pos_set = EINA_TRUE;
-            size_set = EINA_TRUE;
-        }
-        else if (sscanf(geometry,"%ix%i+%i-%i", &size_w, &size_h, &pos_x, &pos_y) == 4)
-        {
-            pos_y = -pos_y;
-            pos_set = EINA_TRUE;
-            size_set = EINA_TRUE;
-        }
-        else if (sscanf(geometry,"%ix%i", &size_w, &size_h) == 2)
-        {
-            size_set = EINA_TRUE;
-        }
-        else if (sscanf(geometry,"+%i+%i", &pos_x, &pos_y) == 2)
-        {
-            pos_set = EINA_TRUE;
-        }
-        else if (sscanf(geometry,"-%i+%i", &pos_x, &pos_y) == 2)
-        {
-            pos_x = -pos_x;
-            pos_set = EINA_TRUE;
-        }
-        else if (sscanf(geometry,"+%i-%i", &pos_x, &pos_y) == 2)
-        {
-            pos_y = -pos_y;
-            pos_set = EINA_TRUE;
-        }
-        else if (sscanf(geometry,"-%i-%i", &pos_x, &pos_y) == 2)
-        {
-            pos_x = -pos_x;
-            pos_y = -pos_y;
-            pos_set = EINA_TRUE;
-        }
-    }
-
     if (args != argc)
         filename = argv[args];
-
-    if (!size_set)
-    {
-        if (config->custom_geometry)
-        {
-            size_w = config->cg_width;
-            size_h = config->cg_height;
-        }
-        else
-        {
-            size_w = 480;
-            size_h = 640;
-        }
-    }
 
     elm_theme_overlay_add(NULL, etui_config_theme_path_default_get(config));
     elm_theme_overlay_add(NULL, etui_config_theme_path_get(config));
@@ -313,8 +241,11 @@ elm_main(int argc, char **argv)
     if (!etui)
         goto del_config;
 
-    if (!etui_win_new(etui, role, pos_set, pos_x, pos_y, size_w, size_h, fullscreen, config))
+    if (!etui_win_new(etui, role, fullscreen, config))
         goto del_etui;
+    evas_object_resize(etui->window.win,
+                       562 * elm_config_scale_get(),
+                       800 * elm_config_scale_get());
 
     etui_doc_add(etui, etui_file_new(filename));
 

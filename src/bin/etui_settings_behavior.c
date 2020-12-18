@@ -32,8 +32,6 @@
  *============================================================================*/
 
 
-static Evas_Object *op_w = NULL;
-static Evas_Object *op_h = NULL;
 static Evas_Object *op_bell = NULL;
 
 #define CB(_cfg_name, _inv) \
@@ -55,56 +53,6 @@ _etui_settings_behavior_##_cfg_name##_cb(void *data, Evas_Object *obj, \
 CB(disable_visual_bell, 1);
 CB(bell_rings, 0);
 
-static void
-_etui_settings_behavior_custom_geometry_cb(void *data,
-                                           Evas_Object *obj,
-                                           void *_event EINA_UNUSED)
-{
-    Etui_Config *config;
-
-    config = ((Etui *)data)->window.config;
-    config->custom_geometry = elm_check_state_get(obj);
-    if (config->custom_geometry)
-    {
-        config->cg_width = (int)elm_spinner_value_get(op_w);
-        config->cg_height = (int)elm_spinner_value_get(op_h);
-    }
-    etui_config_save(config, NULL);
-
-    elm_object_disabled_set(op_w, !config->custom_geometry);
-    elm_object_disabled_set(op_h, !config->custom_geometry);
-}
-
-static void
-_etui_settings_behavior_cg_width_cb(void *data,
-                                    Evas_Object *obj,
-                                    void *_event EINA_UNUSED)
-{
-    Etui_Config *config;
-
-    config = ((Etui *)data)->window.config;
-    if (config->custom_geometry)
-    {
-        config->cg_width = (int) elm_spinner_value_get(obj);
-        etui_config_save(config, NULL);
-    }
-}
-
-static void
-_etui_settings_behavior_cg_height_cb(void *data,
-                                     Evas_Object *obj,
-                                     void *_event EINA_UNUSED)
-{
-    Etui_Config *config;
-
-    config = ((Etui *)data)->window.config;
-    if (config->custom_geometry)
-    {
-        config->cg_height = (int) elm_spinner_value_get(obj);
-        etui_config_save(config, NULL);
-    }
-}
-
 
 /*============================================================================*
  *                                 Global                                     *
@@ -119,8 +67,6 @@ etui_settings_behavior(Evas_Object *stbox, Etui *etui)
     Evas_Object *sc;
     Evas_Object *bx;
     Evas_Object *o;
-    Evas_Coord w;
-    Evas_Coord h;
 
     config = etui->window.config;
 
@@ -167,62 +113,6 @@ etui_settings_behavior(Evas_Object *stbox, Etui *etui)
     elm_object_disabled_set(op_bell, config->disable_visual_bell);
 
 #undef CX
-
-    evas_object_geometry_get(etui->window.win, NULL, NULL, &w, &h);
-
-   o = elm_check_add(bx);
-   evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, 0.0);
-   evas_object_size_hint_align_set(o, EVAS_HINT_FILL, 0.5);
-   elm_object_text_set(o, ("Always open at size:"));
-   elm_check_state_set(o, config->custom_geometry);
-   elm_box_pack_end(bx, o);
-   evas_object_show(o);
-   evas_object_smart_callback_add(o, "changed",
-                                  _etui_settings_behavior_custom_geometry_cb, etui);
-
-   o = elm_label_add(bx);
-   evas_object_size_hint_weight_set(o, 0.0, 0.0);
-   evas_object_size_hint_align_set(o, 0.0, 0.5);
-   elm_object_text_set(o, ("Width:"));
-   elm_box_pack_end(bx, o);
-   evas_object_show(o);
-
-   op_w = o = elm_spinner_add(bx);
-   elm_spinner_editable_set(o, EINA_TRUE);
-   elm_spinner_min_max_set(o, 2.0, 350.0);
-   evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, 0.0);
-   evas_object_size_hint_align_set(o, EVAS_HINT_FILL, 0.5);
-   if (config->custom_geometry)
-       elm_spinner_value_set(o, config->cg_width);
-   else
-       elm_spinner_value_set(o, w);
-   elm_object_disabled_set(o, !config->custom_geometry);
-   elm_box_pack_end(bx, o);
-   evas_object_show(o);
-   evas_object_smart_callback_add(o, "changed",
-                                  _etui_settings_behavior_cg_width_cb, etui);
-
-   o = elm_label_add(bx);
-   evas_object_size_hint_weight_set(o, 0.0, 0.0);
-   evas_object_size_hint_align_set(o, 0.0, 0.5);
-   elm_object_text_set(o, ("Height:"));
-   elm_box_pack_end(bx, o);
-   evas_object_show(o);
-
-   op_h = o = elm_spinner_add(bx);
-   elm_spinner_editable_set(o, EINA_TRUE);
-   elm_spinner_min_max_set(o, 1.0, 150.0);
-   evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, 0.0);
-   evas_object_size_hint_align_set(o, EVAS_HINT_FILL, 0.5);
-   if (config->custom_geometry)
-       elm_spinner_value_set(o, config->cg_height);
-   else
-       elm_spinner_value_set(o, h);
-   elm_object_disabled_set(o, !config->custom_geometry);
-   elm_box_pack_end(bx, o);
-   evas_object_show(o);
-   evas_object_smart_callback_add(o, "changed",
-                                  _etui_settings_behavior_cg_height_cb, etui);
 
    evas_object_size_hint_weight_set(stbox, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
    evas_object_size_hint_align_set(stbox, EVAS_HINT_FILL, EVAS_HINT_FILL);

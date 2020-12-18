@@ -93,7 +93,6 @@ _etui_win_del_cb(void *data,
 
 Eina_Bool
 etui_win_new(Etui *etui, const char *role,
-             Eina_Bool pos_set, int x, int y, int width, int height,
              Eina_Bool fullscreen, Etui_Config *config)
 {
     Evas_Object *o;
@@ -111,17 +110,6 @@ etui_win_new(Etui *etui, const char *role,
     elm_win_focus_highlight_enabled_set(o, EINA_TRUE);
     elm_win_autodel_set(o, EINA_TRUE);
 
-    evas_object_resize(o, width, height);
-    if (pos_set)
-    {
-        int screen_w;
-        int screen_h;
-
-        elm_win_screen_size_get(o, NULL, NULL, &screen_w, &screen_h);
-        evas_object_move(o,
-                         (x < 0) ? screen_w + x : x,
-                         (y < 0) ? screen_h + y : y);
-    }
     etui->window.win = o;
 
     evas_object_data_set(etui->window.win, "etui", etui);
