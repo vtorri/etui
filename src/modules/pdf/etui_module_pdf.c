@@ -119,10 +119,10 @@ static Eina_Inarray *
 _etui_pdf_search(void *mod, int page_num, const char *needle)
 {
 #if FZ_VERSION_MINOR >= 14
-    fz_quad r[1024];
+    fz_quad hits[1024];
     fz_rect hit;
 #else
-    fz_rect r[1024];
+    fz_rect hit[1024];
 #endif
     Etui_Module_Data *md;
     int nbr;
@@ -132,7 +132,7 @@ _etui_pdf_search(void *mod, int page_num, const char *needle)
 
     md = (Etui_Module_Data *)mod;
     nbr = fz_search_page_number(md->doc.ctx, md->doc.doc,
-                                page_num, needle, r, nelem(r));
+                                page_num, needle, hits, nelem(hits));
     if (nbr > 0)
     {
         Eina_Inarray *boxes;
@@ -147,17 +147,14 @@ _etui_pdf_search(void *mod, int page_num, const char *needle)
             Eina_Rectangle box;
 
 #if FZ_VERSION_MINOR >= 14
-            hit = fz_rect_from_quad(r[i]);
+            hit = fz_rect_from_quad(hits[i]);
+#endif
+
             box.x = floor(hit.x0);
             box.y = floor(hit.y0);
             box.w = ceil(hit.x1 - hit.x0);
             box.h = ceil(hit.y1 - hit.y0);
-#else
-            box.x = floor(r[i].x0);
-            box.y = floor(r[i].y0);
-            box.w = ceil(r[i].x1 - r[i].x0);
-            box.h = ceil(r[i].y1 - r[i].y0);
-#endif
+
             eina_inarray_push(boxes, &box);
         }
 
