@@ -24,6 +24,10 @@ etui_bin_src = [
 
 etui_bin_args = [ '-D_POSIX_C_SOURCE=200809L', '-D_XOPEN_SOURCE=500' ]
 
+if get_option('nls')
+  etui_bin_args += [ '-DGETTEXT_PACKAGE="etui"' ]
+endif
+
 if sys_windows == true
   rcconf = configuration_data()
   rcconf.set('SOURCEDIR', meson.source_root())

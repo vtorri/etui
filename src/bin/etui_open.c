@@ -23,7 +23,7 @@
 
 #include "etui_private.h"
 #include "etui_config.h"
-#include "et_win.h"
+#include "etui_win.h"
 #include "etui_doc_simple.h"
 #include "etui_open.h"
 #include "etui_settings.h"

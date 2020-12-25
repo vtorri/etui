@@ -1,0 +1,649 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: etui\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-12-25 18:28+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/bin/etui_doc_simple.c:368
+#, c-format
+msgid "  box (%d, %d) (%d, %d)\n"
+msgstr ""
+
+#: src/bin/etui_theme.c:84
+#, c-format
+msgid " * 1\n"
+msgstr ""
+
+#: src/bin/etui_theme.c:89
+#, c-format
+msgid " * 2 : %s\n"
+msgstr ""
+
+#: src/bin/etui_theme.c:94
+#, c-format
+msgid " * 3\n"
+msgstr ""
+
+#: src/bin/etui_main.c:34
+#, c-format
+msgid "%prog [options] [filename]"
+msgstr ""
+
+#: src/bin/etui_config.c:205
+#, c-format
+msgid "%s/.etui/config"
+msgstr ""
+
+#: src/bin/etui_config.c:151 src/bin/etui_config.c:210
+#, c-format
+msgid "%s/.etui/config/base.cfg"
+msgstr ""
+
+#: src/bin/etui_config.c:208
+#, c-format
+msgid "%s/.etui/config/base.cfg.tmp"
+msgstr ""
+
+#: src/bin/etui_config.c:105
+#, c-format
+msgid "%s/.etui/themes"
+msgstr ""
+
+#: src/bin/etui_config.c:83
+#, c-format
+msgid "%s/.etui/themes/%s"
+msgstr ""
+
+#: src/bin/etui_config.c:87
+#, c-format
+msgid "%s/etui/themes/%s"
+msgstr ""
+
+#: src/bin/etui_config.c:246 src/bin/etui_theme.c:59 src/bin/etui_theme.c:65
+#, c-format
+msgid "%s/etui/themes/default.edj"
+msgstr ""
+
+#: src/bin/etui_main.c:36 src/bin/etui_main.c:148
+msgid "(C) 2013-2020 Vincent Torri and others"
+msgstr ""
+
+#: src/bin/etui_settings_elm.c:73
+msgid ""
+"<em>Etui</em> uses the <hilight>elementary</hilight> toolkit.<br>The toolkit "
+"configuration settings can be accessed by running "
+"<keyword>elementary_config</keyword>."
+msgstr ""
+
+#: src/bin/etui_main.c:37
+msgid "AGPL v3"
+msgstr ""
+
+#: src/bin/etui_controls.c:223
+msgid "About"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:190 src/bin/etui_doc_simple.c:392
+#: src/bin/etui_doc_simple.c:430 src/bin/etui_win.c:103
+msgid "Alt"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:195 src/bin/etui_doc_simple.c:397
+#: src/bin/etui_doc_simple.c:435 src/bin/etui_win.c:108
+msgid "AltGr"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:218
+msgid "BackSpace"
+msgstr ""
+
+#: src/bin/etui_settings.c:213 src/bin/etui_settings_behavior.c:77
+msgid "Behavior"
+msgstr ""
+
+#: src/bin/etui_settings_behavior.c:111
+msgid "Bell rings"
+msgstr ""
+
+#: src/bin/etui_config.c:110
+msgid "Config"
+msgstr ""
+
+#: src/bin/etui_config.c:114
+msgid "Config_Keys"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:189 src/bin/etui_doc_simple.c:391
+#: src/bin/etui_doc_simple.c:429 src/bin/etui_win.c:102
+msgid "Control"
+msgstr ""
+
+#: src/bin/etui_controls.c:210
+msgid "Controls"
+msgstr ""
+
+#: src/bin/etui_main.c:120
+msgid "Could not parse command line options."
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:316
+msgid "End"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:274
+msgid "Escape"
+msgstr ""
+
+#: src/bin/etui_win.c:174
+msgid "Etui"
+msgstr ""
+
+#: src/bin/etui_config.c:53 src/bin/etui_doc_simple.c:269
+msgid "F11"
+msgstr ""
+
+#: src/bin/etui_main.c:42
+msgid "Go into the fullscreen mode from start."
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:312
+msgid "Home"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:197 src/bin/etui_doc_simple.c:399
+#: src/bin/etui_doc_simple.c:437 src/bin/etui_win.c:110
+msgid "Hyper"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:196 src/bin/etui_doc_simple.c:398
+#: src/bin/etui_doc_simple.c:436 src/bin/etui_win.c:109
+msgid "ISO_Level3_Shift"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:306
+msgid "KP_1"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:290
+msgid "KP_Add"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:298
+msgid "KP_Subtract"
+msgstr ""
+
+#: src/bin/etui_settings.c:214
+msgid "Keys"
+msgstr ""
+
+#: src/bin/etui_settings_elm.c:85
+msgid "Launch elementary_config"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:218
+msgid "Left"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:194 src/bin/etui_doc_simple.c:396
+#: src/bin/etui_doc_simple.c:434 src/bin/etui_win.c:107
+msgid "Meta"
+msgstr ""
+
+#: src/bin/etui_main.c:38
+msgid ""
+"Multi-document rendering application written with Enlightenment Foundation "
+"Libraries."
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:234
+msgid "Next"
+msgstr ""
+
+#: src/bin/etui_controls.c:217
+msgid "Open"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:253
+msgid "Prior"
+msgstr ""
+
+#: src/bin/etui_controls.c:226
+msgid "Quit"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:124
+#, c-format
+msgid "RELATIVE %f %f\n"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:202
+msgid "Right"
+msgstr ""
+
+#: src/bin/etui_controls.c:220 src/bin/etui_settings.c:180
+msgid "Settings"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:191 src/bin/etui_doc_simple.c:393
+#: src/bin/etui_doc_simple.c:431 src/bin/etui_win.c:104
+msgid "Shift"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:192 src/bin/etui_doc_simple.c:394
+#: src/bin/etui_doc_simple.c:432 src/bin/etui_win.c:105
+msgid "Super"
+msgstr ""
+
+#: src/bin/etui_settings.c:212
+msgid "Theme"
+msgstr ""
+
+#: src/bin/etui_settings.c:215 src/bin/etui_settings_elm.c:59
+msgid "Toolkit"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:77
+msgid "Type search text here"
+msgstr ""
+
+#: src/bin/etui_settings_behavior.c:110
+msgid "Visual Bell"
+msgstr ""
+
+#: src/bin/etui_config.c:119
+msgid "alt"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:210 src/bin/etui_doc_simple.c:226
+#: src/bin/etui_doc_simple.c:244 src/bin/etui_doc_simple.c:261
+msgid "bell:bell"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:213 src/bin/etui_doc_simple.c:229
+#: src/bin/etui_doc_simple.c:247 src/bin/etui_doc_simple.c:264
+msgid "bell:bell,ring"
+msgstr ""
+
+#: src/bin/etui_config.c:131
+msgid "bell_rings"
+msgstr ""
+
+#: src/bin/etui_win.c:69
+msgid "bg:focus,in"
+msgstr ""
+
+#: src/bin/etui_win.c:86
+msgid "bg:focus,out"
+msgstr ""
+
+#: src/bin/etui_win.c:222
+msgid "blank"
+msgstr ""
+
+#: src/bin/etui_config.c:124
+msgid "cb"
+msgstr ""
+
+#: src/bin/etui_config.c:128
+msgid "cg_height"
+msgstr ""
+
+#: src/bin/etui_config.c:127
+msgid "cg_width"
+msgstr ""
+
+#: src/bin/etui_settings_behavior.c:107
+msgid "changed"
+msgstr ""
+
+#: src/bin/etui_controls.c:162 src/bin/etui_settings_elm.c:82
+msgid "clicked"
+msgstr ""
+
+#: src/bin/etui_win.c:154
+msgid "config"
+msgstr ""
+
+#: src/bin/etui_main.c:45
+msgid "copyright"
+msgstr ""
+
+#: src/bin/etui_win.c:150
+msgid "could not allocate memory for Etui struct"
+msgstr ""
+
+#: src/bin/etui_win.c:203
+msgid "could not apply the theme."
+msgstr ""
+
+#: src/bin/etui_win.c:168
+msgid "could not create elm window."
+msgstr ""
+
+#: src/bin/etui_main.c:113
+msgid "could not create log domain 'etui-app'."
+msgstr ""
+
+#: src/bin/etui_main.c:160
+msgid "could not create main window."
+msgstr ""
+
+#: src/bin/etui_main.c:153
+msgid "could not initialize Etui library."
+msgstr ""
+
+#: src/bin/etui_win.c:157
+msgid "could not load \"config\" configuration."
+msgstr ""
+
+#: src/bin/etui_config.c:118
+msgid "ctrl"
+msgstr ""
+
+#: src/bin/etui_config.c:129
+msgid "custom_geometry"
+msgstr ""
+
+#: src/bin/etui_config.c:65
+msgid "default.edj"
+msgstr ""
+
+#: src/bin/etui_config.c:130
+msgid "disable_visual_bell"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:515
+msgid "doc:etui.content"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:329
+msgid "doc:etui.search"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:281
+msgid "doc:search,hide"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:333
+msgid "doc:search,show"
+msgstr ""
+
+#: src/bin/etui_controls.c:217
+msgid "document-open"
+msgstr ""
+
+#: src/bin/etui_open.c:88
+msgid "done"
+msgstr ""
+
+#: src/bin/etui_theme.c:112
+msgid "edje"
+msgstr ""
+
+#: src/bin/etui_theme.c:112
+msgid "edje,change,file"
+msgstr ""
+
+#: src/bin/etui_settings_elm.c:38
+msgid "elementary_config"
+msgstr ""
+
+#: src/bin/etui_controls.c:246 src/bin/etui_controls.c:263
+#: src/bin/etui_doc_simple.c:135 src/bin/etui_doc_simple.c:185
+#: src/bin/etui_doc_simple.c:210 src/bin/etui_doc_simple.c:213
+#: src/bin/etui_doc_simple.c:226 src/bin/etui_doc_simple.c:229
+#: src/bin/etui_doc_simple.c:244 src/bin/etui_doc_simple.c:247
+#: src/bin/etui_doc_simple.c:261 src/bin/etui_doc_simple.c:264
+#: src/bin/etui_doc_simple.c:281 src/bin/etui_doc_simple.c:333
+#: src/bin/etui_doc_simple.c:426 src/bin/etui_doc_simple.c:476
+#: src/bin/etui_main.c:140 src/bin/etui_main.c:141 src/bin/etui_open.c:47
+#: src/bin/etui_settings.c:63 src/bin/etui_settings.c:79
+#: src/bin/etui_settings.c:122 src/bin/etui_settings.c:230
+#: src/bin/etui_settings.c:231 src/bin/etui_settings.c:248
+#: src/bin/etui_settings.c:272 src/bin/etui_settings.c:273
+#: src/bin/etui_settings_behavior.c:70 src/bin/etui_theme.c:86
+#: src/bin/etui_theme.c:108 src/bin/etui_win.c:46 src/bin/etui_win.c:65
+#: src/bin/etui_win.c:69 src/bin/etui_win.c:84 src/bin/etui_win.c:86
+#: src/bin/etui_win.c:129 src/bin/etui_win.c:131 src/bin/etui_win.c:179
+#: src/bin/etui_win.c:201
+msgid "etui"
+msgstr ""
+
+#: src/bin/etui_main.c:110
+msgid "etui-app"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:321
+msgid "f"
+msgstr ""
+
+#: src/bin/etui_controls.c:263
+msgid "fg:controls,hide"
+msgstr ""
+
+#: src/bin/etui_controls.c:246
+msgid "fg:controls,show"
+msgstr ""
+
+#: src/bin/etui_settings.c:138 src/bin/etui_settings.c:237
+#: src/bin/etui_settings.c:261 src/bin/etui_settings.c:264
+msgid "fg:etui"
+msgstr ""
+
+#: src/bin/etui_controls.c:232
+msgid "fg:etui.controls"
+msgstr ""
+
+#: src/bin/etui_controls.c:237 src/bin/etui_settings.c:242
+msgid "fg:etui.dismiss"
+msgstr ""
+
+#: src/bin/etui_settings.c:223 src/bin/etui_settings.c:229
+msgid "fg:etui.settings"
+msgstr ""
+
+#: src/bin/etui_settings.c:173 src/bin/etui_settings.c:228
+msgid "fg:etui.stdetails"
+msgstr ""
+
+#: src/bin/etui_settings.c:272
+msgid "fg:settings,hide"
+msgstr ""
+
+#: src/bin/etui_settings.c:231 src/bin/etui_settings.c:248
+msgid "fg:settings,show"
+msgstr ""
+
+#: src/bin/etui_settings.c:63 src/bin/etui_settings.c:79
+#: src/bin/etui_settings.c:273
+msgid "fg:stdetails,hide"
+msgstr ""
+
+#: src/bin/etui_settings.c:122 src/bin/etui_settings.c:230
+msgid "fg:stdetails,show"
+msgstr ""
+
+#: src/bin/etui_win.c:62
+#, c-format
+msgid "focus in\n"
+msgstr ""
+
+#: src/bin/etui_win.c:81
+#, c-format
+msgid "focus out\n"
+msgstr ""
+
+#: src/bin/etui_win.c:182
+msgid "focus,in"
+msgstr ""
+
+#: src/bin/etui_win.c:183
+msgid "focus,out"
+msgstr ""
+
+#: src/bin/etui_main.c:41
+msgid "fullscreen"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:337
+msgid "g"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:77
+msgid "guide"
+msgstr ""
+
+#: src/bin/etui_main.c:47
+msgid "help"
+msgstr ""
+
+#: src/bin/etui_controls.c:223
+msgid "help-about"
+msgstr ""
+
+#: src/bin/etui_config.c:123
+msgid "hyper"
+msgstr ""
+
+#: src/bin/etui_controls.c:169
+msgid "icon"
+msgstr ""
+
+#: src/bin/etui_settings.c:200
+msgid "item_horizontal"
+msgstr ""
+
+#: src/bin/etui_config.c:117
+msgid "keyname"
+msgstr ""
+
+#: src/bin/etui_config.c:132
+msgid "keys"
+msgstr ""
+
+#: src/bin/etui_main.c:46
+msgid "license"
+msgstr ""
+
+#: src/bin/etui_config.c:122
+msgid "meta"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:298
+msgid "minus"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:290
+msgid "plus"
+msgstr ""
+
+#: src/bin/etui_settings.c:215
+msgid "preferences-color"
+msgstr ""
+
+#: src/bin/etui_controls.c:220
+msgid "preferences-desktop"
+msgstr ""
+
+#: src/bin/etui_settings.c:214
+msgid "preferences-desktop-keyboard-shortcuts"
+msgstr ""
+
+#: src/bin/etui_settings.c:212
+msgid "preferences-desktop-theme"
+msgstr ""
+
+#: src/bin/etui_settings.c:213
+msgid "preferences-system"
+msgstr ""
+
+#: src/bin/etui_win.c:114
+msgid "q"
+msgstr ""
+
+#: src/bin/etui_config.c:120
+msgid "shift"
+msgstr ""
+
+#: src/bin/etui_main.c:74
+msgid "show copyright."
+msgstr ""
+
+#: src/bin/etui_main.c:77
+msgid "show license."
+msgstr ""
+
+#: src/bin/etui_main.c:71
+msgid "show program version."
+msgstr ""
+
+#: src/bin/etui_main.c:80
+msgid "show this message."
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:202
+msgid "space"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:87
+msgid "spinner/decrease/vertical"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:95
+msgid "spinner/increase/vertical"
+msgstr ""
+
+#: src/bin/etui_settings.c:137 src/bin/etui_settings.c:236
+#: src/bin/etui_settings.c:260 src/bin/etui_settings.c:263
+msgid "stdetails,hide,done"
+msgstr ""
+
+#: src/bin/etui_doc_simple.c:365
+#, c-format
+msgid "text '%s' find page %d\n"
+msgstr ""
+
+#: src/bin/etui_config.c:126
+msgid "theme"
+msgstr ""
+
+#: src/bin/etui_theme.c:45
+msgid "theme_reload_func"
+msgstr ""
+
+#: src/bin/etui_theme.c:46
+msgid "theme_reload_func_data"
+msgstr ""
+
+#: src/bin/etui_main.c:141
+msgid "themes/default.edj"
+msgstr ""
+
+#: src/bin/etui_main.c:44
+msgid "version"
+msgstr ""
+
+#: src/bin/etui_config.c:121
+msgid "win"
+msgstr ""
+
+#: src/bin/etui_config.c:53
+msgid "win_fullscreen"
+msgstr ""
+
+#: src/bin/etui_controls.c:226
+msgid "window-close"
+msgstr ""

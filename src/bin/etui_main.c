@@ -24,16 +24,16 @@
 
 #include "etui_private.h"
 #include "etui_config.h"
-#include "et_win.h"
+#include "etui_win.h"
 #include "etui_doc_simple.h"
 
 int etui_app_log_dom_global = 1;
 
-static const Ecore_Getopt options = {
+static Ecore_Getopt options = {
     PACKAGE_NAME,
     "%prog [options] [filename]",
     PACKAGE_VERSION,
-    gettext_noop("(C) 2013-2017 Vincent Torri and others"),
+    gettext_noop("(C) 2013-2020 Vincent Torri and others"),
     "AGPL v3",
     gettext_noop("Multi-document rendering application written with Enlightenment Foundation Libraries."),
     EINA_TRUE,
@@ -49,14 +49,14 @@ static const Ecore_Getopt options = {
     }
 };
 
-#if HAVE_GETTEXT && ENABLE_NLS
+#if ENABLE_NLS
 static void
 _etui_translate_options(void)
 {
     Ecore_Getopt_Desc *desc;
 
     options.copyright = eina_stringshare_printf(_(options.copyright),
-                                                2017);
+                                                2020);
 
     desc = (Ecore_Getopt_Desc *)options.descs;
     while ((desc->shortname != '\0') ||
@@ -134,16 +134,18 @@ elm_main(int argc, char **argv)
     elm_app_compile_bin_dir_set(PACKAGE_BIN_DIR);
     elm_app_compile_lib_dir_set(PACKAGE_LIB_DIR);
     elm_app_compile_data_dir_set(PACKAGE_DATA_DIR);
-#if HAVE_GETTEXT && ENABLE_NLS
+#if ENABLE_NLS
     elm_app_compile_locale_set(LOCALEDIR);
 #endif
     elm_app_name_set("etui");
     elm_app_info_set(elm_main, "etui", "themes/default.edj");
 
-#if HAVE_GETTEXT && ENABLE_NLS
-    bindtextdomain(PACKAGE, elm_app_locale_dir_get());
-    textdomain(PACKAGE);
+#if ENABLE_NLS
+    bindtextdomain(PACKAGE_NAME, elm_app_locale_dir_get());
+    textdomain(PACKAGE_NAME);
     _etui_translate_options();
+#else
+   options.copyright = "(C) 2013-2020 Vincent Torri and others";
 #endif
 
     if (!etui_init())

@@ -19,7 +19,8 @@
 #define ETUI_BIN_PRIVATE_H
 
 
-#if HAVE_GETTEXT && ENABLE_NLS
+#if ENABLE_NLS
+# include <libintl.h>
 # define _(string) gettext(string)
 #else
 # define _(string) (string)

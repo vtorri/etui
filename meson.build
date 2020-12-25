@@ -21,6 +21,7 @@ dir_bin = join_paths(dir_prefix, get_option('bindir'))
 dir_lib = join_paths(dir_prefix, get_option('libdir'))
 dir_data = join_paths(dir_prefix, get_option('datadir'))
 dir_pkgdata = join_paths(dir_data, meson.project_name())
+dir_locale = join_paths(dir_prefix, get_option('localedir'))
 
 # host
 
@@ -29,6 +30,7 @@ linux = ['linux']
 bsd = ['bsd', 'freebsd', 'dragonfly', 'netbsd', 'openbsd']
 osx = ['darwin']
 win32 = ['windows']
+
 cygwin = ['cygwin']
 sys_linux = linux.contains(host_os)
 sys_bsd = bsd.contains(host_os)
@@ -90,8 +92,7 @@ etui_deps = [
 ]
 
 if get_option('nls') == true
-#  subdir('po')
-   etui_deps += cc.find_library('intl', required: false)
+  etui_deps += cc.find_library('intl', required: false)
 endif
 
 etui_args = [ '-DDLL_EXPORT', '-D_POSIX_C_SOURCE=200809L', '-D_XOPEN_SOURCE=500' ]
@@ -105,6 +106,7 @@ config_h.set_quoted('PACKAGE_VERSION', meson.project_version())
 config_h.set_quoted('PACKAGE_BIN_DIR', dir_bin)
 config_h.set_quoted('PACKAGE_LIB_DIR', dir_lib)
 config_h.set_quoted('PACKAGE_DATA_DIR', dir_data)
+config_h.set_quoted('LOCALEDIR', dir_locale)
 config_h.set_quoted('MODULE_EXT', sys_lib_ext)
 
 subdir('src/lib')
@@ -112,6 +114,9 @@ subdir('src/modules')
 subdir('src/bin')
 subdir('data')
 subdir('data/themes')
+if get_option('nls') == true
+  subdir('po')
+endif
 
 # Use config_h after all subdirs have set values
 
