@@ -15,9 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <Elementary.h>
 #include <Ecore_Getopt.h>
@@ -26,9 +24,10 @@
 
 #include "etui_private.h"
 #include "etui_config.h"
+#include "et_win.h"
 #include "etui_doc_simple.h"
-#include "etui_main.h"
-#include "etui_open.h"
+
+int etui_app_log_dom_global = 1;
 
 static const Ecore_Getopt options = {
     PACKAGE_NAME,
@@ -89,77 +88,11 @@ _etui_translate_options(void)
 }
 #endif
 
-int etui_app_log_dom_global = 1;
-
-static Eina_Bool
-_etui_key_down(void *data, int type EINA_UNUSED, void *event)
-{
-    Etui *etui;
-    Ecore_Event_Key *ev;
-
-    etui = (Etui *)data;
-    ev = (Ecore_Event_Key *)event;
-
-#define IS_MOD(mod_) ((ev->modifiers & mod_) == mod_)
-
-    /* ctrl modifier */
-    if (IS_MOD(ECORE_EVENT_MODIFIER_CTRL))
-    {
-        if (!strcmp(ev->keyname, "q"))
-            etui_win_free(etui);
-        else if (!strcmp(ev->keyname, "o"))
-        {
-            if (!etui_open_active_get())
-                etui_open_add(etui->window.win);
-        }
-    }
-
-#undef IS_MOD
-
-    return ECORE_CALLBACK_PASS_ON;
-}
-
-static Etui *
-etui_new(void)
-{
-    Etui *etui;
-
-    etui = (Etui *)calloc(1, sizeof(Etui));
-    if (!etui)
-    {
-        ERR(_("Can not allocate memory for main structure"));
-        return NULL;
-    }
-
-    etui->handler = ecore_event_handler_add(ECORE_EVENT_KEY_DOWN,
-                                            _etui_key_down, etui);
-    if (!etui->handler)
-    {
-        ERR(_("Can not create key handler"));
-        free(etui);
-        return NULL;
-    }
-
-    return etui;
-}
-
-static void
-etui_del(Etui *etui)
-{
-    Etui_Doc_Simple *doc;
-
-    EINA_LIST_FREE(etui->docs, doc)
-        etui_doc_del(doc);
-    ecore_event_handler_del(etui->handler);
-    free(etui);
-}
-
 static EAPI_MAIN int
 elm_main(int argc, char **argv)
 {
-    Etui *etui;
-    Etui_Config *config;
     const char *filename = NULL;
+    Evas_Object *win;
     int args;
     Eina_Bool fullscreen = EINA_FALSE;
     Eina_Bool quit_option = EINA_FALSE;
@@ -174,7 +107,29 @@ elm_main(int argc, char **argv)
         ECORE_GETOPT_VALUE_NONE
     };
 
-    elm_language_set("");
+    etui_app_log_dom_global = eina_log_domain_register("etui-app", NULL);
+    if (etui_app_log_dom_global < 0)
+    {
+        EINA_LOG_CRIT(_("could not create log domain 'etui-app'."));
+        goto end;
+    }
+
+    args = ecore_getopt_parse(&options, values, argc, argv);
+    if (args < 0)
+    {
+        ERR(_("Could not parse command line options."));
+        goto end;
+    }
+
+    if (quit_option)
+        goto end;
+
+    if (args != argc)
+        filename = argv[args];
+
+    etui_config_init();
+    /* FIXME: key bindings */
+
     elm_policy_set(ELM_POLICY_QUIT, ELM_POLICY_QUIT_LAST_WINDOW_CLOSED);
     elm_app_compile_bin_dir_set(PACKAGE_BIN_DIR);
     elm_app_compile_lib_dir_set(PACKAGE_LIB_DIR);
@@ -182,8 +137,8 @@ elm_main(int argc, char **argv)
 #if HAVE_GETTEXT && ENABLE_NLS
     elm_app_compile_locale_set(LOCALEDIR);
 #endif
-    elm_app_info_set(elm_main, "etui", "themes/default.edj");
     elm_app_name_set("etui");
+    elm_app_info_set(elm_main, "etui", "themes/default.edj");
 
 #if HAVE_GETTEXT && ENABLE_NLS
     bindtextdomain(PACKAGE, elm_app_locale_dir_get());
@@ -191,92 +146,41 @@ elm_main(int argc, char **argv)
     _etui_translate_options();
 #endif
 
-    etui_app_log_dom_global = eina_log_domain_register("etui-app", NULL);
-    if (etui_app_log_dom_global < 0)
-    {
-        EINA_LOG_CRIT(_("could not create log domain 'etui-app'."));
-        goto shutdown_elm;
-    }
-
     if (!etui_init())
     {
         ERR(_("could not initialize Etui library."));
-        goto shutdown_elm;
-    }
-
-    etui_config_init();
-    config = etui_config_load("config");
-    if (!config)
-    {
-        ERR(_("could not create log domain 'etui-app'."));
         goto shutdown_config;
     }
-    /* FIXME: key bindings */
 
-    args = ecore_getopt_parse(&options, values, argc, argv);
-    if (args < 0)
+    win = etui_win_add();
+    if (!win)
     {
-        ERR(_("Could not parse command line options."));
-        goto del_config;
+        ERR(_("could not create main window."));
+        goto shutdown_etui;
     }
 
-    if (quit_option)
-        goto del_config;
-
-    if (args != argc)
-        filename = argv[args];
-
-    elm_theme_overlay_add(NULL, etui_config_theme_path_default_get(config));
-    elm_theme_overlay_add(NULL, etui_config_theme_path_get(config));
-
-    etui = etui_new();
-    if (!etui)
-        goto del_config;
-
-    if (!etui_win_new(etui, fullscreen, config))
-        goto del_etui;
-    evas_object_resize(etui->window.win,
+    //evas_object_event_callback_add(win, EVAS_CALLBACK_RESIZE, _cb_resize, NULL);
+    evas_object_resize(win,
                        562 * elm_config_scale_get(),
                        800 * elm_config_scale_get());
 
-    etui_doc_add(etui, etui_file_new(filename));
+    etui_doc_add(win, etui_file_new(filename));
 
-    /* if no document, we display a file selector to open a file */
-    if (eina_list_count(etui->docs) == 0)
-        etui_open_add(etui->window.win);
+    if (fullscreen) elm_win_fullscreen_set(win, EINA_TRUE);
 
-    evas_object_show(etui->window.win);
+    evas_object_show(win);
 
     elm_run();
 
-    etui_del(etui);
-    etui_config_del(config);
-    /* key binding shutdown */
-    etui_config_shutdown();
-    etui_shutdown();
-    eina_log_domain_unregister(etui_app_log_dom_global);
-    etui_app_log_dom_global = -1;
-
-#if HAVE_GETTEXT && ENABLE_NLS
-    eina_stringshare_del(options.copyright);
-#endif
-
-    elm_shutdown();
-
     return 0;
 
-  del_etui:
-    etui_del(etui);
-  del_config:
-    etui_config_del(config);
+  shutdown_etui:
+    etui_shutdown();
   shutdown_config:
     etui_config_shutdown();
-    etui_shutdown();
     eina_log_domain_unregister(etui_app_log_dom_global);
     etui_app_log_dom_global = -1;
-  shutdown_elm:
-    elm_shutdown();
-
-    return -1;
+  end:
+    return 1;
 }
 ELM_MAIN()

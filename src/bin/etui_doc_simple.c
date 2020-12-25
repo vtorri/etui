@@ -15,9 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #ifdef _WIN32
 # define _USE_MATH_DEFINES
@@ -30,8 +28,8 @@
 
 #include "etui_private.h"
 #include "etui_config.h"
-#include "etui_main.h"
 #include "etui_open.h"
+#include "et_win.h"
 #include "etui_doc_simple.h"
 
 
@@ -45,25 +43,6 @@
 
 #define ETUI_MIN_SCALE 0.25
 #define ETUI_MAX_SCALE 5.0
-
-struct Etui_Doc_Simple_
-{
-    Etui_File *ef;
-    Evas_Object *sc;
-    Evas_Object *bx;
-    Evas_Object *obj;
-    float scale; /* scale before fullscreen */
-    struct
-    {
-        Evas_Object *vbox;
-        Evas_Object *hbox;
-        Evas_Object *entry;
-        Evas_Object *bt_next;
-        Evas_Object *bt_prev;
-        Evas_Object *list;
-        Eina_Bool searching : 1;
-    } search;
-};
 
 static void _etui_doc_key_down_cb(void *data,
                                   Evas *_e EINA_UNUSED,
@@ -146,11 +125,14 @@ _etui_doc_zoom(const Etui_Doc_Simple *doc)
 }
 
 static void
-_etui_doc_fullscreen_set(const Etui *etui, Eina_Bool on)
+_etui_doc_fullscreen_set(Evas_Object *win, Eina_Bool on)
 {
+    Etui *etui;
     Etui_Doc_Simple *doc;
     int w;
     int h;
+
+    etui = evas_object_data_get(win, "etui");
 
     doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
     if (on)
@@ -164,7 +146,7 @@ _etui_doc_fullscreen_set(const Etui *etui, Eina_Bool on)
 
         /* we set the new scale to fit the entire screen */
         etui_object_page_size_get(doc->obj, &w, &h);
-        elm_win_screen_size_get(etui->window.win, NULL, NULL, &ws, &hs);
+        elm_win_screen_size_get(win, NULL, NULL, &ws, &hs);
         scale = (w < h) ? (float)(hs) / (float)h : (float)(ws) / (float)w;
         etui_object_page_scale_set(doc->obj, scale);
 
@@ -183,11 +165,11 @@ _etui_doc_fullscreen_set(const Etui *etui, Eina_Bool on)
         etui_object_page_scale_set(doc->obj, doc->scale);
     }
 
-    elm_win_fullscreen_set(etui->window.win, on);
+    elm_win_fullscreen_set(win, on);
 }
 
 static void
-_etui_doc_key_down_cb(void *data,
+_etui_doc_key_down_cb(void *w,
                       Evas *_e EINA_UNUSED,
                       Evas_Object *_obj EINA_UNUSED,
                       void *event)
@@ -197,10 +179,10 @@ _etui_doc_key_down_cb(void *data,
     Etui_Doc_Simple *doc;
     Eina_Bool ctrl, alt, shift, win, meta, hyper;
 
-    EINA_SAFETY_ON_NULL_RETURN(data);
+    EINA_SAFETY_ON_NULL_RETURN(w);
     EINA_SAFETY_ON_NULL_RETURN(event);
 
-    etui = (Etui *)data;
+    etui = evas_object_data_get(w, "etui");
     ev = (Evas_Event_Key_Down *)event;
     doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
 
@@ -223,11 +205,11 @@ _etui_doc_key_down_cb(void *data,
 
             page = etui_object_page_get(doc->obj);
             if ((page == (etui_object_document_pages_count(doc->obj) - 1)) &&
-                (!etui->window.config->disable_visual_bell))
+                (!etui->config->disable_visual_bell))
             {
-                elm_object_signal_emit(etui->window.base, "bell:bell", "etui");
-                if (etui->window.config->bell_rings)
-                    elm_object_signal_emit(etui->window.base,
+                elm_object_signal_emit(etui->layout, "bell:bell", "etui");
+                if (etui->config->bell_rings)
+                    elm_object_signal_emit(etui->layout,
                                            "bell:bell,ring", "etui");
             }
             else
@@ -239,11 +221,11 @@ _etui_doc_key_down_cb(void *data,
 
             page = etui_object_page_get(doc->obj);
             if ((page == 0) &&
-                (!etui->window.config->disable_visual_bell))
+                (!etui->config->disable_visual_bell))
             {
-                elm_object_signal_emit(etui->window.base, "bell:bell", "etui");
-                if (etui->window.config->bell_rings)
-                    elm_object_signal_emit(etui->window.base,
+                elm_object_signal_emit(etui->layout, "bell:bell", "etui");
+                if (etui->config->bell_rings)
+                    elm_object_signal_emit(etui->layout,
                                            "bell:bell,ring", "etui");
             }
             else
@@ -257,11 +239,11 @@ _etui_doc_key_down_cb(void *data,
             page = etui_object_page_get(doc->obj);
             num_pages = etui_object_document_pages_count(doc->obj);
             if ((page == (num_pages - 1)) &&
-                (!etui->window.config->disable_visual_bell))
+                (!etui->config->disable_visual_bell))
             {
-                elm_object_signal_emit(etui->window.base, "bell:bell", "etui");
-                if (etui->window.config->bell_rings)
-                    elm_object_signal_emit(etui->window.base,
+                elm_object_signal_emit(etui->layout, "bell:bell", "etui");
+                if (etui->config->bell_rings)
+                    elm_object_signal_emit(etui->layout,
                                            "bell:bell,ring", "etui");
             }
             else
@@ -274,11 +256,11 @@ _etui_doc_key_down_cb(void *data,
 
             page = etui_object_page_get(doc->obj);
             if ((page == 0) &&
-                (!etui->window.config->disable_visual_bell))
+                (!etui->config->disable_visual_bell))
             {
-                elm_object_signal_emit(etui->window.base, "bell:bell", "etui");
-                if (etui->window.config->bell_rings)
-                    elm_object_signal_emit(etui->window.base,
+                elm_object_signal_emit(etui->layout, "bell:bell", "etui");
+                if (etui->config->bell_rings)
+                    elm_object_signal_emit(etui->layout,
                                            "bell:bell,ring", "etui");
             }
             else
@@ -286,16 +268,16 @@ _etui_doc_key_down_cb(void *data,
         }
         else if (!strcmp(ev->keyname, "F11"))
         {
-            _etui_doc_fullscreen_set(etui,
-                                     !elm_win_fullscreen_get(etui->window.win));
+            _etui_doc_fullscreen_set(w,
+                                     !elm_win_fullscreen_get(w));
         }
         else if (!strcmp(ev->keyname, "Escape"))
         {
-            if (elm_win_fullscreen_get(etui->window.win))
-                _etui_doc_fullscreen_set(etui, EINA_FALSE);
+            if (elm_win_fullscreen_get(w))
+                _etui_doc_fullscreen_set(w, EINA_FALSE);
             if (doc->search.searching)
             {
-                elm_object_signal_emit(etui->window.base,
+                elm_object_signal_emit(etui->layout,
                                        "doc:search,hide", "etui");
                 doc->search.searching = EINA_FALSE;
             }
@@ -343,11 +325,11 @@ _etui_doc_key_down_cb(void *data,
                 if (!doc->search.vbox)
                 {
                     _etui_doc_search_add(etui);
-                    elm_object_part_content_set(etui->window.base,
+                    elm_object_part_content_set(etui->layout,
                                                 "doc:etui.search",
                                                 doc->search.vbox);
                 }
-                elm_object_signal_emit(etui->window.base,
+                elm_object_signal_emit(etui->layout,
                                        "doc:search,show", "etui");
                 doc->search.searching = EINA_TRUE;
             }
@@ -386,6 +368,7 @@ _etui_doc_key_down_cb(void *data,
                         fprintf(stderr, "  box (%d, %d) (%d, %d)\n",
                                 r->x, r->y, r->w, r->h);
                     }
+                    fflush(stderr);
                 }
             }
         }
@@ -399,11 +382,11 @@ _etui_doc_mouse_down_cb(void *data,
                         void *event)
 {
     Evas_Event_Mouse_Down *ev;
-    Etui *etui;
+    Evas_Object *w;
     int ctrl, alt, shift, win, meta, hyper;
 
     ev = (Evas_Event_Mouse_Down *)event;
-    etui = (Etui *)data;
+    w = (Evas_Object *)data;
 
     ctrl = evas_key_modifier_is_set(ev->modifiers, "Control");
     alt = evas_key_modifier_is_set(ev->modifiers, "Alt");
@@ -420,8 +403,8 @@ _etui_doc_mouse_down_cb(void *data,
     {
         if ((ev->button == 1) && (ev->flags & EVAS_BUTTON_DOUBLE_CLICK))
         {
-            _etui_doc_fullscreen_set(etui,
-                                     !elm_win_fullscreen_get(etui->window.win));
+            _etui_doc_fullscreen_set(w,
+                                     !elm_win_fullscreen_get(w));
         }
     }
 }
@@ -433,12 +416,14 @@ _etui_doc_mouse_wheel_cb(void *data,
                          void *event)
 {
     Evas_Event_Mouse_Wheel *ev;
+    Evas_Object *w;
     Etui *etui;
     Etui_Doc_Simple *doc;
     int ctrl, alt, shift, win, meta, hyper;
 
     ev = (Evas_Event_Mouse_Wheel *)event;
-    etui = (Etui *)data;
+    w = (Evas_Object *)data;
+    etui = evas_object_data_get(w, "etui");
     doc = (Etui_Doc_Simple *)eina_list_data_get(etui->docs);
 
     ctrl = evas_key_modifier_is_set(ev->modifiers, "Control");
@@ -480,12 +465,15 @@ _etui_doc_mouse_wheel_cb(void *data,
 
 
 Eina_Bool
-etui_doc_add(Etui *etui, Etui_File *ef)
+etui_doc_add(Evas_Object *win, Etui_File *ef)
 {
+    Etui *etui;
     Etui_Doc_Simple *doc;
 
-    if (!ef)
-        return EINA_FALSE;
+    EINA_SAFETY_ON_NULL_RETURN_VAL(win, EINA_FALSE);
+    EINA_SAFETY_ON_NULL_RETURN_VAL(ef, EINA_FALSE);
+
+    etui = evas_object_data_get(win, "etui");
 
     doc = (Etui_Doc_Simple *)calloc(1, sizeof(Etui_Doc_Simple));
     if (!doc)
@@ -494,7 +482,7 @@ etui_doc_add(Etui *etui, Etui_File *ef)
     doc->ef = ef;
 
     /* scroller object */
-    doc->sc = elm_scroller_add(etui->window.win);
+    doc->sc = elm_scroller_add(win);
     elm_scroller_policy_set(doc->sc,
                             ELM_SCROLLER_POLICY_AUTO, ELM_SCROLLER_POLICY_AUTO);
     elm_scroller_bounce_set(doc->sc, EINA_TRUE, EINA_TRUE);
@@ -505,7 +493,7 @@ etui_doc_add(Etui *etui, Etui_File *ef)
     evas_object_show(doc->sc);
 
     /* box object */
-    doc->bx = elm_box_add(etui->window.win);
+    doc->bx = elm_box_add(win);
     evas_object_size_hint_weight_set(doc->bx,
                                      EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(doc->bx,
@@ -513,7 +501,7 @@ etui_doc_add(Etui *etui, Etui_File *ef)
     elm_object_content_set(doc->sc, doc->bx);
     evas_object_show(doc->bx);
 
-    doc->obj = etui_object_add(evas_object_evas_get(etui->window.win));
+    doc->obj = etui_object_add(evas_object_evas_get(win));
     etui_object_page_mode_set(doc->obj, ETUI_MODE_FIT_AUTO);
     etui_object_file_set(doc->obj, doc->ef);
     etui_object_page_set(doc->obj, 0);
@@ -524,16 +512,16 @@ etui_doc_add(Etui *etui, Etui_File *ef)
 
     doc->scale = etui_object_page_scale_get(doc->obj);
 
-    etui->docs = eina_list_append(etui->docs, doc);
-
-    elm_object_part_content_set(etui->window.base, "doc:etui.content", doc->sc);
+    elm_object_part_content_set(etui->layout, "doc:etui.content", doc->sc);
 
     evas_object_event_callback_add(doc->sc, EVAS_CALLBACK_KEY_DOWN,
-                                   _etui_doc_key_down_cb, etui);
+                                   _etui_doc_key_down_cb, win);
     evas_object_event_callback_add(doc->sc, EVAS_CALLBACK_MOUSE_DOWN,
-                                   _etui_doc_mouse_down_cb, etui);
+                                   _etui_doc_mouse_down_cb, win);
     evas_object_event_callback_add(doc->sc, EVAS_CALLBACK_MOUSE_WHEEL,
                                    _etui_doc_mouse_wheel_cb, etui);
+
+    etui->docs = eina_list_append(etui->docs, doc);
 
     return EINA_TRUE;
 }

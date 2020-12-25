@@ -15,17 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <Elementary.h>
 
 #include <Etui.h>
 
 #include "etui_private.h"
+#include "etui_config.h"
+#include "et_win.h"
 #include "etui_doc_simple.h"
-#include "etui_main.h"
 #include "etui_open.h"
 #include "etui_settings.h"
 
@@ -45,14 +44,14 @@ _etui_fs_done_cb(void            *data,
 {
     Etui *etui;
 
-    etui = evas_object_data_get((Evas_Object *)data, "etui");
+    etui = evas_object_data_get(data, "etui");
     if (!etui)
         return;
 
     if (!event_info && (eina_list_count(etui->docs) != 0))
         etui_open_del();
 
-    if (etui_doc_add(etui, etui_file_new(event_info)))
+    if (etui_doc_add(data, etui_file_new(event_info)))
         etui_open_del();
 }
 

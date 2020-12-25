@@ -15,14 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <Elementary.h>
 
 #include "etui_private.h"
-#include "etui_main.h"
 #include "etui_open.h"
 #include "etui_settings.h"
 #include "etui_controls.h"
@@ -46,11 +43,11 @@ static Eina_Bool ct_out = EINA_FALSE; // is controls displayed ?
 /* controls callbacks */
 
 static void
-_etui_ct_close_cb(void *_data,
+_etui_ct_close_cb(void *data,
                   Evas_Object *_obj EINA_UNUSED,
                   void *_event EINA_UNUSED)
 {
-    etui_win_free(evas_object_data_get(_data, "etui"));
+  evas_object_del(data);
 }
 
 static void

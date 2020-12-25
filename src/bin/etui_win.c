@@ -15,16 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <Elementary.h>
 
 #include "etui_private.h"
-#include "etui_main.h"
+#include "etui_config.h"
 #include "etui_controls.h"
 #include "etui_theme.h"
+#include "et_win.h"
 
 
 /*============================================================================*
@@ -33,161 +32,202 @@
 
 
 static void
-_etui_win_focus_in_cb(void *data,
-                      Evas_Object *obj EINA_UNUSED,
-                      void *event EINA_UNUSED)
-{
-    Etui *etui = (Etui *)data;
-
-    fprintf(stderr, "focus in\n");
-    if (!etui->window.focused)
-        elm_win_urgent_set(etui->window.win, EINA_FALSE);
-    etui->window.focused = EINA_TRUE;
-    elm_layout_signal_emit(etui->window.base, "bg:focus,in", "etui");
-}
-
-static void
-_etui_win_focus_out_cb(void *data,
-                       Evas_Object *obj EINA_UNUSED, void *event EINA_UNUSED)
-{
-    Etui *etui = (Etui *)data;
-
-    fprintf(stderr, "focus out\n");
-    etui->window.focused = EINA_FALSE;
-    elm_layout_signal_emit(etui->window.base, "bg:focus,out", "etui");
-}
-
-static void
-_etui_mouse_down_cb(void *data,
-                    Evas *_e EINA_UNUSED,
-                    Evas_Object *_obj EINA_UNUSED,
-                    void *event)
+_cb_mouse_down(void *win,
+               Evas *_e EINA_UNUSED,
+               Evas_Object *_obj EINA_UNUSED,
+               void *event)
 {
     Evas_Event_Mouse_Down *ev;
     Etui *etui;
 
-    EINA_SAFETY_ON_NULL_RETURN(data);
+    EINA_SAFETY_ON_NULL_RETURN(win);
     EINA_SAFETY_ON_NULL_RETURN(event);
 
-    etui = (Etui *)data;
+    etui = evas_object_data_get(win, "etui");
     ev = (Evas_Event_Mouse_Down *)event;
 
     if (ev->button == 3)
-        etui_controls_toggle(etui->window.win, etui->window.base);
+        etui_controls_toggle(win, etui->layout);
 }
 
 static void
-_etui_win_del_cb(void *data,
-                 Evas *_e EINA_UNUSED,
-                 Evas_Object *_obj EINA_UNUSED,
-                 void *_event EINA_UNUSED)
+_cb_win_focus_in(void *data EINA_UNUSED,
+                 Evas_Object *win,
+                 void *event EINA_UNUSED)
 {
-    etui_win_free(data);
- }
+    Etui *etui;
+
+    EINA_SAFETY_ON_NULL_RETURN(win);
+
+    fprintf(stderr, "focus in\n");
+    fflush(stderr);
+
+    etui = evas_object_data_get(win, "etui");
+    if (!etui->focused)
+        elm_win_urgent_set(win, EINA_FALSE);
+    etui->focused = EINA_TRUE;
+    elm_layout_signal_emit(etui->layout, "bg:focus,in", "etui");
+}
+
+static void
+_cb_win_focus_out(void *data EINA_UNUSED,
+                  Evas_Object *win,
+                  void *event EINA_UNUSED)
+{
+    Etui *etui;
+
+    EINA_SAFETY_ON_NULL_RETURN(win);
+
+    fprintf(stderr, "focus out\n");
+    fflush(stderr);
+
+    etui = evas_object_data_get(win, "etui");
+    etui->focused = EINA_FALSE;
+    elm_layout_signal_emit(etui->layout, "bg:focus,out", "etui");
+}
+
+static void
+_cb_key_down(void *data,
+             Evas *evas EINA_UNUSED,
+             Evas_Object *obj EINA_UNUSED,
+             void *event_info)
+{
+    Evas_Event_Key_Down *ev;
+    Eina_Bool ctrl, alt, shift, win, meta, hyper;
+
+    EINA_SAFETY_ON_NULL_RETURN(event_info);
+
+    ev = (Evas_Event_Key_Down *)event_info;
+
+    ctrl = evas_key_modifier_is_set(ev->modifiers, "Control");
+    alt = evas_key_modifier_is_set(ev->modifiers, "Alt");
+    shift = evas_key_modifier_is_set(ev->modifiers, "Shift");
+    win = evas_key_modifier_is_set(ev->modifiers, "Super");
+    meta =
+        evas_key_modifier_is_set(ev->modifiers, "Meta") ||
+        evas_key_modifier_is_set(ev->modifiers, "AltGr") ||
+        evas_key_modifier_is_set(ev->modifiers, "ISO_Level3_Shift");
+    hyper = evas_key_modifier_is_set(ev->modifiers, "Hyper");
+
+    if (ctrl && !alt && !shift && !win && !meta && !hyper)
+    {
+        if (!strcmp(ev->keyname, "q"))
+        {
+            evas_object_del(data);
+        }
+    }
+}
+
+static void
+_cb_win_del(void *data EINA_UNUSED,
+            Evas *_e EINA_UNUSED,
+            Evas_Object *win,
+            void *_event EINA_UNUSED)
+{
+    Etui *etui;
+
+    etui = evas_object_data_get(win, "etui");
+    etui_config_del(etui->config);
+    evas_object_data_del(win, "etui");
+    free(etui);
+}
 
 
 /*============================================================================*
  *                                 Global                                     *
  *============================================================================*/
 
-
-Eina_Bool
-etui_win_new(Etui *etui,
-             Eina_Bool fullscreen, Etui_Config *config)
+Evas_Object *
+etui_win_add(void)
 {
+    Evas_Object *win;
     Evas_Object *o;
+    Etui *etui;
 
-    /* all pointers and values are valid */
+    etui = (Etui *)calloc(1, sizeof(Etui));
+    if (!etui)
+    {
+        ERR(_("could not allocate memory for Etui struct"));
+        return NULL;
+    }
+
+    etui->config = etui_config_load("config");
+    if (!etui->config)
+    {
+        ERR(_("could not load \"config\" configuration."));
+        free(etui);
+        return NULL;
+    }
+    elm_theme_overlay_add(NULL, etui_config_theme_path_default_get(etui->config));
+    elm_theme_overlay_add(NULL, etui_config_theme_path_get(etui->config));
 
     /* main window */
-    o = elm_win_add(NULL, PACKAGE_NAME, ELM_WIN_BASIC);
-    elm_win_title_set(o, "Etui");
+    win = elm_win_add(NULL, PACKAGE_NAME, ELM_WIN_BASIC);
+    if (!win)
+    {
+        ERR(_("could not create elm window."));
+        etui_config_del(etui->config);
+        free(etui);
+        return NULL;
+    }
+
+    elm_win_title_set(win, "Etui");
     /* TODO: icon name */
-    if (fullscreen)
-        elm_win_fullscreen_set(o, EINA_TRUE);
-    elm_win_focus_highlight_enabled_set(o, EINA_TRUE);
-    elm_win_autodel_set(o, EINA_TRUE);
+    elm_win_autodel_set(win, EINA_TRUE);
+    elm_win_focus_highlight_enabled_set(win, EINA_TRUE);
 
-    etui->window.win = o;
+    evas_object_data_set(win, "etui", etui);
 
-    evas_object_data_set(etui->window.win, "etui", etui);
-
-    evas_object_event_callback_add(o, EVAS_CALLBACK_DEL, _etui_win_del_cb, etui);
-
-    evas_object_smart_callback_add(o, "focus,in", _etui_win_focus_in_cb, etui);
-    evas_object_smart_callback_add(o, "focus,out", _etui_win_focus_out_cb, etui);
+    evas_object_event_callback_add(win, EVAS_CALLBACK_DEL, _cb_win_del, etui);
+    evas_object_smart_callback_add(win, "focus,in", _cb_win_focus_in, etui);
+    evas_object_smart_callback_add(win, "focus,out", _cb_win_focus_out, etui);
 
     /* conformant */
-    o = elm_conformant_add(etui->window.win);
+    o = elm_conformant_add(win);
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-    elm_win_resize_object_add(etui->window.win, o);
+    elm_win_resize_object_add(win, o);
     evas_object_show(o);
-    etui->window.conform = o;
+    etui->conform = o;
 
-    /* gui */
-    o = elm_layout_add(etui->window.win);
-    if (!etui_theme_apply(o, etui, "etui"))
-    {
-        etui_win_free(etui);
-        return EINA_FALSE;
-    }
+    /* gui layout */
+    o = elm_layout_add(win);
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-    elm_object_content_set(etui->window.conform, o);
+    elm_object_content_set(etui->conform, o);
     evas_object_repeat_events_set(o, EINA_FALSE);
     evas_object_show(o);
-    etui->window.base = o;
+    etui->layout = o;
+    if (!etui_theme_apply(win, "etui"))
+    {
+        ERR(_("could not apply the theme."));
+        _cb_win_del(NULL, NULL, win, NULL);
+        return NULL;
+    }
 
-    /* event catcher */
-    o = evas_object_rectangle_add(evas_object_evas_get(etui->window.win));
-    evas_object_color_set(o, 0, 0, 0, 0);
+    /* dummy button to catch mouse events */
+    o = elm_button_add(win);
+    elm_object_focus_allow_set(o, EINA_FALSE);
+    elm_object_focus_move_policy_set(o, ELM_FOCUS_MOVE_POLICY_CLICK);
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
-    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-    elm_win_resize_object_add(etui->window.win, o);
+    evas_object_color_set(o, 0, 0, 0, 0);
     evas_object_repeat_events_set(o, EINA_TRUE);
     evas_object_show(o);
-    etui->window.event = o;
-
     evas_object_event_callback_add(o, EVAS_CALLBACK_MOUSE_DOWN,
-                                   _etui_mouse_down_cb, etui);
+                                   _cb_mouse_down, etui);
+    etui->event_mouse = o;
 
-    etui->window.config = config;
+    /* dummy button to catch keyboard events */
+    o = elm_button_add(win);
+    elm_object_focus_highlight_style_set(o, "blank");
+    evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    elm_win_resize_object_add(win, o);
+    evas_object_lower(o);
+    evas_object_show(o);
+    elm_object_focus_set(o, EINA_TRUE);
+    evas_object_event_callback_add(o, EVAS_CALLBACK_KEY_DOWN,
+                                   _cb_key_down, win);
+    etui->event_kbd = o;
 
-    return EINA_TRUE;
+    return win;
 }
-
-void
-etui_win_free(Etui *etui)
-{
-    if (etui->window.panel)
-    {
-        evas_object_del(etui->window.panel);
-        etui->window.panel = NULL;
-    }
-
-    if (etui->window.base)
-    {
-        evas_object_del(etui->window.base);
-        etui->window.base = NULL;
-    }
-
-    if (etui->window.conform)
-    {
-        evas_object_del(etui->window.conform);
-        etui->window.conform = NULL;
-    }
-
-    if (etui->window.win)
-    {
-        evas_object_event_callback_del_full(etui->window.win, EVAS_CALLBACK_DEL,
-                                            _etui_win_del_cb, etui);
-        evas_object_del(etui->window.win);
-        etui->window.win = NULL;
-    }
-}
-
-
-/*============================================================================*
- *                                   API                                      *
- *============================================================================*/

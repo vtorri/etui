@@ -9,7 +9,6 @@ etui_bin_src = [
   'etui_doc_simple.c',
   'etui_doc_simple.h',
   'etui_main.c',
-  'etui_main.h',
   'etui_open.c',
   'etui_open.h',
   'etui_private.h',
@@ -23,7 +22,7 @@ etui_bin_src = [
   'etui_win.h'
 ]
 
-etui_bin_args = [ '-DHAVE_CONFIG_H', '-D_POSIX_C_SOURCE=200809L', '-D_XOPEN_SOURCE=500' ]
+etui_bin_args = [ '-D_POSIX_C_SOURCE=200809L', '-D_XOPEN_SOURCE=500' ]
 
 if sys_windows == true
   rcconf = configuration_data()

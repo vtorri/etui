@@ -15,14 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <Elementary.h>
 
 #include "etui_private.h"
-#include "etui_main.h"
 #include "etui_settings.h"
 
 
@@ -239,7 +236,7 @@ etui_settings_toggle(Evas_Object *win, Evas_Object *bg)
         elm_object_signal_callback_add(bg, "stdetails,hide,done",
                                        "fg:etui",
                                        _etui_stdt_hide_done_cb,
-                                       evas_object_data_get(win, "etui"));
+                                       win);
         o = evas_object_rectangle_add(evas_object_evas_get(win));
         evas_object_color_set(o, 0, 0, 0, 0);
         elm_object_part_content_set(bg, "fg:etui.dismiss", o);

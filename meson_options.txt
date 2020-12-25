@@ -51,3 +51,10 @@ option('mupdf-static-third',
   value : 'mupdf-third',
   description : 'name of the third-party static library of mupdf without extension'
 )
+
+option('nls',
+  type: 'boolean',
+  value: true,
+  description: 'enable localization: (default=true)'
+)
+

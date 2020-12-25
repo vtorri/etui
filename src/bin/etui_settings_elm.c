@@ -15,14 +15,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <Elementary.h>
 
 #include "etui_private.h"
-#include "etui_main.h"
 #include "etui_settings.h"
 
 
@@ -50,7 +47,7 @@ _etui_settings_elm_config_launch(void *_data EINA_UNUSED,
 
 
 void
-etui_settings_elm(Evas_Object *stbox, Evas_Object *_term EINA_UNUSED)
+etui_settings_elm(Evas_Object *stbox, Evas_Object *win EINA_UNUSED)
 {
     Evas_Object *box;
     Evas_Object *o;

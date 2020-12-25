@@ -20,6 +20,7 @@
 
 
 typedef struct Etui_Config_Keys_ Etui_Config_Keys;
+typedef struct Etui_Config_ Etui_Config;
 
 struct Etui_Config_Keys_
 {

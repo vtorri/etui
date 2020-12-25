@@ -15,14 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <Elementary.h>
 
 #include "etui_private.h"
-#include "etui_main.h"
+#include "etui_config.h"
+#include "et_win.h"
 #include "etui_theme.h"
 
 
@@ -30,6 +29,8 @@
  *                                  Local                                     *
  *============================================================================*/
 
+
+static char *etui_theme_default_get(Etui *etui);
 
 static void
 _etui_theme_reload_cb(void *data EINA_UNUSED, Evas_Object *obj, const char *emission EINA_UNUSED, const char *source EINA_UNUSED)
@@ -46,24 +47,24 @@ _etui_theme_reload_cb(void *data EINA_UNUSED, Evas_Object *obj, const char *emis
    if (func) func(func_data);
 }
 
-char *
+static char *
 etui_theme_default_get(Etui *etui)
 {
     int size;
 
-    if (etui->theme.file)
-        return etui->theme.file;
+    if (etui->theme_file)
+        return etui->theme_file;
 
     size = snprintf(NULL, 0,
                     "%s/etui/themes/default.edj", elm_app_data_dir_get());
-    etui->theme.file = (char *)malloc(size + 2);
-    if (!etui->theme.file)
+    etui->theme_file = (char *)malloc(size + 2);
+    if (!etui->theme_file)
         return NULL;
 
-    snprintf(etui->theme.file, size + 1,
+    snprintf(etui->theme_file, size + 1,
              "%s/etui/themes/default.edj", elm_app_data_dir_get());
 
-    return etui->theme.file;
+    return etui->theme_file;
 }
 
 
@@ -73,25 +74,42 @@ etui_theme_default_get(Etui *etui)
 
 
 Eina_Bool
-etui_theme_apply(Evas_Object *obj, Etui *etui, const char *group)
+etui_theme_apply(Evas_Object *win, const char *group)
 {
-    if ((!obj) || (!group))
+    Etui *etui;
+
+    if ((!win) || (!group))
         return EINA_FALSE;
 
-    if (elm_layout_file_set(obj, etui_theme_default_get(etui), group))
+    fprintf(stderr, " * 1\n");
+    fflush(stderr);
+    etui = evas_object_data_get(win, "etui");
+    if (!etui)
+        return EINA_FALSE;
+    fprintf(stderr, " * 2 : %s\n", etui_theme_default_get(etui));
+    fflush(stderr);
+
+    if (elm_layout_file_set(etui->layout, etui_theme_default_get(etui), group))
         return EINA_TRUE;
+    fprintf(stderr, " * 3\n");
+    fflush(stderr);
 
     return EINA_FALSE;
 }
 
 void
-etui_theme_reload(Evas_Object *obj)
+etui_theme_reload(Evas_Object *win)
 {
+    Etui *etui;
 
-    if (!obj)
+    if (!win)
         return;
 
-    edje_object_signal_callback_add(obj, "edje,change,file", "edje",
+    etui = evas_object_data_get(win, "etui");
+    if (!etui)
+        return;
+
+    edje_object_signal_callback_add(etui->layout, "edje,change,file", "edje",
                                     _etui_theme_reload_cb, NULL);
 }
 

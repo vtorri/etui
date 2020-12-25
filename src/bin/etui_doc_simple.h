@@ -19,7 +19,28 @@
 #define ETUI_DOC_SIMPLE_H
 
 
-Eina_Bool etui_doc_add(Etui *etui, Etui_File *ef);
+typedef struct Etui_Doc_Simple_ Etui_Doc_Simple;
+
+struct Etui_Doc_Simple_
+{
+    Etui_File *ef;
+    Evas_Object *sc;
+    Evas_Object *bx;
+    Evas_Object *obj;
+    float scale; /* scale before fullscreen */
+    struct
+    {
+        Evas_Object *vbox;
+        Evas_Object *hbox;
+        Evas_Object *entry;
+        Evas_Object *bt_next;
+        Evas_Object *bt_prev;
+        Evas_Object *list;
+        Eina_Bool searching : 1;
+    } search;
+};
+
+Eina_Bool etui_doc_add(Evas_Object *win, Etui_File *ef);
 void etui_doc_del(Etui_Doc_Simple *doc);
 
 

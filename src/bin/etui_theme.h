@@ -19,9 +19,8 @@
 #define ETUI_BIN_THEME_H
 
 
-char *etui_theme_default_get(Etui *etui);
-Eina_Bool etui_theme_apply(Evas_Object *obj, Etui *etui, const char *group);
-void etui_theme_reload(Evas_Object *obj);
+Eina_Bool etui_theme_apply(Evas_Object *win, const char *group);
+void etui_theme_reload(Evas_Object *win);
 
 
 #endif /* ETUI_BIN_THEME_H */

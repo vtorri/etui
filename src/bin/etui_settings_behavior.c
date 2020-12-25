@@ -15,15 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <config.h>
 
 #include <Elementary.h>
 
 #include "etui_private.h"
 #include "etui_config.h"
-#include "etui_main.h"
+#include "et_win.h"
 #include "etui_settings.h"
 
 
@@ -39,7 +37,7 @@ static void \
 _etui_settings_behavior_##_cfg_name##_cb(void *data, Evas_Object *obj, \
                                          void *_event EINA_UNUSED) \
 { \
-    Etui_Config *config = ((Etui *)data)->window.config; \
+    Etui_Config *config = ((Etui *)data)->config; \
     if (_inv) \
         config->_cfg_name = !elm_check_state_get(obj); \
     else \
@@ -60,15 +58,17 @@ CB(bell_rings, 0);
 
 
 void
-etui_settings_behavior(Evas_Object *stbox, Etui *etui)
+etui_settings_behavior(Evas_Object *stbox, Evas_Object *win)
 {
+    Etui *etui;
     Etui_Config *config;
     Evas_Object *fr;
     Evas_Object *sc;
     Evas_Object *bx;
     Evas_Object *o;
 
-    config = etui->window.config;
+    etui = evas_object_data_get(win, "etui");
+    config = etui->config;
 
     /* frame */
     o = elm_frame_add(stbox);
