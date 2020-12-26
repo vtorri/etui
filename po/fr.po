@@ -95,7 +95,7 @@ msgstr ""
 
 #: src/bin/etui_controls.c:223
 msgid "About"
-msgstr ""
+msgstr "A propos"
 
 #: src/bin/etui_doc_simple.c:190 src/bin/etui_doc_simple.c:392
 #: src/bin/etui_doc_simple.c:430 src/bin/etui_win.c:103
@@ -113,15 +113,15 @@ msgstr ""
 
 #: src/bin/etui_settings.c:213 src/bin/etui_settings_behavior.c:77
 msgid "Behavior"
-msgstr ""
+msgstr "Comportement"
 
 #: src/bin/etui_settings_behavior.c:111
 msgid "Bell rings"
-msgstr ""
+msgstr "Sonnerie"
 
 #: src/bin/etui_config.c:110
 msgid "Config"
-msgstr ""
+msgstr "Configuration"
 
 #: src/bin/etui_config.c:114
 msgid "Config_Keys"
@@ -134,7 +134,7 @@ msgstr ""
 
 #: src/bin/etui_controls.c:210
 msgid "Controls"
-msgstr ""
+msgstr "Contrôles"
 
 #: src/bin/etui_main.c:120
 msgid "Could not parse command line options."
@@ -142,7 +142,7 @@ msgstr ""
 
 #: src/bin/etui_doc_simple.c:316
 msgid "End"
-msgstr ""
+msgstr "Fin"
 
 #: src/bin/etui_doc_simple.c:274
 msgid "Escape"
@@ -188,15 +188,15 @@ msgstr ""
 
 #: src/bin/etui_settings.c:214
 msgid "Keys"
-msgstr ""
+msgstr "Touches"
 
 #: src/bin/etui_settings_elm.c:85
 msgid "Launch elementary_config"
-msgstr ""
+msgstr "Lancer elementary_config"
 
 #: src/bin/etui_doc_simple.c:218
 msgid "Left"
-msgstr ""
+msgstr "Gauche"
 
 #: src/bin/etui_doc_simple.c:194 src/bin/etui_doc_simple.c:396
 #: src/bin/etui_doc_simple.c:434 src/bin/etui_win.c:107
@@ -211,19 +211,19 @@ msgstr ""
 
 #: src/bin/etui_doc_simple.c:234
 msgid "Next"
-msgstr ""
+msgstr "Suivant"
 
 #: src/bin/etui_controls.c:217
 msgid "Open"
-msgstr ""
+msgstr "Ouvrir"
 
 #: src/bin/etui_doc_simple.c:253
 msgid "Prior"
-msgstr ""
+msgstr "Précédent"
 
 #: src/bin/etui_controls.c:226
 msgid "Quit"
-msgstr ""
+msgstr "Quitter"
 
 #: src/bin/etui_doc_simple.c:124
 #, c-format
@@ -236,7 +236,7 @@ msgstr ""
 
 #: src/bin/etui_controls.c:220 src/bin/etui_settings.c:180
 msgid "Settings"
-msgstr ""
+msgstr "Propriétés"
 
 #: src/bin/etui_doc_simple.c:191 src/bin/etui_doc_simple.c:393
 #: src/bin/etui_doc_simple.c:431 src/bin/etui_win.c:104
@@ -262,7 +262,7 @@ msgstr ""
 
 #: src/bin/etui_settings_behavior.c:110
 msgid "Visual Bell"
-msgstr ""
+msgstr "Sonnerie visuelle"
 
 #: src/bin/etui_config.c:119
 msgid "alt"
@@ -324,31 +324,31 @@ msgstr ""
 
 #: src/bin/etui_win.c:150
 msgid "could not allocate memory for Etui struct"
-msgstr ""
+msgstr "ne peut pas allouer la mémoirepour la structure Etui."
 
 #: src/bin/etui_win.c:203
 msgid "could not apply the theme."
-msgstr ""
+msgstr "ne peut pas appliquer le thème."
 
 #: src/bin/etui_win.c:168
 msgid "could not create elm window."
-msgstr ""
+msgstr "ne peutpas créer la fenêtre elm."
 
 #: src/bin/etui_main.c:113
 msgid "could not create log domain 'etui-app'."
-msgstr ""
+msgstr "ne peut pas créer le domaine de messages 'etui-app'."
 
 #: src/bin/etui_main.c:160
 msgid "could not create main window."
-msgstr ""
+msgstr "ne peut pas créer la fenêtre principale."
 
 #: src/bin/etui_main.c:153
 msgid "could not initialize Etui library."
-msgstr ""
+msgstr "ne peut pas initialiser la bibliothèque Etui."
 
 #: src/bin/etui_win.c:157
 msgid "could not load \"config\" configuration."
-msgstr ""
+msgstr "ne peut charger la configuration \"config\"."
 
 #: src/bin/etui_config.c:118
 msgid "ctrl"
@@ -581,19 +581,19 @@ msgstr ""
 
 #: src/bin/etui_main.c:74
 msgid "show copyright."
-msgstr ""
+msgstr "afficher le copyright"
 
 #: src/bin/etui_main.c:77
 msgid "show license."
-msgstr ""
+msgstr "afficher la license"
 
 #: src/bin/etui_main.c:71
 msgid "show program version."
-msgstr ""
+msgstr "afficher la version du programme"
 
 #: src/bin/etui_main.c:80
 msgid "show this message."
-msgstr ""
+msgstr "afficher cec message"
 
 #: src/bin/etui_doc_simple.c:202
 msgid "space"

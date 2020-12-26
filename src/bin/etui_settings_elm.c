@@ -70,8 +70,8 @@ etui_settings_elm(Evas_Object *stbox, Evas_Object *win EINA_UNUSED)
     elm_entry_context_menu_disabled_set(o, EINA_TRUE);
     elm_entry_editable_set(o, EINA_FALSE);
     elm_entry_line_wrap_set(o, ELM_WRAP_MIXED);
-    elm_object_text_set(o, "<em>Etui</em> uses the <hilight>elementary</hilight> toolkit.<br>"
-                              "The toolkit configuration settings can be accessed by running <keyword>elementary_config</keyword>.");
+    elm_object_text_set(o, _("<em>Etui</em> uses the <hilight>elementary</hilight> toolkit.<br>"
+                             "The toolkit configuration settings can be accessed by running <keyword>elementary_config</keyword>."));
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, 0);
     evas_object_size_hint_align_set(o, EVAS_HINT_FILL, 0.5);
     elm_box_pack_end(box, o);
@@ -82,7 +82,7 @@ etui_settings_elm(Evas_Object *stbox, Evas_Object *win EINA_UNUSED)
     evas_object_smart_callback_add(o, "clicked",
                                    _etui_settings_elm_config_launch, NULL);
     evas_object_propagate_events_set(o, EINA_FALSE);
-    elm_layout_text_set(o, NULL, "Launch elementary_config");
+    elm_layout_text_set(o, NULL, _("Launch elementary_config"));
     elm_box_pack_end(box, o);
     evas_object_show(o);
 }

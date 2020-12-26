@@ -209,10 +209,10 @@ etui_settings_toggle(Evas_Object *win, Evas_Object *bg)
         elm_toolbar_item_append(o, _icon_name, _name, _cb_op, \
                                 (void*) SETTINGS_##_option_mode)
 
-        item = ITEM_APPEND("preferences-desktop-theme", "Theme", THEME);
-        ITEM_APPEND("preferences-system", ("Behavior"), BEHAVIOR);
-        ITEM_APPEND("preferences-desktop-keyboard-shortcuts", "Keys", KEYS);
-        ITEM_APPEND("preferences-color", "Toolkit", ELM);
+        item = ITEM_APPEND("preferences-desktop-theme", _("Theme"), THEME);
+        ITEM_APPEND("preferences-system", _("Behavior"), BEHAVIOR);
+        ITEM_APPEND("preferences-desktop-keyboard-shortcuts", _("Keys"), KEYS);
+        ITEM_APPEND("preferences-color", _("Toolkit"), ELM);
 #undef ITEM_APPEND
 
         elm_box_pack_end(st_tbox, o);

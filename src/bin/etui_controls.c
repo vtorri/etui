@@ -207,23 +207,23 @@ etui_controls_toggle(Evas_Object *win, Evas_Object *bg)
         ct_frame = o = elm_frame_add(win);
         evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
         evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-        elm_object_text_set(o, "Controls");
+        elm_object_text_set(o, _("Controls"));
 
         ct_box = o = elm_box_add(win);
         elm_box_horizontal_set(o, EINA_FALSE);
         elm_object_content_set(ct_frame, o);
         evas_object_show(o);
 
-        o = _button_add(win, "Open", "document-open", _etui_ct_open_cb, NULL);
+        o = _button_add(win, _("Open"), "document-open", _etui_ct_open_cb, NULL);
         elm_box_pack_end(ct_box, o);
 
-        o = _button_add(win, "Settings", "preferences-desktop", _etui_ct_settings_cb, NULL);
+        o = _button_add(win, _("Settings"), "preferences-desktop", _etui_ct_settings_cb, NULL);
         elm_box_pack_end(ct_box, o);
 
-        o = _button_add(win, "About", "help-about", _etui_ct_about_cb, NULL);
+        o = _button_add(win, _("About"), "help-about", _etui_ct_about_cb, NULL);
         elm_box_pack_end(ct_box, o);
 
-        o = _button_add(win, "Quit", "window-close", _etui_ct_close_cb, win);
+        o = _button_add(win, _("Quit"), "window-close", _etui_ct_close_cb, win);
         elm_box_pack_end(ct_box, o);
     }
 

@@ -74,7 +74,7 @@ etui_settings_behavior(Evas_Object *stbox, Evas_Object *win)
     o = elm_frame_add(stbox);
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
     evas_object_size_hint_align_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
-    elm_object_text_set(o, "Behavior");
+    elm_object_text_set(o, _("Behavior"));
     elm_box_pack_end(stbox, o);
     evas_object_show(o);
     fr = o;
@@ -107,8 +107,8 @@ etui_settings_behavior(Evas_Object *stbox, Evas_Object *win)
     evas_object_smart_callback_add(o, "changed", \
                                    _etui_settings_behavior_##_cfg_name##_cb, etui)
 
-    CX(("Visual Bell"), disable_visual_bell, 1);
-    CX(("Bell rings"), bell_rings, 0);
+    CX(_("Visual Bell"), disable_visual_bell, 1);
+    CX(_("Bell rings"), bell_rings, 0);
     op_bell = o;
     elm_object_disabled_set(op_bell, config->disable_visual_bell);
 
