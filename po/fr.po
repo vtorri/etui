@@ -23,21 +23,6 @@ msgstr ""
 msgid "  box (%d, %d) (%d, %d)\n"
 msgstr ""
 
-#: src/bin/etui_theme.c:84
-#, c-format
-msgid " * 1\n"
-msgstr ""
-
-#: src/bin/etui_theme.c:89
-#, c-format
-msgid " * 2 : %s\n"
-msgstr ""
-
-#: src/bin/etui_theme.c:94
-#, c-format
-msgid " * 3\n"
-msgstr ""
-
 #: src/bin/etui_main.c:34
 #, c-format
 msgid "%prog [options] [filename]"
