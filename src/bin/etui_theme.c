@@ -81,18 +81,12 @@ etui_theme_apply(Evas_Object *win, const char *group)
     if ((!win) || (!group))
         return EINA_FALSE;
 
-    fprintf(stderr, " * 1\n");
-    fflush(stderr);
     etui = evas_object_data_get(win, "etui");
     if (!etui)
         return EINA_FALSE;
-    fprintf(stderr, " * 2 : %s\n", etui_theme_default_get(etui));
-    fflush(stderr);
 
     if (elm_layout_file_set(etui->layout, etui_theme_default_get(etui), group))
         return EINA_TRUE;
-    fprintf(stderr, " * 3\n");
-    fflush(stderr);
 
     return EINA_FALSE;
 }
