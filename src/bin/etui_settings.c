@@ -50,27 +50,13 @@ static Settings_Mode st_mode = SETTINGS_NONE;
 static Eina_Bool st_out = EINA_FALSE; // is settings displayed ?
 
 static void
-_cb_op(void *data,
-       Evas_Object *_obj EINA_UNUSED,
-       void *_event EINA_UNUSED)
-{
-   Settings_Mode mode = (intptr_t)data;
-
-   if (st_mode == mode)
-       return;
-
-   st_mode = mode;
-   elm_object_signal_emit(saved_bg, "fg:stdetails,hide", "etui");
-}
-
-static void
 _etui_st_cb(void *data,
             Evas_Object *_obj EINA_UNUSED,
             void *_event EINA_UNUSED)
 {
     Settings_Mode mode;
 
-    mode = (int)(intptr_t)data;
+    mode = (Settings_Mode)(intptr_t)data;
 
     if (st_mode == mode)
         return;
@@ -206,7 +192,7 @@ etui_settings_toggle(Evas_Object *win, Evas_Object *bg)
         st_toolbar = o;
 
 #define ITEM_APPEND(_icon_name, _name, _option_mode) \
-        elm_toolbar_item_append(o, _icon_name, _name, _cb_op, \
+        elm_toolbar_item_append(o, _icon_name, _name, _etui_st_cb, \
                                 (void*) SETTINGS_##_option_mode)
 
         item = ITEM_APPEND("preferences-desktop-theme", _("Theme"), THEME);
