@@ -210,11 +210,14 @@ etui_win_add(void)
     elm_object_focus_allow_set(o, EINA_FALSE);
     elm_object_focus_move_policy_set(o, ELM_FOCUS_MOVE_POLICY_CLICK);
     evas_object_size_hint_weight_set(o, EVAS_HINT_EXPAND, EVAS_HINT_EXPAND);
+    evas_object_size_hint_fill_set(o, EVAS_HINT_FILL, EVAS_HINT_FILL);
+    elm_win_resize_object_add(win, o);
     evas_object_color_set(o, 0, 0, 0, 0);
     evas_object_repeat_events_set(o, EINA_TRUE);
+    elm_object_cursor_theme_search_enabled_set(o, EINA_TRUE);
     evas_object_show(o);
     evas_object_event_callback_add(o, EVAS_CALLBACK_MOUSE_DOWN,
-                                   _cb_mouse_down, etui);
+                                   _cb_mouse_down, win);
     etui->event_mouse = o;
 
     /* dummy button to catch keyboard events */
