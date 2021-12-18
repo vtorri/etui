@@ -30,22 +30,28 @@ if get_option('mupdf') == true and enable_mupdf == true
     if minor == '11'
       mupdf_args += [ '-DFZ_VERSION_MINOR=11' ]
     endif
+
+    mupdf_libs = [ mupdf_a ]
+
     mupdf_third_a = cc.find_library(get_option('mupdf-static-third'),
-      required : true,
+      required : false,
       dirs : get_option('mupdf-libdir')
     )
+
     if mupdf_third_a.found() == true
-      have_pdf = 'yes'
-      config_h.set('ETUI_BUILD_PDF', 1)
-      shared_module('module', pdf_src,
-        c_args : mupdf_args,
-        include_directories : [ config_dir, get_option('mupdf-includedir') ],
-        dependencies : [ etui, mupdf_deps, mupdf_a, mupdf_third_a],
-        install : true,
-        install_dir : mod_install_dir,
-        name_suffix : sys_lib_ext
-      )
+      mupdf_libs += [ mupdf_third_a ]
     endif
+
+    have_pdf = 'yes'
+    config_h.set('ETUI_BUILD_PDF', 1)
+    shared_module('module', pdf_src,
+      c_args : mupdf_args,
+      include_directories : [ config_dir, get_option('mupdf-includedir') ],
+      dependencies : [ etui, mupdf_deps, mupdf_libs],
+      install : true,
+      install_dir : mod_install_dir,
+      name_suffix : sys_lib_ext
+    )
   endif
 
   if have_pdf == 'no'
